@@ -4,7 +4,7 @@ Repérer ce qui monte chez les spécialistes avant que la presse française n'en
 
 ## Le principe
 
-1. **Collecte** (`scripts/collect.mjs`) : Hacker News, Lobsters, GitHub (dépôts créés depuis 14 jours), Hugging Face (modèles et articles de recherche en tendance).
+1. **Collecte** (`scripts/collect.mjs`) : Hacker News, Lobsters, GitHub (dépôts créés depuis 14 jours), Hugging Face (modèles et articles de recherche en tendance), CoinGecko et DefiLlama.
 2. **Force** : chaque signal reçoit un rang de 0 à 100 au sein de sa propre source, pour comparer des métriques différentes (points, étoiles, votes).
 3. **Couverture presse** : pour les 90 signaux les plus forts, un terme distinctif est extrait du titre et cherché dans Google Actualités sur 7 jours, en français et en anglais.
 4. **Indice d'avance** : force × facteur de couverture. « Personne n'en parle » (0 article FR, 0 ou 1 EN), « Fenêtre ouverte » (la presse anglophone en parle, pas la française), « Encore tôt », « Déjà couvert ».
@@ -14,6 +14,12 @@ Repérer ce qui monte chez les spécialistes avant que la presse française n'en
 
 - **Publié comme artifact Claude** : la page appelle Claude directement (rédaction en direct, sélection des 5 sujets du jour) et garde les idées dans la base privée de l'utilisateur.
 - **Hébergement statique** (`dist/vigie/`) : aucune clé d'API. Les boutons produisent la consigne complète à coller dans Claude, et les idées restent dans le navigateur.
+
+## Secteurs, conversations et vidéo
+
+- **Secteur** : Tous, Tech et IA, ou Crypto. Les signaux crypto viennent de CoinGecko (recherches en tendance) et de DefiLlama (protocoles dont la valeur déposée grimpe sur 7 jours).
+- **Posts à commenter** : posts qui prennent sur Bluesky, Mastodon et Hacker News, classés par un indice de portée (vitesse d'engagement, peu de réponses, fraîcheur). L'atelier propose trois réponses ou une citation commentée, dans la langue du post. X et LinkedIn n'ont pas d'accès public : une zone permet d'y coller un post.
+- **Script vidéo** : durée au choix (15 à 90 s), avec un plan de tournage plan par plan dont la colonne « visuel » sert de consigne à un générateur de vidéo.
 
 ## Langue et Notion
 

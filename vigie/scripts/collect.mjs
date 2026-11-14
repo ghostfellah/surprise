@@ -85,6 +85,55 @@ const hfPapers = () => source('Hugging Face (articles)', async () => {
     return { id: 'hp' + p.paper.id, src: 'ar', title: clip(title, 160), desc: clip(p.paper.ai_summary || p.summary || p.paper.summary, 260), url: 'https://arxiv.org/abs/' + p.paper.id, talk: 'https://huggingface.co/papers/' + p.paper.id, t, vel: (p.paper.upvotes || 0) / Math.pow(days + 0.5, 0.8), n: p.paper.upvotes || 0, unit: 'votes de chercheurs', extra: 'arXiv ' + p.paper.id, term: head && head.split(/\s+/).length <= 3 && head.length >= 4 ? head : null };
   }).filter((p) => Number.isFinite(p.t) && now - p.t < 21 * D);
 });
+// --- Crypto ---
+const coingecko = () => source('CoinGecko', async () => {
+  const j = await get('https://api.coingecko.com/api/v3/search/trending');
+  return j.coins.map(({ item: c }, i) => {
+    const chg = c.data?.price_change_percentage_24h?.usd;
+    return { id: 'cg' + c.id, src: 'cg', sec: 'crypto', title: `${c.name} (${c.symbol})`, desc: clip([c.market_cap_rank ? `Rang ${c.market_cap_rank} par capitalisation` : 'Hors classement par capitalisation', Number.isFinite(chg) ? `${chg > 0 ? '+' : ''}${chg.toFixed(1)} % sur 24 h` : ''].filter(Boolean).join(' · '), 160), url: 'https://www.coingecko.com/fr/pièces/' + c.id, t: now, live: 1, vel: 100 - i, n: i + 1, big: 'n° ' + (i + 1), unit: 'des recherches CoinGecko', term: c.name.length >= 4 ? c.name : null };
+  });
+});
+const llama = () => source('DefiLlama', async () => {
+  const j = await get('https://api.llama.fi/protocols');
+  return j.filter((p) => p.tvl > 1e7 && p.change_7d > 10 && p.change_7d < 1000 && !['CEX', 'Chain'].includes(p.category))
+    .sort((a, b) => b.change_7d * Math.log10(b.tvl) - a.change_7d * Math.log10(a.tvl)).slice(0, 30)
+    .map((p) => ({ id: 'dl' + p.slug, src: 'dl', sec: 'crypto', title: p.name, desc: clip(`${p.category || 'DeFi'} sur ${p.chain || 'plusieurs chaînes'}. ${p.description || ''}`, 220), url: 'https://defillama.com/protocol/' + p.slug, t: now, live: 1, vel: p.change_7d * Math.log10(p.tvl), n: Math.round(p.change_7d), big: '+' + Math.round(p.change_7d) + ' %', unit: `de valeur déposée en 7 j · ${(p.tvl / 1e6).toFixed(0)} M$`, term: p.name.replace(/\s+V\d+$/i, '').length >= 4 ? p.name.replace(/\s+V\d+$/i, '') : null }));
+});
+
+// --- Posts à commenter : ce qui prend en ce moment sur les réseaux ouverts ---
+const CRYPTO = /\b(bitcoin|btc|ethereum|eth|crypto\w*|defi|stablecoin\w*|solana|blockchain|onchain|on-chain|altcoin\w*|memecoin\w*|web3|hyperliquid|binance|coinbase|tether|usdc|usdt|airdrop\w*|staking|nft|nfts)\b/i;
+const strip = (h) => String(h || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").trim();
+async function bluesky() {
+  const since = new Date(now - 30 * H).toISOString(), out = [];
+  const qs = [['bitcoin', 'crypto'], ['ethereum', 'crypto'], ['crypto', 'crypto'], ['defi', 'crypto'], ['stablecoin', 'crypto'], ['solana', 'crypto'], ['AI', 'tech'], ['LLM', 'tech'], ['open source', 'tech'], ['startup', 'tech']];
+  for (const [q, sec] of qs) for (const lang of ['en', 'fr']) {
+    try {
+      const j = await get(`https://api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${encodeURIComponent(q)}&sort=top&limit=25&lang=${lang}&since=${encodeURIComponent(since)}`, 'json', 1);
+      for (const p of j.posts || []) {
+        if (p.record?.reply || (p.labels || []).length || (p.author?.labels || []).length) continue;
+        const text = (p.record?.text || '').trim(); if (text.length < 50) continue;
+        out.push({ id: 'bs' + p.uri.split('/').pop(), net: 'bs', sec, lang, who: p.author.displayName || p.author.handle, text: clip(text.replace(/\n{2,}/g, '\n'), 420), url: `https://bsky.app/profile/${p.author.handle}/post/${p.uri.split('/').pop()}`, t: Date.parse(p.record.createdAt), likes: p.likeCount || 0, shares: (p.repostCount || 0) + (p.quoteCount || 0), replies: p.replyCount || 0 });
+      }
+    } catch (e) { console.error('Bluesky', q, lang, e.message); }
+    await sleep(250);
+  }
+  return out;
+}
+async function mastodon() {
+  const out = [], urls = ['https://mastodon.social/api/v1/trends/statuses?limit=40', ...['bitcoin', 'crypto', 'ethereum', 'ai', 'opensource'].map((t) => `https://mastodon.social/api/v1/timelines/tag/${t}?limit=40`)];
+  for (const u of urls) {
+    try {
+      for (const m of await get(u, 'json', 1)) {
+        if (m.sensitive || m.in_reply_to_id || m.reblog) continue;
+        const text = strip(m.content); if (text.length < 50 || !['en', 'fr'].includes(m.language)) continue;
+        out.push({ id: 'ms' + m.id, net: 'ms', sec: CRYPTO.test(text) ? 'crypto' : 'tech', lang: m.language, who: m.account.display_name || m.account.acct, text: clip(text.replace(/\n{2,}/g, '\n'), 420), url: m.url, t: Date.parse(m.created_at), likes: m.favourites_count || 0, shares: m.reblogs_count || 0, replies: m.replies_count || 0 });
+      }
+    } catch (e) { console.error('Mastodon', e.message); }
+    await sleep(250);
+  }
+  return out;
+}
+
 const trends = async () => {
   try {
     const x = await get('https://trends.google.com/trending/rss?geo=FR', 'text');
@@ -99,7 +148,7 @@ async function coverage(term, lang) {
   return (x.match(/<item>/g) || []).length;
 }
 
-const lists = await Promise.all([hn(), lobsters(), github(), hfModels(), hfPapers()]);
+const lists = await Promise.all([hn(), lobsters(), github(), hfModels(), hfPapers(), coingecko(), llama()]);
 // Force : rang relatif dans sa propre source, pour comparer des métriques différentes
 for (const l of lists) { const s = [...l].sort((a, b) => a.vel - b.vel); s.forEach((x, i) => { x.force = Math.round(((i + 1) / s.length) * 100); }); }
 let all = lists.flat();
@@ -113,7 +162,7 @@ for (const g of groups.values()) { const srcs = new Set(g.map((s) => s.src)); if
 all.sort((a, b) => b.force * (b.conv ? 1.25 : 1) - a.force * (a.conv ? 1.25 : 1));
 const cache = new Map();
 let measured = 0, failed = 0;
-for (const s of all.slice(0, 90)) {
+for (const s of all.slice(0, 125)) {
   if (!s.term || failed > 6) continue;
   const k = s.term.toLowerCase();
   if (!cache.has(k)) {
@@ -124,7 +173,19 @@ for (const s of all.slice(0, 90)) {
 }
 console.log(`couverture mesurée pour ${measured} termes, ${failed} échecs`);
 
-const signals = all.slice(0, 160).map(({ vel, ...s }) => { for (const k of Object.keys(s)) if (s[k] == null || s[k] === '') delete s[k]; return s; });
+const signals = all.slice(0, 200).map(({ vel, ...s }) => { for (const k of Object.keys(s)) if (s[k] == null || s[k] === '') delete s[k]; return s; });
 if (signals.length < 20) { console.error('Trop peu de signaux, instantané précédent conservé.'); process.exit(1); }
-writeFileSync(OUT, JSON.stringify({ ts: now, signals, trends: await trends() }));
+// Posts à commenter
+let posts = [];
+try {
+  const seen = new Set();
+  const raw = [...(await bluesky()), ...(await mastodon()),
+    ...lists[0].filter((s) => now - s.t < 10 * H).map((s) => ({ id: 'p' + s.id, net: 'hn', sec: CRYPTO.test(s.title) ? 'crypto' : 'tech', lang: 'en', who: 'Hacker News', text: s.title, url: s.talk, t: s.t, likes: s.n, shares: 0, replies: parseInt(s.extra, 10) || 0 }))];
+  posts = raw.filter((p) => Number.isFinite(p.t) && now - p.t < 36 * H && p.likes + p.shares >= (p.net === 'hn' ? 40 : 8) && !seen.has(p.id) && seen.add(p.id))
+    .map((p) => ({ ...p, sec: p.sec === 'tech' && CRYPTO.test(p.text) ? 'crypto' : p.sec }))
+    .sort((a, b) => (b.likes + 2 * b.shares) / Math.max(0.5, (now - b.t) / H) - (a.likes + 2 * a.shares) / Math.max(0.5, (now - a.t) / H)).slice(0, 150);
+  console.log(`posts à commenter : ${posts.length}`);
+} catch (e) { console.error('posts indisponibles', e.message); }
+
+writeFileSync(OUT, JSON.stringify({ ts: now, signals, posts, trends: await trends() }));
 console.log(`${signals.length} signaux -> ${OUT}`);
