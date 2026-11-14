@@ -30,4 +30,9 @@ copyFileSync(resolve(root, 'site/data.json'), resolve(root, 'dist/data.json'));
 writeFileSync(resolve(root, 'dist/beau-fixe/index.html'), page('beau-fixe/site/app.html', 'Où fait-il beau, et quand partir ? Le climat de 232 destinations mois par mois sur un globe interactif.'));
 for (const f of ['climat.json', 'monde.json']) copyFileSync(resolve(root, 'beau-fixe/site', f), resolve(root, 'dist/beau-fixe', f));
 
+// Paré au départ, dans /pare/
+mkdirSync(resolve(root, 'dist/pare'), { recursive: true });
+writeFileSync(resolve(root, 'dist/pare/index.html'), page('pare/site/app.html', 'Préparez votre voyage : fiche pratique du pays, valise sur mesure selon la météo et compte à rebours des démarches.'));
+copyFileSync(resolve(root, 'pare/site/voyage.json'), resolve(root, 'dist/pare/voyage.json'));
+
 console.log('dist/ prêt');
