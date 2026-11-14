@@ -15,6 +15,11 @@ Repérer ce qui monte chez les spécialistes avant que la presse française n'en
 - **Publié comme artifact Claude** : la page appelle Claude directement (rédaction en direct, sélection des 5 sujets du jour) et garde les idées dans la base privée de l'utilisateur.
 - **Hébergement statique** (`dist/vigie/`) : aucune clé d'API. Les boutons produisent la consigne complète à coller dans Claude, et les idées restent dans le navigateur.
 
+## Langue et Notion
+
+- **Langue d'écriture** : français ou anglais. En anglais, l'indice d'avance se cale sur la couverture anglophone.
+- **Notion** (artifact Claude uniquement) : chaque idée peut être envoyée dans une base Notion via le connecteur Notion de l'utilisateur. La base cible se règle dans `site/config.json` (non versionné, voir `config.exemple.json`) et doit avoir les colonnes `Note` (titre), `Détails` (texte), `Étiquette` (sélection, option « Boîte à idées »), `Source` (sélection, option « Autre ») et `Thème` (sélection multiple, facultative).
+
 ## Limites
 
 - L'extraction du terme est heuristique : un nom courant gonfle la couverture, un titre sans nom propre n'est pas mesuré.
