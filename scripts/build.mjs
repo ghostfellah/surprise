@@ -1,24 +1,33 @@
-// Assemble la version autonome (hébergement statique) dans dist/
+// Assemble les versions autonomes (hébergement statique) dans dist/
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const app = readFileSync(resolve(root, 'site/app.html'), 'utf8');
-const page = `<!doctype html>
+
+function page(src, description, head = '') {
+  return `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Radar d'arbitrage de funding entre Hyperliquid, Binance et Bybit, et classement des vaults Hyperliquid.">
-<script>window.CARRY_LIVE = true;</script>
-</head>
+<meta name="description" content="${description}">
+${head}</head>
 <body>
-${app}
+${readFileSync(resolve(root, src), 'utf8')}
 </body>
 </html>
 `;
-mkdirSync(resolve(root, 'dist'), { recursive: true });
-writeFileSync(resolve(root, 'dist/index.html'), page);
+}
+
+mkdirSync(resolve(root, 'dist/beau-fixe'), { recursive: true });
+
+// Carry Radar, à la racine
+writeFileSync(resolve(root, 'dist/index.html'), page('site/app.html', "Radar d'arbitrage de funding entre Hyperliquid, Binance et Bybit, et classement des vaults Hyperliquid.", '<script>window.CARRY_LIVE = true;</script>\n'));
 copyFileSync(resolve(root, 'site/data.json'), resolve(root, 'dist/data.json'));
+
+// Beau Fixe, dans /beau-fixe/
+writeFileSync(resolve(root, 'dist/beau-fixe/index.html'), page('beau-fixe/site/app.html', 'Où fait-il beau, et quand partir ? Le climat de 232 destinations mois par mois sur un globe interactif.'));
+for (const f of ['climat.json', 'monde.json']) copyFileSync(resolve(root, 'beau-fixe/site', f), resolve(root, 'dist/beau-fixe', f));
+
 console.log('dist/ prêt');

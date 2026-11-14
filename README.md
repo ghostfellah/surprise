@@ -1,3 +1,10 @@
+# Surprise
+
+Deux applications statiques, sans dépendance ni clé d'API.
+
+- **Carry Radar** (racine du dépôt) : arbitrage de funding sur Hyperliquid.
+- **Beau Fixe** (`beau-fixe/`) : où fait-il beau et quand partir, sur un globe interactif. Voir `beau-fixe/README.md`.
+
 # Carry Radar
 
 Radar d'arbitrage de funding entre Hyperliquid, Binance et Bybit, et classement des vaults Hyperliquid par rendement rapporté au risque.
@@ -30,7 +37,7 @@ Aucune dépendance, aucune clé d'API. Node 20 ou plus.
 1. Fusionner la branche dans `main`.
 2. Dans Settings → Pages, choisir « GitHub Actions » comme source.
 
-Le workflow `.github/workflows/pages.yml` publie alors le site et rafraîchit l'instantané toutes les heures.
+Le workflow `.github/workflows/pages.yml` publie alors Carry Radar à la racine et Beau Fixe sous `/beau-fixe/`, et rafraîchit l'instantané toutes les heures.
 
 ## Structure
 

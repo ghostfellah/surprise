@@ -1,0 +1,233 @@
+# nom|pays|région|lat|lon|altitude m|types (p plage, v ville, n nature, m montagne)
+Paris|France|E|48.86|2.35|35|v
+Nice|France|E|43.70|7.27|10|pv
+Biarritz|France|E|43.48|-1.56|20|p
+Ajaccio|France|E|41.92|8.74|10|pn
+Chamonix|France|E|45.92|6.87|1035|mn
+Bordeaux|France|E|44.84|-0.58|15|v
+Saint-Malo|France|E|48.65|-2.02|10|pv
+Strasbourg|France|E|48.58|7.75|140|v
+Londres|Royaume-Uni|E|51.51|-0.13|15|v
+Édimbourg|Royaume-Uni|E|55.95|-3.19|50|vn
+Dublin|Irlande|E|53.35|-6.26|10|v
+Amsterdam|Pays-Bas|E|52.37|4.90|0|v
+Bruges|Belgique|E|51.21|3.22|5|v
+Berlin|Allemagne|E|52.52|13.40|35|v
+Munich|Allemagne|E|48.14|11.58|520|v
+Vienne|Autriche|E|48.21|16.37|170|v
+Innsbruck|Autriche|E|47.27|11.39|575|m
+Zermatt|Suisse|E|46.02|7.75|1600|mn
+Lucerne|Suisse|E|47.05|8.31|435|vm
+Prague|Tchéquie|E|50.08|14.44|200|v
+Budapest|Hongrie|E|47.50|19.04|100|v
+Cracovie|Pologne|E|50.06|19.94|220|v
+Copenhague|Danemark|E|55.68|12.57|5|v
+Stockholm|Suède|E|59.33|18.07|15|v
+Bergen|Norvège|E|60.39|5.32|10|nv
+Tromsø|Norvège|E|69.65|18.96|10|n
+Îles Lofoten|Norvège|E|68.23|14.57|10|nm
+Helsinki|Finlande|E|60.17|24.94|10|v
+Rovaniemi|Finlande|E|66.50|25.73|90|n
+Reykjavik|Islande|E|64.15|-21.94|15|nv
+Tallinn|Estonie|E|59.44|24.75|10|v
+Lisbonne|Portugal|E|38.72|-9.14|30|v
+Porto|Portugal|E|41.15|-8.61|60|v
+Algarve|Portugal|E|37.02|-7.93|10|p
+Madère|Portugal|E|32.65|-16.91|30|np
+Açores|Portugal|E|37.74|-25.67|30|n
+Madrid|Espagne|E|40.42|-3.70|650|v
+Barcelone|Espagne|E|41.39|2.17|15|vp
+Séville|Espagne|E|37.39|-5.98|10|v
+Valence|Espagne|E|39.47|-0.38|15|vp
+Malaga|Espagne|E|36.72|-4.42|10|pv
+Majorque|Espagne|E|39.57|2.65|15|p
+Ibiza|Espagne|E|38.91|1.43|10|p
+Tenerife|Espagne|E|28.05|-16.72|20|pn
+Lanzarote|Espagne|E|28.96|-13.55|20|p
+Saint-Sébastien|Espagne|E|43.32|-1.98|10|pv
+Rome|Italie|E|41.90|12.50|25|v
+Florence|Italie|E|43.77|11.26|50|v
+Venise|Italie|E|45.44|12.32|0|v
+Milan|Italie|E|45.46|9.19|120|v
+Naples et côte amalfitaine|Italie|E|40.75|14.35|15|pv
+Sicile|Italie|E|37.50|15.09|10|pv
+Sardaigne|Italie|E|39.22|9.12|10|p
+Dolomites|Italie|E|46.54|12.14|1220|mn
+Lac de Côme|Italie|E|45.99|9.26|200|nm
+Malte|Malte|E|35.90|14.51|20|pv
+Dubrovnik|Croatie|E|42.65|18.09|10|pv
+Split|Croatie|E|43.51|16.44|10|pv
+Kotor|Monténégro|E|42.42|18.77|10|pn
+Ljubljana|Slovénie|E|46.06|14.51|295|v
+Athènes|Grèce|E|37.98|23.73|70|v
+Santorin|Grèce|E|36.39|25.46|30|p
+Crète|Grèce|E|35.34|25.13|20|pn
+Corfou|Grèce|E|39.62|19.92|10|p
+Rhodes|Grèce|E|36.43|28.22|10|p
+Chypre|Chypre|E|34.68|33.04|10|p
+Istanbul|Turquie|E|41.01|28.98|40|v
+Antalya|Turquie|E|36.90|30.70|30|p
+Cappadoce|Turquie|E|38.64|34.83|1050|n
+Bodrum|Turquie|E|37.03|27.43|10|p
+Tbilissi|Géorgie|E|41.72|44.79|500|v
+Bucarest|Roumanie|E|44.43|26.10|80|v
+Sofia|Bulgarie|E|42.70|23.32|550|v
+Marrakech|Maroc|F|31.63|-7.99|465|v
+Essaouira|Maroc|F|31.51|-9.77|10|p
+Agadir|Maroc|F|30.42|-9.60|20|p
+Fès|Maroc|F|34.03|-5.00|410|v
+Tunis|Tunisie|F|36.81|10.18|10|v
+Djerba|Tunisie|F|33.81|10.86|5|p
+Le Caire|Égypte|F|30.04|31.24|25|v
+Louxor|Égypte|F|25.69|32.64|80|v
+Hurghada|Égypte|F|27.26|33.81|5|p
+Charm el-Cheikh|Égypte|F|27.92|34.33|5|p
+Dakar|Sénégal|F|14.69|-17.45|15|pv
+Sal|Cap-Vert|F|16.75|-22.94|10|p
+Zanzibar|Tanzanie|F|-6.16|39.20|10|p
+Serengeti|Tanzanie|F|-2.33|34.83|1500|n
+Nairobi et Masai Mara|Kenya|F|-1.29|36.82|1700|n
+Le Cap|Afrique du Sud|F|-33.92|18.42|20|vpn
+Parc Kruger|Afrique du Sud|F|-24.99|31.59|300|n
+Chutes Victoria|Zimbabwe|F|-17.93|25.83|900|n
+Windhoek et Namib|Namibie|F|-22.56|17.08|1650|n
+Antananarivo|Madagascar|F|-18.88|47.51|1280|n
+Nosy Be|Madagascar|F|-13.31|48.26|10|p
+Île Maurice|Maurice|F|-20.16|57.50|10|p
+La Réunion|France|F|-21.01|55.27|20|npm
+Seychelles|Seychelles|F|-4.62|55.45|10|p
+Kigali|Rwanda|F|-1.95|30.06|1550|n
+Dubaï|Émirats arabes unis|M|25.20|55.27|5|vp
+Abou Dhabi|Émirats arabes unis|M|24.45|54.38|5|vp
+Mascate|Oman|M|23.59|58.41|10|pn
+Doha|Qatar|M|25.29|51.53|10|v
+Pétra|Jordanie|M|30.33|35.44|900|n
+Aqaba|Jordanie|M|29.53|35.01|10|p
+Tel-Aviv|Israël|M|32.08|34.78|10|vp
+Jérusalem|Israël|M|31.77|35.21|780|v
+Beyrouth|Liban|M|33.89|35.50|40|v
+Samarcande|Ouzbékistan|A|39.65|66.96|720|v
+Delhi et Taj Mahal|Inde|A|28.61|77.21|215|v
+Jaipur|Inde|A|26.91|75.79|430|v
+Goa|Inde|A|15.30|74.12|10|p
+Kerala|Inde|A|9.93|76.27|5|pn
+Mumbai|Inde|A|19.08|72.88|10|v
+Ladakh|Inde|A|34.15|77.58|3500|m
+Katmandou|Népal|A|27.72|85.32|1400|mv
+Colombo et côte sud|Sri Lanka|A|6.03|80.22|10|p
+Maldives|Maldives|A|4.18|73.51|2|p
+Bangkok|Thaïlande|A|13.76|100.50|5|v
+Chiang Mai|Thaïlande|A|18.79|98.99|310|vn
+Phuket|Thaïlande|A|7.88|98.39|10|p
+Koh Samui|Thaïlande|A|9.51|100.01|10|p
+Krabi|Thaïlande|A|8.09|98.91|10|p
+Hanoï|Vietnam|A|21.03|105.85|15|v
+Baie d'Along|Vietnam|A|20.91|107.18|5|n
+Hoi An|Vietnam|A|15.88|108.34|5|vp
+Hô Chi Minh-Ville|Vietnam|A|10.82|106.63|10|v
+Phu Quoc|Vietnam|A|10.23|103.97|10|p
+Siem Reap (Angkor)|Cambodge|A|13.36|103.86|20|v
+Luang Prabang|Laos|A|19.89|102.14|300|vn
+Bagan|Birmanie|A|21.17|94.86|60|v
+Singapour|Singapour|A|1.35|103.82|15|v
+Kuala Lumpur|Malaisie|A|3.14|101.69|60|v
+Langkawi|Malaisie|A|6.35|99.80|10|p
+Bornéo (Kota Kinabalu)|Malaisie|A|5.98|116.07|10|n
+Bali|Indonésie|A|-8.65|115.22|10|pn
+Lombok et îles Gili|Indonésie|A|-8.35|116.04|5|p
+Yogyakarta|Indonésie|A|-7.80|110.36|110|v
+Komodo et Flores|Indonésie|A|-8.50|119.88|10|n
+Palawan|Philippines|A|11.20|119.42|10|p
+Boracay|Philippines|A|11.97|121.92|5|p
+Cebu|Philippines|A|10.32|123.89|10|p
+Hong Kong|Chine|A|22.32|114.17|20|v
+Pékin|Chine|A|39.90|116.41|45|v
+Shanghai|Chine|A|31.23|121.47|5|v
+Guilin|Chine|A|25.27|110.29|150|n
+Chengdu|Chine|A|30.57|104.07|500|v
+Lhassa|Chine|A|29.65|91.14|3650|m
+Taipei|Taïwan|A|25.03|121.57|10|v
+Séoul|Corée du Sud|A|37.57|126.98|40|v
+Jeju|Corée du Sud|A|33.50|126.53|20|pn
+Tokyo|Japon|A|35.68|139.69|40|v
+Kyoto|Japon|A|35.01|135.77|50|v
+Osaka|Japon|A|34.69|135.50|10|v
+Sapporo|Japon|A|43.06|141.35|20|vm
+Okinawa|Japon|A|26.21|127.68|10|p
+Oulan-Bator|Mongolie|A|47.89|106.91|1350|n
+New York|États-Unis|N|40.71|-74.01|10|v
+Boston|États-Unis|N|42.36|-71.06|10|v
+Washington|États-Unis|N|38.91|-77.04|20|v
+Miami|États-Unis|N|25.76|-80.19|2|pv
+Orlando|États-Unis|N|28.54|-81.38|30|v
+La Nouvelle-Orléans|États-Unis|N|29.95|-90.07|2|v
+Chicago|États-Unis|N|41.88|-87.63|180|v
+Las Vegas|États-Unis|N|36.17|-115.14|610|v
+Grand Canyon|États-Unis|N|36.06|-112.14|2100|n
+Los Angeles|États-Unis|N|34.05|-118.24|90|vp
+San Diego|États-Unis|N|32.72|-117.16|20|pv
+San Francisco|États-Unis|N|37.77|-122.42|15|v
+Yosemite|États-Unis|N|37.75|-119.59|1200|nm
+Yellowstone|États-Unis|N|44.46|-110.83|2350|nm
+Seattle|États-Unis|N|47.61|-122.33|50|v
+Denver et Rocheuses|États-Unis|N|39.74|-104.99|1610|m
+Honolulu|États-Unis|N|21.31|-157.86|5|p
+Maui|États-Unis|N|20.80|-156.33|20|pn
+Anchorage|États-Unis|N|61.22|-149.90|30|n
+Montréal|Canada|N|45.50|-73.57|35|v
+Québec|Canada|N|46.81|-71.21|75|v
+Toronto|Canada|N|43.65|-79.38|80|v
+Vancouver|Canada|N|49.28|-123.12|10|vn
+Banff|Canada|N|51.18|-115.57|1400|mn
+Mexico|Mexique|N|19.43|-99.13|2240|v
+Cancún et Riviera Maya|Mexique|N|21.16|-86.85|5|p
+Oaxaca|Mexique|N|17.07|-96.73|1550|v
+Puerto Vallarta|Mexique|N|20.65|-105.23|10|p
+Los Cabos|Mexique|N|22.89|-109.92|10|p
+La Havane|Cuba|N|23.11|-82.37|10|vp
+Punta Cana|République dominicaine|N|18.58|-68.40|10|p
+Guadeloupe|France|N|16.24|-61.53|10|pn
+Martinique|France|N|14.62|-61.06|10|pn
+Saint-Martin|France|N|18.07|-63.05|10|p
+Jamaïque|Jamaïque|N|18.47|-77.92|10|p
+Bahamas|Bahamas|N|25.05|-77.35|5|p
+Barbade|Barbade|N|13.10|-59.61|10|p
+Aruba|Aruba|N|12.52|-69.97|10|p
+Costa Rica (Pacifique)|Costa Rica|N|10.30|-85.84|10|pn
+Antigua|Guatemala|N|14.56|-90.73|1530|v
+Panama|Panama|N|8.98|-79.52|10|v
+Carthagène|Colombie|S|10.39|-75.51|5|vp
+Medellín|Colombie|S|6.24|-75.58|1500|v
+Quito|Équateur|S|-0.18|-78.47|2850|vm
+Galápagos|Équateur|S|-0.74|-90.31|10|n
+Cusco et Machu Picchu|Pérou|S|-13.53|-71.97|3400|mn
+La Paz|Bolivie|S|-16.50|-68.15|3640|m
+Salar d'Uyuni|Bolivie|S|-20.46|-66.83|3660|n
+Rio de Janeiro|Brésil|S|-22.91|-43.17|10|vp
+Salvador de Bahia|Brésil|S|-12.97|-38.50|10|vp
+Chutes d'Iguazú|Brésil|S|-25.69|-54.44|200|n
+Manaus (Amazonie)|Brésil|S|-3.12|-60.02|90|n
+Fortaleza et Jericoacoara|Brésil|S|-3.73|-38.52|15|p
+Buenos Aires|Argentine|S|-34.60|-58.38|25|v
+Mendoza|Argentine|S|-32.89|-68.84|750|nm
+Bariloche|Argentine|S|-41.13|-71.31|890|mn
+El Calafate (Patagonie)|Argentine|S|-50.34|-72.26|200|n
+Ushuaia|Argentine|S|-54.80|-68.30|30|n
+Santiago|Chili|S|-33.45|-70.67|520|v
+San Pedro de Atacama|Chili|S|-22.91|-68.20|2400|n
+Torres del Paine|Chili|S|-51.25|-72.35|100|nm
+Île de Pâques|Chili|S|-27.11|-109.35|50|n
+Montevideo|Uruguay|S|-34.90|-56.16|40|v
+Sydney|Australie|O|-33.87|151.21|20|vp
+Melbourne|Australie|O|-37.81|144.96|30|v
+Cairns et Grande Barrière|Australie|O|-16.92|145.77|5|pn
+Uluru|Australie|O|-25.34|131.04|520|n
+Perth|Australie|O|-31.95|115.86|15|vp
+Gold Coast|Australie|O|-28.02|153.40|5|p
+Tasmanie|Australie|O|-42.88|147.33|20|n
+Auckland|Nouvelle-Zélande|O|-36.85|174.76|20|v
+Queenstown|Nouvelle-Zélande|O|-45.03|168.66|330|mn
+Fidji|Fidji|O|-17.77|177.44|10|p
+Tahiti|Polynésie française|O|-17.54|-149.57|10|p
+Bora Bora|Polynésie française|O|-16.50|-151.74|5|p
+Nouméa|Nouvelle-Calédonie|O|-22.28|166.46|10|p
