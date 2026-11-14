@@ -1,4 +1,4 @@
-name: Publier Carry Radar
+name: Publier les applications
 
 on:
   push:
@@ -29,6 +29,8 @@ jobs:
           node-version: 22
       - name: Rafraîchir l'instantané (garde le dernier en cas d'échec)
         run: node scripts/snapshot.mjs || echo "API indisponible, instantané du dépôt conservé"
+      - name: Rafraîchir les signaux de Vigie (garde les derniers en cas d'échec)
+        run: node vigie/scripts/collect.mjs || echo "Sources indisponibles, relevé du dépôt conservé"
       - run: node scripts/build.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

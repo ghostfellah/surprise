@@ -1,8 +1,9 @@
 # Surprise
 
-Trois applications statiques, sans dépendance ni clé d'API.
+Quatre applications statiques, sans dépendance ni clé d'API.
 
 - **Carry Radar** (racine du dépôt) : arbitrage de funding sur Hyperliquid.
+- **Vigie** (`vigie/`) : radar de signaux précoces et atelier de rédaction. Voir `vigie/README.md`.
 - **Paré au départ** (`pare/`) : fiche pratique du pays, valise sur mesure et compte à rebours des démarches. Voir `pare/README.md`.
 - **Beau Fixe** (`beau-fixe/`) : où fait-il beau et quand partir, sur un globe interactif. Voir `beau-fixe/README.md`.
 
@@ -38,7 +39,7 @@ Aucune dépendance, aucune clé d'API. Node 20 ou plus.
 1. Fusionner la branche dans `main`.
 2. Dans Settings → Pages, choisir « GitHub Actions » comme source.
 
-Le workflow `.github/workflows/pages.yml` publie alors Carry Radar à la racine Beau Fixe sous `/beau-fixe/` et Paré sous `/pare/`, et rafraîchit l'instantané toutes les heures.
+Le workflow `.github/workflows/pages.yml` publie alors Carry Radar à la racine Beau Fixe sous `/beau-fixe/`, Paré sous `/pare/` et Vigie sous `/vigie/`, et rafraîchit l'instantané toutes les heures.
 
 ## Structure
 
