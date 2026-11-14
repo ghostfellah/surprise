@@ -1,0 +1,10 @@
+{
+  "name": "carry-radar",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "snapshot": "node scripts/snapshot.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "npm run build && npx --yes serve dist"
+  }
+}
