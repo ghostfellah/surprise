@@ -1,0 +1,545 @@
+<title>Carry Radar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* Mise en page : un pupitre de desk. Bandeau d'état, une opportunité vedette à gauche et les réglages à droite, puis des onglets pleine largeur. */
+:root{
+  --bg:#0c131f; --surface:#131c2b; --raised:#1a2537; --line:#26334b; --fg:#e9eef6; --muted:#8d9ab1;
+  --accent:#f2b441; --accent-ink:#1c1403; --long:#3ecfa8; --short:#f2766f; --warn:#f2b441;
+  --display:"Sora","Segoe UI",system-ui,sans-serif; --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#f2f4f8; --surface:#ffffff; --raised:#f7f8fb; --line:#d9dfe9; --fg:#131b28; --muted:#5d6a80;
+  --accent:#a86a00; --accent-ink:#ffffff; --long:#0b8468; --short:#c5403a; --warn:#a86a00; color-scheme:light } }
+:root[data-theme="light"]{
+  --bg:#f2f4f8; --surface:#ffffff; --raised:#f7f8fb; --line:#d9dfe9; --fg:#131b28; --muted:#5d6a80;
+  --accent:#a86a00; --accent-ink:#ffffff; --long:#0b8468; --short:#c5403a; --warn:#a86a00; color-scheme:light }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.pos{color:var(--long)} .neg{color:var(--short)} .mut{color:var(--muted)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+
+/* Bandeau */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{flex:none}
+.brand h1{font:700 22px/1 var(--display);margin:0;letter-spacing:-.02em}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.status{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.live .dot{background:var(--long);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.ghost{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;font-size:13px}
+.ghost:hover{border-color:var(--accent)}
+
+/* Vedette + réglages */
+.deck{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.deck{grid-template-columns:minmax(0,1fr)}}
+.star{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.star-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px}
+.star-coin{font:700 34px/1 var(--display);letter-spacing:-.02em}
+.star-apr{font:600 44px/1 var(--mono);color:var(--accent);letter-spacing:-.03em}
+.star-apr small{font-family:var(--body);font-size:14px;color:var(--muted);font-weight:500;letter-spacing:0;margin-left:6px}
+.legs{display:flex;flex-wrap:wrap;gap:8px}
+.leg{display:inline-flex;align-items:center;gap:6px;border-radius:6px;padding:3px 8px;font:500 12px/1.4 var(--mono);border:1px solid var(--line);white-space:nowrap}
+.leg b{font-weight:600}
+.leg.l b{color:var(--long)} .leg.s b{color:var(--short)}
+.star-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;border-top:1px solid var(--line);padding-top:16px}
+.kv span{display:block;font-size:12px;color:var(--muted)}
+.kv b{font:600 18px/1.3 var(--mono)}
+.star-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.cta{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:9px 16px;font-weight:600}
+.cta:hover{filter:brightness(1.08)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.field input[type=number],.field select{background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;font-family:var(--mono)}
+.field input[type=range]{width:100%;accent-color:var(--accent)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.chk{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;user-select:none}
+.chk input{accent-color:var(--accent);margin:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.kpi{background:var(--surface);padding:14px 18px;min-width:0}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi b{font:600 20px/1.4 var(--mono)}
+.kpi em{font-style:normal;font-size:12px;color:var(--muted);display:block}
+
+/* Onglets */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font:600 14px var(--display);color:var(--muted);white-space:nowrap}
+.tab[aria-selected=true]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab .count{font:500 11px var(--mono);color:var(--muted);margin-left:6px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.toolbar input[type=search]{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:0;width:220px;max-width:100%}
+.hint{font-size:13px;color:var(--muted);margin:0;max-width:70ch}
+
+/* Tableaux */
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th{font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:12px 10px;border-bottom:1px solid var(--line);white-space:nowrap;position:relative}
+th:first-child,td:first-child,th.l,td.l{text-align:left}
+th[data-sort]{cursor:pointer}
+th[data-sort]:hover{color:var(--fg)}
+th[aria-sort]::after{content:"▾";margin-left:4px;color:var(--accent)}
+th[aria-sort=ascending]::after{content:"▴"}
+td{padding:10px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--raised)}
+.coin{display:flex;flex-direction:column}
+.coin b{font:600 15px var(--display)}
+.coin span{font-size:12px;color:var(--muted)}
+.big{font:600 16px var(--mono);color:var(--accent)}
+.rates{display:inline-grid;grid-template-columns:repeat(3,56px);gap:4px;font:500 12px var(--mono)}
+.rates i{font-style:normal;display:block;font-size:10px;color:var(--muted);letter-spacing:.06em}
+.rates div{background:var(--raised);border-radius:6px;padding:3px 4px;text-align:center}
+.rates div.off{opacity:.35}
+.hold{display:inline-flex;align-items:center;gap:8px}
+.holdcol{display:inline-flex;flex-direction:column;align-items:flex-end;gap:2px}
+#arb .legs{flex-direction:column;gap:4px;align-items:flex-start}
+.bar{width:44px;height:6px;border-radius:3px;background:var(--raised);overflow:hidden;display:inline-block}
+.bar i{display:block;height:100%;background:var(--long)}
+.bar.mid i{background:var(--warn)} .bar.low i{background:var(--short)}
+.empty{padding:40px 16px;text-align:center;color:var(--muted)}
+
+/* Carte du funding */
+.heat{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.cell{border:1px solid var(--line);border-radius:8px;padding:8px 9px;text-align:left;display:flex;flex-direction:column;gap:2px;min-width:0;color:var(--fg)}
+.cell b{font:600 13px var(--display);overflow:hidden;text-overflow:ellipsis}
+.cell span{font:500 12px var(--mono)}
+.cell:hover{border-color:var(--fg)}
+.legend{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.ramp{width:180px;max-width:100%;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--long),var(--surface),var(--short))}
+
+/* Tiroir de détail */
+.veil{position:fixed;inset:0;background:rgba(4,8,14,.55);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--surface);border-left:1px solid var(--line);z-index:21;overflow-y:auto;padding:calc(20px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) 20px;display:flex;flex-direction:column;gap:18px}
+.drawer h2{font:700 26px/1.1 var(--display);margin:0;letter-spacing:-.02em}
+.drawer h3{font:600 13px var(--display);margin:0;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.x{border:1px solid var(--line);background:transparent;border-radius:8px;width:34px;height:34px;font-size:18px;line-height:1;flex:none}
+.chart{width:100%;height:auto;display:block}
+.chart text{font:10px var(--mono);fill:var(--muted)}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.note{font-size:13px;color:var(--muted);border-left:2px solid var(--warn);padding-left:12px;margin:0}
+.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.method section{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.method h3{font:600 16px var(--display);margin:0 0 8px}
+.method p,.method li{font-size:14px;color:var(--muted);margin:0 0 8px}
+.method ul{margin:0;padding-left:18px}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="17" fill="none" stroke="var(--line)" stroke-width="2"/><circle cx="19" cy="19" r="10" fill="none" stroke="var(--line)" stroke-width="2"/><path d="M19 19 L31 9" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/><circle cx="19" cy="19" r="3" fill="var(--accent)"/><circle cx="27" cy="25" r="2.2" fill="var(--long)"/></svg>
+      <div><h1>Carry Radar</h1><p>Arbitrage de funding Hyperliquid · Binance · Bybit</p></div>
+    </div>
+    <div class="status">
+      <span class="pill" id="status"><span class="dot"></span><span id="statusText">Chargement…</span></span>
+      <button class="ghost" id="refresh" type="button" hidden>Actualiser</button>
+    </div>
+  </header>
+
+  <section class="deck">
+    <article class="star" id="star"><div class="eyebrow">Meilleure opportunité du moment</div><div class="empty">Lecture des marchés…</div></article>
+    <aside class="panel">
+      <div class="eyebrow">Tes réglages</div>
+      <div class="field"><label for="capital">Capital engagé (USDC)</label><input id="capital" type="number" min="100" step="500" value="10000" inputmode="numeric"></div>
+      <div class="field"><label for="lev"><span>Levier par jambe</span><span class="num" id="levOut">2×</span></label><input id="lev" type="range" min="1" max="5" step="0.5" value="2"></div>
+      <div class="field"><label for="minvol">Volume 24 h minimum sur Hyperliquid</label>
+        <select id="minvol"><option value="250000">250 k$</option><option value="1000000" selected>1 M$</option><option value="5000000">5 M$</option><option value="25000000">25 M$</option></select></div>
+      <div class="checks" role="group" aria-label="Venues">
+        <label class="chk"><input type="checkbox" id="vBIN" checked> Binance</label>
+        <label class="chk"><input type="checkbox" id="vBYB" checked> Bybit</label>
+        <label class="chk"><input type="checkbox" id="needHL" checked> Une jambe sur Hyperliquid</label>
+      </div>
+    </aside>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Vue d'ensemble"></section>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="arbitrages" type="button">Arbitrages<span class="count" id="cArb"></span></button>
+    <button class="tab" role="tab" data-tab="funding" type="button">Carte du funding<span class="count" id="cHeat"></span></button>
+    <button class="tab" role="tab" data-tab="vaults" type="button">Vaults<span class="count" id="cVault"></span></button>
+    <button class="tab" role="tab" data-tab="methode" type="button">Méthode et risques</button>
+  </nav>
+
+  <section id="tab-arbitrages" class="tabpane" style="display:flex;flex-direction:column;gap:14px">
+    <div class="toolbar">
+      <p class="hint">On achète le perpétuel là où le funding est le plus bas, on le vend là où il est le plus haut. Le prix se neutralise, il reste l'écart de funding. Clique une ligne pour le plan détaillé.</p>
+      <input type="search" id="q" placeholder="Filtrer un actif…" aria-label="Filtrer un actif">
+    </div>
+    <div class="scroll"><table id="arb">
+      <thead><tr>
+        <th data-sort="coin" class="l">Actif</th><th class="l">Position</th><th>Funding annualisé par venue</th>
+        <th data-sort="spread">Écart brut</th><th data-sort="hold">Tenue 7 j</th><th data-sort="score">Écart prudent</th>
+        <th data-sort="vol">Volume 24 h</th><th data-sort="day">Gain / jour</th><th data-sort="be">Frais amortis en</th>
+      </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="tab-funding" class="tabpane" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="toolbar">
+      <p class="hint">Funding Hyperliquid annualisé, marchés triés par volume. Rouge : les longs paient (marché chargé à l'achat). Vert : les shorts paient.</p>
+      <div class="legend"><span class="num">−100 %</span><span class="ramp"></span><span class="num">+100 %</span></div>
+    </div>
+    <div class="heat" id="heat"></div>
+  </section>
+
+  <section id="tab-vaults" class="tabpane" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="toolbar">
+      <p class="hint">Les vaults Hyperliquid de plus de 100 k$ ouverts, classés par rendement rapporté au pire creux (ratio de Calmar). APR tel que publié par Hyperliquid. Pas de note pour les vaults de moins de 60 jours ou dont le creux dépasse −80 %.</p>
+      <label class="chk"><input type="checkbox" id="vOpen" checked> Dépôts ouverts uniquement</label>
+    </div>
+    <div class="scroll"><table id="vt">
+      <thead><tr>
+        <th data-sort="name" class="l">Vault</th><th data-sort="tvl">Encours</th><th data-sort="apr">APR</th><th data-sort="r30">30 jours</th>
+        <th data-sort="mdd">Pire creux</th><th data-sort="calmar">Calmar</th><th data-sort="age">Ancienneté</th><th data-sort="fee">Commission</th><th>Performance cumulée</th>
+      </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="tab-methode" class="tabpane method" hidden>
+    <section><h3>Comment lire l'écart</h3>
+      <p>Chaque venue publie un taux de funding prévu : horaire sur Hyperliquid, par tranche de 4 ou 8 heures ailleurs. Tout est ramené à l'heure puis annualisé (× 8 760) pour comparer.</p>
+      <p>L'<b>écart brut</b> est la différence entre les deux venues à l'instant. L'<b>écart prudent</b> remplace le taux Hyperliquid du moment par sa moyenne sur 7 jours quand elle est moins favorable. C'est lui qui sert au classement et au gain estimé.</p></section>
+    <section><h3>Tenue 7 jours</h3>
+      <p>Part des 168 dernières heures où le funding Hyperliquid était du bon côté du taux actuel de l'autre venue. 90 % veut dire que l'écart existait presque toute la semaine. En dessous de 50 %, c'est un pic ponctuel.</p>
+      <p>L'historique de Binance et Bybit n'est pas inclus : leur taux actuel sert de repère fixe.</p></section>
+    <section><h3>Gain et frais</h3>
+      <p>Le capital est réparti moitié-moitié entre les deux venues. Notionnel par jambe = capital × levier ÷ 2. Gain par jour = notionnel × écart prudent horaire × 24.</p>
+      <p>Frais d'aller-retour en ordres au marché : Hyperliquid 0,045 %, Binance 0,05 %, Bybit 0,055 % par exécution, soit quatre exécutions au total. Des ordres limites réduisent nettement la note.</p></section>
+    <section><h3>Ce qui peut mal tourner</h3>
+      <ul><li>Le funding se retourne : l'écart d'aujourd'hui ne garantit rien pour demain.</li>
+      <li>Une jambe se fait liquider sur un mouvement violent pendant que l'autre gagne. Garde un levier bas et de la marge.</li>
+      <li>Petits marchés : carnet mince, glissement à l'entrée et à la sortie.</li>
+      <li>Risque de contrepartie sur chaque plateforme, et pour les vaults, risque du gérant.</li></ul>
+      <p>Cet outil affiche des données publiques et des estimations. Ce n'est pas un conseil en investissement.</p></section>
+  </section>
+
+  <footer id="foot">Données publiques de l'API Hyperliquid. Estimations hors glissement, à vérifier avant tout ordre.</footer>
+</div>
+
+<div class="veil" id="veil" hidden></div>
+<aside class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="dTitle"></aside>
+
+<script>
+(() => {
+'use strict';
+const API = 'https://api.hyperliquid.xyz/info';
+const FEES = { HL: 0.00045, BIN: 0.0005, BYB: 0.00055 };
+const VNAME = { HL: 'Hyperliquid', BIN: 'Binance', BYB: 'Bybit' };
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nf = (d) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: d, minimumFractionDigits: d });
+const f0 = nf(0), f1 = nf(1), f2 = nf(2);
+const pct = (x, d = 1) => (x > 0 ? '+' : x < 0 ? '−' : '') + nf(d).format(Math.abs(x)) + ' %';
+const usd = (x) => { const a = Math.abs(x); const s = x < 0 ? '−' : ''; return s + (a >= 1e9 ? f2.format(a / 1e9) + ' Md$' : a >= 1e6 ? f1.format(a / 1e6) + ' M$' : a >= 1e4 ? f0.format(a / 1e3) + ' k$' : f0.format(a) + ' $'); };
+const money = (x) => (x < 0 ? '−' : '') + (Math.abs(x) < 100 ? f2 : f0).format(Math.abs(x)) + ' $';
+const px = (x) => new Intl.NumberFormat('fr-FR', { maximumSignificantDigits: 5 }).format(x);
+const apr = (r) => r * 8760 * 100;
+const cls = (x) => (x > 0 ? 'pos' : x < 0 ? 'neg' : 'mut');
+
+const store = { get(k, d) { try { const v = localStorage.getItem('cr.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem('cr.' + k, JSON.stringify(v)); } catch {} } };
+
+const S = { data: null, live: false, liveAt: 0, rows: [], sortArb: { k: 'score', d: -1 }, sortV: { k: 'calmar', d: -1 }, open: null };
+
+// ---------- Données ----------
+async function hl(body) {
+  const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+async function loadSnapshot() {
+  const r = await fetch('data.json', { cache: 'no-store' });
+  if (!r.ok) throw new Error('instantané introuvable');
+  return r.json();
+}
+async function loadLive() {
+  const [[meta, ctxs], predicted] = await Promise.all([hl({ type: 'metaAndAssetCtxs' }), hl({ type: 'predictedFundings' })]);
+  const markets = {};
+  meta.universe.forEach((u, i) => {
+    if (u.isDelisted) return;
+    const c = ctxs[i], mark = +c.markPx;
+    markets[u.name] = { px: mark, chg: +c.prevDayPx ? (mark / +c.prevDayPx - 1) * 100 : 0, oi: +c.openInterest * mark, vol: +c.dayNtlVlm, f: +c.funding, lev: u.maxLeverage };
+  });
+  const VEN = { HlPerp: 'HL', BinPerp: 'BIN', BybitPerp: 'BYB' }, pred = {};
+  for (const [coin, list] of predicted) {
+    if (!markets[coin]) continue;
+    const o = {};
+    for (const [v, d] of list) { if (!d || !VEN[v] || d.fundingRate == null) continue; const h = d.fundingIntervalHours || (v === 'HlPerp' ? 1 : 8); o[VEN[v]] = { r: +d.fundingRate / h, h, n: d.nextFundingTime }; }
+    if (Object.keys(o).length) pred[coin] = o;
+  }
+  S.data.markets = markets; S.data.pred = pred; S.live = true; S.liveAt = Date.now();
+}
+
+// ---------- Calculs ----------
+const settings = () => ({
+  capital: Math.max(0, +$('#capital').value || 0), lev: +$('#lev').value, minvol: +$('#minvol').value,
+  ven: { HL: true, BIN: $('#vBIN').checked, BYB: $('#vBYB').checked }, needHL: $('#needHL').checked,
+});
+function pairFor(coin, set) {
+  const d = S.data, o = d.pred[coin], m = d.markets[coin];
+  if (!o || !m) return null;
+  const vs = Object.keys(o).filter((v) => set.ven[v]);
+  const h = d.hist[coin] ? d.hist[coin].map((x) => x / 1e6) : null;
+  let best = null;
+  for (let i = 0; i < vs.length; i++) for (let j = i + 1; j < vs.length; j++) {
+    let a = vs[i], b = vs[j];
+    if (o[a].r > o[b].r) [a, b] = [b, a]; // long a (taux bas), short b (taux haut)
+    if (set.needHL && a !== 'HL' && b !== 'HL') continue;
+    const spread = o[b].r - o[a].r;
+    if (!(spread > 0)) continue;
+    let hold = null, prudent = spread * 0.6, mean = null;
+    if (h && h.length > 12 && (a === 'HL' || b === 'HL')) {
+      const other = a === 'HL' ? o[b].r : o[a].r;
+      mean = h.reduce((s, x) => s + x, 0) / h.length;
+      const good = h.filter((x) => (b === 'HL' ? x > other : x < other)).length;
+      hold = good / h.length;
+      const smooth = b === 'HL' ? mean - other : other - mean;
+      prudent = Math.max(0, Math.min(spread, smooth));
+    }
+    const liq = Math.min(1, Math.sqrt(m.vol / 5e6));
+    const notional = (set.capital * set.lev) / 2;
+    const day = notional * prudent * 24;
+    const fees = notional * 2 * (FEES[a] + FEES[b]);
+    const row = { coin, m, o, long: a, short: b, spread, prudent, hold, mean, rank: prudent * liq, day, fees, be: day > 0 ? fees / day : Infinity, notional, h };
+    if (!best || row.rank > best.rank) best = row;
+  }
+  return best;
+}
+function compute() {
+  const set = settings();
+  S.rows = Object.keys(S.data.pred).filter((c) => S.data.markets[c].vol >= set.minvol).map((c) => pairFor(c, set)).filter(Boolean);
+}
+
+// ---------- Rendu ----------
+function spark(h, ref, w = 96, ht = 26) {
+  if (!h || h.length < 2) return '<span class="mut">—</span>';
+  const lo = Math.min(...h, ref, 0), hi = Math.max(...h, ref, 0), span = hi - lo || 1;
+  const x = (i) => (i / (h.length - 1)) * w, y = (v) => ht - 2 - ((v - lo) / span) * (ht - 4);
+  const pts = h.map((v, i) => x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
+  return `<svg width="${w}" height="${ht}" viewBox="0 0 ${w} ${ht}" aria-hidden="true"><line x1="0" x2="${w}" y1="${y(ref).toFixed(1)}" y2="${y(ref).toFixed(1)}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3"/><polyline points="${pts}" fill="none" stroke="var(--fg)" stroke-width="1.2" opacity=".85"/></svg>`;
+}
+const legs = (r) => `<span class="leg l"><b>Long</b> ${VNAME[r.long]}</span><span class="leg s"><b>Short</b> ${VNAME[r.short]}</span>`;
+function holdCell(r) {
+  if (r.hold == null) return '<span class="mut">—</span>';
+  const p = Math.round(r.hold * 100), c = p >= 75 ? '' : p >= 50 ? 'mid' : 'low';
+  return `<span class="hold"><span class="bar ${c}"><i style="width:${p}%"></i></span><span class="num">${p} %</span></span>`;
+}
+const beTxt = (d) => (!isFinite(d) ? '—' : d < 1 ? '< 1 jour' : d > 365 ? '> 1 an' : f1.format(d) + ' j');
+
+function renderStar() {
+  const el = $('#star'), r = [...S.rows].sort((a, b) => b.rank - a.rank)[0];
+  if (!r || r.prudent <= 0) { el.innerHTML = '<div class="eyebrow">Meilleure opportunité du moment</div><div class="empty">Aucun écart exploitable avec ces réglages. Élargis les venues ou baisse le volume minimum.</div>'; return; }
+  const set = settings(), y = apr(r.prudent) * set.lev / 2;
+  el.innerHTML = `<div class="eyebrow">Meilleure opportunité du moment</div>
+    <div class="star-head"><span class="star-coin">${esc(r.coin)}</span><span class="star-apr num">${f1.format(apr(r.prudent))} %<small>d'écart annualisé, version prudente</small></span></div>
+    <div class="legs">${legs(r)}</div>
+    <div class="star-grid">
+      <div class="kv"><span>Gain estimé par jour</span><b class="pos">${money(r.day)}</b></div>
+      <div class="kv"><span>Sur 30 jours, frais déduits</span><b class="${cls(r.day * 30 - r.fees)}">${money(r.day * 30 - r.fees)}</b></div>
+      <div class="kv"><span>Rendement sur ton capital</span><b>${f1.format(y)} % / an</b></div>
+      <div class="kv"><span>Tenue sur 7 jours</span><b>${r.hold == null ? '—' : Math.round(r.hold * 100) + ' %'}</b></div>
+    </div>
+    <div class="star-foot"><button class="cta" type="button" data-open="${esc(r.coin)}">Voir le plan d'exécution</button><span class="mut" style="font-size:13px">Pour ${f0.format(set.capital)} USDC à ${f1.format(set.lev).replace(',0', '')}× · volume 24 h ${usd(r.m.vol)}</span></div>`;
+}
+function renderKpis() {
+  const d = S.data, ms = Object.values(d.markets), n20 = S.rows.filter((r) => apr(r.prudent) >= 20).length;
+  const oi = ms.reduce((s, m) => s + m.oi, 0), wf = ms.reduce((s, m) => s + m.f * m.oi, 0) / (oi || 1);
+  const btc = d.markets.BTC, eth = d.markets.ETH;
+  const mood = wf > 0.0000125 * 1.5 ? 'Marché chargé à l\'achat' : wf < 0 ? 'Marché chargé à la vente' : 'Marché équilibré';
+  $('#kpis').innerHTML = `
+    <div class="kpi"><span>Écarts prudents ≥ 20 % / an</span><b>${n20}</b><em>sur ${S.rows.length} marchés filtrés</em></div>
+    <div class="kpi"><span>Funding moyen pondéré par l'OI</span><b class="${cls(wf)}">${pct(apr(wf))}</b><em>${mood}</em></div>
+    <div class="kpi"><span>BTC · funding HL</span><b class="${cls(btc?.f)}">${btc ? pct(apr(btc.f)) : '—'}</b><em>${btc ? px(btc.px) + ' $ · ' + pct(btc.chg) : ''}</em></div>
+    <div class="kpi"><span>ETH · funding HL</span><b class="${cls(eth?.f)}">${eth ? pct(apr(eth.f)) : '—'}</b><em>${eth ? px(eth.px) + ' $ · ' + pct(eth.chg) : ''}</em></div>
+    <div class="kpi"><span>Open interest Hyperliquid</span><b>${usd(oi)}</b><em>${ms.length} perpétuels actifs</em></div>`;
+}
+function sortVal(r, k) { return k === 'coin' ? r.coin : k === 'spread' ? r.spread : k === 'hold' ? (r.hold ?? -1) : k === 'score' ? r.prudent : k === 'vol' ? r.m.vol : k === 'day' ? r.day : r.be; }
+function renderArb() {
+  const q = $('#q').value.trim().toUpperCase(), { k, d } = S.sortArb;
+  const rows = S.rows.filter((r) => !q || r.coin.toUpperCase().includes(q)).sort((a, b) => { const x = sortVal(a, k), y = sortVal(b, k); return (x > y ? 1 : x < y ? -1 : 0) * d; });
+  $('#cArb').textContent = rows.length;
+  document.querySelectorAll('#arb th[data-sort]').forEach((th) => { if (th.dataset.sort === k) th.setAttribute('aria-sort', d > 0 ? 'ascending' : 'descending'); else th.removeAttribute('aria-sort'); });
+  $('#arb tbody').innerHTML = rows.length ? rows.map((r) => {
+    const cells = ['HL', 'BIN', 'BYB'].map((v) => r.o[v] ? `<div class="${v === r.long || v === r.short ? '' : 'off'}"><i>${v}</i><span class="${cls(r.o[v].r)}">${pct(apr(r.o[v].r), 0)}</span></div>` : `<div class="off"><i>${v}</i>—</div>`).join('');
+    const other = r.long === 'HL' ? r.o[r.short].r : r.o[r.long].r;
+    return `<tr data-open="${esc(r.coin)}" tabindex="0">
+      <td><div class="coin"><b>${esc(r.coin)}</b><span class="num">${px(r.m.px)} $ · <span class="${cls(r.m.chg)}">${pct(r.m.chg)}</span></span></div></td>
+      <td class="l"><div class="legs">${legs(r)}</div></td>
+      <td><div class="rates">${cells}</div></td>
+      <td class="num">${f1.format(apr(r.spread))} %</td>
+      <td><span class="holdcol">${r.hold != null ? spark(r.h, other, 84, 22) : ''}${holdCell(r)}</span></td>
+      <td class="big">${f1.format(apr(r.prudent))} %</td>
+      <td class="num">${usd(r.m.vol)}</td>
+      <td class="num pos">${money(r.day)}</td>
+      <td class="num">${beTxt(r.be)}</td></tr>`;
+  }).join('') : `<tr><td colspan="9" class="empty">Aucun marché ne passe les filtres.</td></tr>`;
+}
+function renderHeat() {
+  const ms = Object.entries(S.data.markets).sort((a, b) => b[1].vol - a[1].vol);
+  $('#cHeat').textContent = ms.length;
+  $('#heat').innerHTML = ms.map(([c, m]) => {
+    const a = apr(m.f), t = Math.min(1, Math.abs(a) / 100), mix = Math.round(8 + t * 62);
+    return `<button class="cell" type="button" data-open="${esc(c)}" title="${esc(c)} · volume ${usd(m.vol)} · OI ${usd(m.oi)}" style="background:color-mix(in srgb, var(${a >= 0 ? '--short' : '--long'}) ${mix}%, var(--surface))"><b>${esc(c)}</b><span>${pct(a, 0)}</span></button>`;
+  }).join('');
+}
+function vaultRows() {
+  const open = $('#vOpen').checked;
+  return S.data.vaults.filter((v) => !open || v.open).map((v) => ({ ...v, calmar: v.mdd > -80 && v.age >= 60 ? v.apr / Math.max(Math.abs(v.mdd), 3) : null }));
+}
+function renderVaults() {
+  const { k, d } = S.sortV, rows = vaultRows().sort((a, b) => { const x = a[k] ?? -1e9, y = b[k] ?? -1e9; return (x > y ? 1 : x < y ? -1 : 0) * d; });
+  $('#cVault').textContent = rows.length;
+  document.querySelectorAll('#vt th[data-sort]').forEach((th) => { if (th.dataset.sort === k) th.setAttribute('aria-sort', d > 0 ? 'ascending' : 'descending'); else th.removeAttribute('aria-sort'); });
+  $('#vt tbody').innerHTML = rows.length ? rows.map((v) => {
+    const lo = Math.min(...v.s), hi = Math.max(...v.s), sp = hi - lo || 1, w = 120, h = 28;
+    const pts = v.s.map((y, i) => ((i / (v.s.length - 1)) * w).toFixed(1) + ',' + (h - 2 - ((y - lo) / sp) * (h - 4)).toFixed(1)).join(' ');
+    const up = v.s.at(-1) >= v.s[0];
+    return `<tr data-vault="${esc(v.addr)}" tabindex="0">
+      <td><div class="coin"><b>${esc(v.name)}</b><span class="num">${esc(v.addr.slice(0, 6))}…${esc(v.addr.slice(-4))} · ${v.fol >= 100 ? '100+' : v.fol} déposants${v.open ? '' : ' · fermé aux dépôts'}</span></div></td>
+      <td class="num">${usd(v.tvl)}</td>
+      <td class="num ${cls(v.apr)}">${pct(v.apr)}</td>
+      <td class="num ${cls(v.r30)}">${pct(v.r30)}</td>
+      <td class="num neg">${pct(v.mdd)}</td>
+      <td class="big">${v.calmar == null ? '—' : f1.format(v.calmar)}</td>
+      <td class="num">${v.age >= 365 ? f1.format(v.age / 365) + ' ans' : v.age + ' j'}</td>
+      <td class="num">${f0.format(v.fee)} %</td>
+      <td><svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(${up ? '--long' : '--short'})" stroke-width="1.5"/></svg></td></tr>`;
+  }).join('') : `<tr><td colspan="9" class="empty">Aucun vault à afficher.</td></tr>`;
+}
+function renderStatus() {
+  const pill = $('#status'), d = S.data;
+  const when = (t) => new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  pill.classList.toggle('live', S.live);
+  $('#statusText').textContent = S.live ? 'En direct · ' + new Date(S.liveAt).toLocaleTimeString('fr-FR') : 'Instantané du ' + when(d.ts);
+  $('#foot').textContent = `Données publiques de l'API Hyperliquid. Historique de funding et vaults relevés le ${when(d.ts)}. Estimations hors glissement, à vérifier avant tout ordre.`;
+}
+function renderAll() { compute(); renderStatus(); renderStar(); renderKpis(); renderArb(); renderHeat(); renderVaults(); if (S.open) drawDetail(S.open, true); }
+
+// ---------- Détail ----------
+function bigChart(h, lines) {
+  const W = 480, H = 200, L = 62, R = 8, T = 10, B = 22;
+  const vals = [...h, ...lines.map((l) => l.v), 0].map(apr), lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.08 || 1;
+  const y0 = lo - pad, y1 = hi + pad, x = (i) => L + (i / (h.length - 1)) * (W - L - R), y = (v) => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
+  const ticks = [0, 1, 2, 3, 4].map((i) => y0 + ((y1 - y0) * i) / 4);
+  const pts = h.map((v, i) => x(i).toFixed(1) + ',' + y(apr(v)).toFixed(1)).join(' ');
+  const area = `M${L},${y(0).toFixed(1)} L` + pts.replace(/ /g, ' L') + ` L${(W - R).toFixed(1)},${y(0).toFixed(1)} Z`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Funding Hyperliquid annualisé sur 7 jours">
+    ${ticks.map((t) => `<line x1="${L}" x2="${W - R}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${(y(t) + 3).toFixed(1)}" text-anchor="end">${f0.format(t)} %</text>`).join('')}
+    <path d="${area}" fill="var(--fg)" opacity=".08"/>
+    <polyline points="${pts}" fill="none" stroke="var(--fg)" stroke-width="1.6"/>
+    ${lines.map((l) => `<line x1="${L}" x2="${W - R}" y1="${y(apr(l.v)).toFixed(1)}" y2="${y(apr(l.v)).toFixed(1)}" stroke="var(${l.c})" stroke-width="1.4" stroke-dasharray="5 4"/>`).join('')}
+    <circle cx="${x(h.length - 1).toFixed(1)}" cy="${y(apr(h.at(-1))).toFixed(1)}" r="3.5" fill="var(--accent)"/>
+    <text x="${L}" y="${H - 6}">il y a 7 j</text><text x="${W - R}" y="${H - 6}" text-anchor="end">maintenant</text></svg>`;
+}
+async function drawDetail(coin, quiet) {
+  const set = settings(), d = S.data, m = d.markets[coin];
+  if (!m) return closeDrawer();
+  S.open = coin;
+  const r = pairFor(coin, { ...set, needHL: false }) , o = d.pred[coin] || {};
+  const h = d.hist[coin] ? d.hist[coin].map((x) => x / 1e6) : null;
+  const lines = []; if (o.BIN) lines.push({ v: o.BIN.r, c: '--accent', n: 'Binance' }); if (o.BYB) lines.push({ v: o.BYB.r, c: '--long', n: 'Bybit' });
+  const venues = ['HL', 'BIN', 'BYB'].filter((v) => o[v]).map((v) => `<div class="kv"><span>${VNAME[v]} · toutes les ${o[v].h} h</span><b class="${cls(o[v].r)}">${pct(apr(o[v].r))}</b></div>`).join('');
+  let plan = '<p class="note">Pas d\'écart exploitable entre les venues sélectionnées pour cet actif.</p>';
+  if (r && r.prudent > 0) {
+    const sz = new Intl.NumberFormat('fr-FR', { maximumSignificantDigits: 4 }).format(r.notional / m.px);
+    plan = `<div class="legs">${legs(r)}</div>
+    <div class="dgrid">
+      <div class="kv"><span>Écart brut / prudent</span><b>${f1.format(apr(r.spread))} % / ${f1.format(apr(r.prudent))} %</b></div>
+      <div class="kv"><span>Notionnel par jambe</span><b>${money(r.notional)}</b></div>
+      <div class="kv"><span>Gain estimé par jour</span><b class="pos">${money(r.day)}</b></div>
+      <div class="kv"><span>Frais d'aller-retour</span><b>${money(r.fees)} · ${beTxt(r.be)}</b></div>
+    </div>
+    <h3>Plan d'exécution</h3>
+    <ol class="steps">
+      <li>Dépose ${money(set.capital / 2)} de marge sur ${VNAME[r.long]} et autant sur ${VNAME[r.short]}.</li>
+      <li>Ouvre en même temps <b>long ${sz} ${esc(coin)}</b> sur ${VNAME[r.long]} et <b>short ${sz} ${esc(coin)}</b> sur ${VNAME[r.short]}, en levier ${f1.format(set.lev).replace(',0', '')}×. Les tailles doivent être identiques.</li>
+      <li>Encaisse le funding à chaque échéance. Surveille la marge des deux côtés et rééquilibre si le prix bouge de plus de ${f0.format(100 / set.lev / 3)} %.</li>
+      <li>Coupe les deux jambes ensemble quand l'écart retombe sous le coût des frais, ou s'inverse.</li>
+    </ol>
+    <p class="note">Gain théorique si l'écart prudent tient. ${r.hold != null ? `Sur 7 jours, le funding Hyperliquid était du bon côté ${Math.round(r.hold * 100)} % du temps.` : 'Pas d\'historique pour cet actif : considère l\'écart comme non confirmé.'}</p>`;
+  }
+  $('#drawer').innerHTML = `<div class="dhead"><div><div class="eyebrow">Perpétuel · levier max ${m.lev}×</div><h2 id="dTitle">${esc(coin)}</h2><span class="num mut">${px(m.px)} $ · <span class="${cls(m.chg)}">${pct(m.chg)}</span> · vol. ${usd(m.vol)} · OI ${usd(m.oi)}</span></div><button class="x" type="button" id="dClose" aria-label="Fermer">×</button></div>
+    <h3>Funding annualisé prévu</h3><div class="dgrid">${venues || '<span class="mut">Aucune donnée.</span>'}</div>
+    <h3>Funding Hyperliquid sur 7 jours</h3>
+    <div id="dChart">${h ? bigChart(h, lines) : '<p class="mut" style="margin:0">' + (S.live ? 'Chargement de l\'historique…' : 'Historique non inclus dans cet instantané.') + '</p>'}</div>
+    ${h && lines.length ? `<div class="legend">${lines.map((l) => `<span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="var(${l.c})" stroke-width="2" stroke-dasharray="5 4"/></svg> ${l.n} actuel</span>`).join('')}</div>` : ''}
+    <h3>La position</h3>${plan}
+    <a href="https://app.hyperliquid.xyz/trade/${encodeURIComponent(coin)}" target="_blank" rel="noopener">Ouvrir ${esc(coin)} sur Hyperliquid ↗</a>`;
+  $('#drawer').hidden = false; $('#veil').hidden = false;
+  if (!quiet) $('#dClose').focus();
+  if (!h && S.live) {
+    try {
+      const rows = await hl({ type: 'fundingHistory', coin, startTime: Date.now() - 7 * 864e5 });
+      d.hist[coin] = rows.map((x) => +x.fundingRate * 1e6);
+      if (S.open === coin) { renderAll(); }
+    } catch { const c = $('#dChart'); if (c && S.open === coin) c.innerHTML = '<p class="mut" style="margin:0">Historique indisponible pour le moment.</p>'; }
+  }
+}
+function closeDrawer() { S.open = null; $('#drawer').hidden = true; $('#veil').hidden = true; }
+
+// ---------- Interactions ----------
+const TABS = ['arbitrages', 'funding', 'vaults', 'methode'];
+function showTab(t) {
+  if (!TABS.includes(t)) t = 'arbitrages';
+  TABS.forEach((n) => { $('#tab-' + n).hidden = n !== t; });
+  document.querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === t));
+  store.set('tab', t);
+}
+document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => { showTab(b.dataset.tab); try { history.replaceState(null, '', '#' + b.dataset.tab); } catch {} }));
+window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+
+document.addEventListener('click', (e) => {
+  const o = e.target.closest('[data-open]'); if (o) return drawDetail(o.dataset.open);
+  const v = e.target.closest('[data-vault]'); if (v) { const a = document.createElement('a'); a.href = 'https://app.hyperliquid.xyz/vaults/' + v.dataset.vault; a.target = '_blank'; a.rel = 'noopener'; a.click(); return; }
+  if (e.target.closest('#dClose') || e.target.id === 'veil') closeDrawer();
+  const th = e.target.closest('th[data-sort]');
+  if (th) { const s = th.closest('#arb') ? S.sortArb : S.sortV, k = th.dataset.sort; if (s.k === k) s.d *= -1; else { s.k = k; s.d = k === 'coin' || k === 'name' || k === 'be' ? 1 : -1; } th.closest('#arb') ? renderArb() : renderVaults(); }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDrawer();
+  if (e.key === 'Enter' && e.target.matches('tr[data-open],tr[data-vault]')) e.target.click();
+});
+['capital', 'lev', 'minvol', 'vBIN', 'vBYB', 'needHL'].forEach((id) => $('#' + id).addEventListener('input', () => {
+  $('#levOut').textContent = f1.format(+$('#lev').value).replace(',0', '') + '×';
+  store.set('set', { capital: $('#capital').value, lev: $('#lev').value, minvol: $('#minvol').value, vBIN: $('#vBIN').checked, vBYB: $('#vBYB').checked, needHL: $('#needHL').checked });
+  if (S.data) renderAll();
+}));
+$('#q').addEventListener('input', renderArb);
+$('#vOpen').addEventListener('input', renderVaults);
+$('#refresh').addEventListener('click', tick);
+
+async function tick() {
+  if (!window.CARRY_LIVE || !S.data) return;
+  try { await loadLive(); renderAll(); } catch { S.live = false; renderStatus(); }
+}
+
+(async function boot() {
+  const saved = store.get('set', null);
+  if (saved) { for (const k of ['capital', 'lev', 'minvol']) if (saved[k] != null) $('#' + k).value = saved[k]; for (const k of ['vBIN', 'vBYB', 'needHL']) if (saved[k] != null) $('#' + k).checked = saved[k]; }
+  $('#levOut').textContent = f1.format(+$('#lev').value).replace(',0', '') + '×';
+  showTab(location.hash.slice(1) || store.get('tab', 'arbitrages'));
+  try { S.data = await loadSnapshot(); }
+  catch { S.data = { ts: Date.now(), markets: {}, pred: {}, hist: {}, vaults: [] }; }
+  renderAll();
+  if (window.CARRY_LIVE) { $('#refresh').hidden = false; await tick(); setInterval(() => { if (!document.hidden) tick(); }, 30000); }
+  else if (!Object.keys(S.data.markets).length) $('#statusText').textContent = 'Données indisponibles';
+})();
+})();
+</script>

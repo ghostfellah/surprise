@@ -1,0 +1,137 @@
+# pays|prises|volts|code devise|nom devise|conduite D/G|urgences|indicatif|fuseau|eau (1 potable, 2 bouteille conseillée, 0 à éviter)|entrée (F France, C carte d'identité, P passeport)|pourboire 0-4|langues|formalité
+Émirats arabes unis|G|230|AED|dirham|D|999 (police), 998 (ambulance)|+971|Asia/Dubai|2|P|2|arabe, anglais très répandu|
+Portugal|C,F|230|EUR|euro|D|112|+351|Europe/Lisbon|1|C|1|portugais|
+Maroc|C,E|220|MAD|dirham|D|19 (police), 15 (secours)|+212|Africa/Casablanca|2|P|2|arabe, amazighe, français répandu|
+France|C,E|230|EUR|euro|D|112|+33|Europe/Paris|1|F|1|français|
+Pays-Bas|C,F|230|EUR|euro|D|112|+31|Europe/Amsterdam|1|C|1|néerlandais, anglais très répandu|
+États-Unis|A,B|120|USD|dollar américain|D|911|+1|America/New_York|1|P|4|anglais|Autorisation ESTA à demander en ligne avant le départ.
+Turquie|C,F|230|TRY|livre turque|D|112|+90|Europe/Istanbul|2|P|2|turc|
+Madagascar|C,E|220|MGA|ariary|D|117 (police)|+261|Indian/Antananarivo|0|P|2|malgache, français|Visa à l'arrivée ou en ligne.
+Guatemala|A,B|120|GTQ|quetzal|D|110 (police), 122 (pompiers)|+502|America/Guatemala|0|P|2|espagnol|
+Jordanie|C,D,F,G,J|230|JOD|dinar jordanien|D|911|+962|Asia/Amman|2|P|2|arabe|Visa à l'arrivée ou Jordan Pass.
+Aruba|A,B,F|127|AWG|florin d'Aruba|D|911|+297|America/Aruba|1|P|3|néerlandais, papiamento, anglais|
+Grèce|C,F|230|EUR|euro|D|112|+30|Europe/Athens|2|C|1|grec|
+Nouvelle-Zélande|I|230|NZD|dollar néo-zélandais|G|111|+64|Pacific/Auckland|1|P|1|anglais, maori|Autorisation NZeTA à demander avant le départ.
+Birmanie|C,D,F,G|230|MMK|kyat|D|199 (police)|+95|Asia/Yangon|0|P|1|birman|Visa obligatoire.
+Bahamas|A,B|120|BSD|dollar bahaméen|G|911|+1 242|America/Nassau|2|P|3|anglais|
+Vietnam|A,C|220|VND|dong|D|113 (police), 115 (ambulance)|+84|Asia/Ho_Chi_Minh|0|P|1|vietnamien|
+Indonésie|C,F|230|IDR|roupie indonésienne|G|112|+62|Asia/Makassar|0|P|1|indonésien|Visa à l'arrivée payant.
+Canada|A,B|120|CAD|dollar canadien|D|911|+1|America/Toronto|1|P|4|anglais, français|Autorisation AVE à demander en ligne avant le départ.
+Thaïlande|A,B,C,O|230|THB|baht|G|191 (police), 1669 (ambulance)|+66|Asia/Bangkok|0|P|1|thaï|
+Barbade|A,B|115|BBD|dollar barbadien|G|211 (police), 511 (ambulance)|+1 246|America/Barbados|1|P|3|anglais|
+Espagne|C,F|230|EUR|euro|D|112|+34|Europe/Madrid|1|C|1|espagnol|
+Argentine|C,I|220|ARS|peso argentin|D|911|+54|America/Argentina/Buenos_Aires|2|P|3|espagnol|
+Norvège|C,F|230|NOK|couronne norvégienne|D|112 (police), 113 (médical)|+47|Europe/Oslo|1|C|1|norvégien, anglais très répandu|
+Allemagne|C,F|230|EUR|euro|D|112|+49|Europe/Berlin|1|C|2|allemand|
+Liban|C,D,G|230|LBP|livre libanaise|D|112|+961|Asia/Beirut|0|P|3|arabe, français, anglais|
+Polynésie française|A,B,E|220|XPF|franc Pacifique|D|15 (SAMU), 17 (police)|+689|Pacific/Tahiti|2|F|0|français, tahitien|Passeport nécessaire si le vol fait escale aux États-Unis, avec ESTA.
+Philippines|A,B,C|220|PHP|peso philippin|D|911|+63|Asia/Manila|0|P|2|filipino, anglais|
+Malaisie|G|240|MYR|ringgit|G|999|+60|Asia/Kuala_Lumpur|2|P|1|malais, anglais répandu|
+Belgique|C,E|230|EUR|euro|D|112|+32|Europe/Brussels|1|C|1|néerlandais, français, allemand|
+Roumanie|C,F|230|RON|leu|D|112|+40|Europe/Bucharest|2|C|2|roumain|
+Hongrie|C,F|230|HUF|forint|D|112|+36|Europe/Budapest|1|C|3|hongrois|
+Australie|I|230|AUD|dollar australien|G|000|+61|Australia/Sydney|1|P|1|anglais|Visa eVisitor gratuit à demander en ligne avant le départ.
+Mexique|A,B|127|MXN|peso mexicain|D|911|+52|America/Mexico_City|0|P|3|espagnol|
+Colombie|A,B|110|COP|peso colombien|D|123|+57|America/Bogota|2|P|2|espagnol|
+Égypte|C,F|220|EGP|livre égyptienne|D|122 (police), 123 (ambulance)|+20|Africa/Cairo|0|P|3|arabe|Visa à l'arrivée ou e-visa.
+Chine|A,C,I|220|CNY|yuan|D|110 (police), 120 (ambulance)|+86|Asia/Shanghai|0|P|0|mandarin|Conditions de visa à vérifier, elles changent souvent.
+Brésil|C,N|127|BRL|real|D|190 (police), 192 (ambulance)|+55|America/Sao_Paulo|2|P|2|portugais|Tension de 127 ou 220 V selon les villes.
+Zimbabwe|D,G|220|USD|dollar américain|G|999|+263|Africa/Harare|0|P|2|anglais, shona|Visa à l'arrivée.
+Chypre|G|240|EUR|euro|G|112|+357|Asia/Nicosia|1|C|2|grec, turc, anglais répandu|
+Sri Lanka|D,G|230|LKR|roupie srilankaise|G|119 (police), 1990 (ambulance)|+94|Asia/Colombo|0|P|2|cinghalais, tamoul|Autorisation ETA à demander en ligne.
+Danemark|C,E,F,K|230|DKK|couronne danoise|D|112|+45|Europe/Copenhagen|1|C|1|danois, anglais très répandu|
+Costa Rica|A,B|120|CRC|colón|D|911|+506|America/Costa_Rica|2|P|2|espagnol|
+Pologne|C,E|230|PLN|zloty|D|112|+48|Europe/Warsaw|1|C|2|polonais|
+Pérou|A,B,C|220|PEN|sol|D|105 (police), 116 (pompiers)|+51|America/Lima|0|P|2|espagnol, quechua|
+Sénégal|C,D,E,K|230|XOF|franc CFA|D|17 (police), 18 (pompiers)|+221|Africa/Dakar|0|P|2|français, wolof|
+Inde|C,D,M|230|INR|roupie indienne|G|112|+91|Asia/Kolkata|0|P|2|hindi, anglais et langues régionales|E-visa à demander avant le départ.
+Tunisie|C,E|230|TND|dinar tunisien|D|197 (police), 190 (SAMU)|+216|Africa/Tunis|2|P|2|arabe, français répandu|
+Qatar|G|240|QAR|riyal qatarien|D|999|+974|Asia/Qatar|2|P|2|arabe, anglais très répandu|
+Italie|C,F,L|230|EUR|euro|D|112|+39|Europe/Rome|1|C|1|italien|
+Irlande|G|230|EUR|euro|G|112|+353|Europe/Dublin|1|C|2|anglais, irlandais|
+Croatie|C,F|230|EUR|euro|D|112|+385|Europe/Zagreb|1|C|2|croate|
+Royaume-Uni|G|230|GBP|livre sterling|G|999|+44|Europe/London|1|P|3|anglais|Autorisation ETA à demander en ligne avant le départ.
+Fidji|I|240|FJD|dollar fidjien|G|911|+679|Pacific/Fiji|2|P|0|anglais, fidjien, hindi|
+Équateur|A,B|120|USD|dollar américain|D|911|+593|America/Guayaquil|0|P|2|espagnol|
+Finlande|C,F|230|EUR|euro|D|112|+358|Europe/Helsinki|1|C|1|finnois, suédois|
+Chili|C,L|220|CLP|peso chilien|D|133 (police), 131 (ambulance)|+56|America/Santiago|2|P|3|espagnol|
+Maurice|C,G|230|MUR|roupie mauricienne|G|999 (police), 114 (SAMU)|+230|Indian/Mauritius|2|P|2|anglais, français, créole|
+Autriche|C,F|230|EUR|euro|D|112|+43|Europe/Vienna|1|C|2|allemand|
+Jamaïque|A,B|110|JMD|dollar jamaïcain|G|119 (police), 110 (ambulance)|+1 876|America/Jamaica|2|P|3|anglais|
+Corée du Sud|C,F|220|KRW|won|D|112 (police), 119 (secours)|+82|Asia/Seoul|2|P|0|coréen|
+Israël|C,H|230|ILS|shekel|D|100 (police), 101 (ambulance)|+972|Asia/Jerusalem|1|P|3|hébreu, arabe|Autorisation ETA-IL à demander en ligne.
+Népal|C,D,M|230|NPR|roupie népalaise|G|100 (police), 102 (ambulance)|+977|Asia/Kathmandu|0|P|2|népalais|Visa à l'arrivée.
+Rwanda|C,J|230|RWF|franc rwandais|D|112|+250|Africa/Kigali|0|P|2|kinyarwanda, français, anglais|
+Monténégro|C,F|230|EUR|euro|D|112|+382|Europe/Podgorica|2|P|2|monténégrin|
+Japon|A,B|100|JPY|yen|G|110 (police), 119 (secours)|+81|Asia/Tokyo|1|P|0|japonais|
+Cuba|A,B,C,L|110|CUP|peso cubain|D|106 (police), 104 (ambulance)|+53|America/Havana|0|P|3|espagnol|Visa électronique à obtenir avant le départ.
+Bolivie|A,C|230|BOB|boliviano|D|110 (police), 118 (ambulance)|+591|America/La_Paz|0|P|2|espagnol, quechua, aymara|
+Afrique du Sud|C,M,N|230|ZAR|rand|G|10111 (police), 112 depuis un mobile|+27|Africa/Johannesburg|2|P|3|anglais, afrikaans, zoulou et autres|
+Slovénie|C,F|230|EUR|euro|D|112|+386|Europe/Ljubljana|1|C|2|slovène|
+Laos|A,B,C,E,F|230|LAK|kip|D|1191 (police), 1195 (ambulance)|+856|Asia/Vientiane|0|P|1|lao|Visa à l'arrivée ou e-visa.
+Suisse|C,J|230|CHF|franc suisse|D|112, 144 (ambulance)|+41|Europe/Zurich|1|C|1|allemand, français, italien|
+Maldives|G|230|MVR|rufiyaa|G|119 (police), 102 (ambulance)|+960|Indian/Maldives|2|P|3|divehi, anglais répandu|
+Malte|G|230|EUR|euro|G|112|+356|Europe/Malta|2|C|2|maltais, anglais|
+Oman|G|240|OMR|rial omanais|D|9999|+968|Asia/Muscat|2|P|2|arabe, anglais répandu|
+Uruguay|C,F,L|220|UYU|peso uruguayen|D|911|+598|America/Montevideo|1|P|3|espagnol|
+Kenya|G|240|KES|shilling kényan|G|999|+254|Africa/Nairobi|0|P|3|swahili, anglais|Autorisation eTA à demander en ligne avant le départ.
+Nouvelle-Calédonie|C,E|220|XPF|franc Pacifique|D|15 (SAMU), 17 (police)|+687|Pacific/Noumea|1|F|0|français|Passeport nécessaire selon les escales du vol.
+Mongolie|C,E|230|MNT|tugrik|D|102 (police), 103 (ambulance)|+976|Asia/Ulaanbaatar|0|P|1|mongol|
+Panama|A,B|120|USD|dollar américain (et balboa)|D|911|+507|America/Panama|2|P|3|espagnol|
+Tchéquie|C,E|230|CZK|couronne tchèque|D|112|+420|Europe/Prague|1|C|3|tchèque|
+République dominicaine|A,B|120|DOP|peso dominicain|D|911|+1 809|America/Santo_Domingo|0|P|3|espagnol|
+Islande|C,F|230|ISK|couronne islandaise|D|112|+354|Atlantic/Reykjavik|1|C|0|islandais, anglais très répandu|
+Cap-Vert|C,F|230|CVE|escudo cap-verdien|D|132 (police), 130 (hôpital)|+238|Atlantic/Cape_Verde|0|P|2|portugais, créole|Pré-enregistrement en ligne avant le départ.
+Ouzbékistan|C,F|220|UZS|sum|D|102 (police), 103 (ambulance)|+998|Asia/Samarkand|0|P|2|ouzbek, russe|
+Tanzanie|D,G|230|TZS|shilling tanzanien|G|112|+255|Africa/Dar_es_Salaam|0|P|3|swahili, anglais|Visa obligatoire, e-visa possible.
+Seychelles|G|240|SCR|roupie seychelloise|G|999|+248|Indian/Mahe|2|P|2|créole, anglais, français|Autorisation de voyage en ligne avant le départ.
+Cambodge|A,C,G|230|KHR|riel (dollar américain accepté)|D|117 (police), 119 (ambulance)|+855|Asia/Phnom_Penh|0|P|2|khmer|Visa à l'arrivée ou e-visa.
+Singapour|G|230|SGD|dollar de Singapour|G|999 (police), 995 (ambulance)|+65|Asia/Singapore|1|P|0|anglais, mandarin, malais, tamoul|
+Bulgarie|C,F|230|EUR|euro|D|112|+359|Europe/Sofia|2|C|3|bulgare|
+Suède|C,F|230|SEK|couronne suédoise|D|112|+46|Europe/Stockholm|1|C|1|suédois, anglais très répandu|
+Taïwan|A,B|110|TWD|dollar taïwanais|D|110 (police), 119 (secours)|+886|Asia/Taipei|2|P|0|mandarin|
+Estonie|C,F|230|EUR|euro|D|112|+372|Europe/Tallinn|1|C|2|estonien|
+Géorgie|C,F|220|GEL|lari|D|112|+995|Asia/Tbilisi|2|P|2|géorgien|
+Namibie|D,M|220|NAD|dollar namibien|G|10111 (police)|+264|Africa/Windhoek|2|P|3|anglais, afrikaans, allemand|Visa à l'arrivée ou en ligne.
+@Hong Kong|G|220|HKD|dollar de Hong Kong|G|999|+852|Asia/Hong_Kong|2|P|3|cantonais, anglais|
+# Fuseaux propres à une destination : >destination|fuseau
+>Anchorage|America/Anchorage
+>Chicago|America/Chicago
+>La Nouvelle-Orléans|America/Chicago
+>Denver et Rocheuses|America/Denver
+>Yellowstone|America/Denver
+>Grand Canyon|America/Phoenix
+>Las Vegas|America/Los_Angeles
+>Los Angeles|America/Los_Angeles
+>San Diego|America/Los_Angeles
+>San Francisco|America/Los_Angeles
+>Seattle|America/Los_Angeles
+>Yosemite|America/Los_Angeles
+>Honolulu|Pacific/Honolulu
+>Maui|Pacific/Honolulu
+>Vancouver|America/Vancouver
+>Banff|America/Edmonton
+>Melbourne|Australia/Melbourne
+>Tasmanie|Australia/Hobart
+>Cairns et Grande Barrière|Australia/Brisbane
+>Gold Coast|Australia/Brisbane
+>Perth|Australia/Perth
+>Uluru|Australia/Darwin
+>Manaus (Amazonie)|America/Manaus
+>Fortaleza et Jericoacoara|America/Fortaleza
+>Salvador de Bahia|America/Bahia
+>Yogyakarta|Asia/Jakarta
+>Cancún et Riviera Maya|America/Cancun
+>Los Cabos|America/Mazatlan
+>Île de Pâques|Pacific/Easter
+>Torres del Paine|America/Punta_Arenas
+>Tenerife|Atlantic/Canary
+>Lanzarote|Atlantic/Canary
+>Açores|Atlantic/Azores
+>Madère|Atlantic/Madeira
+>Guadeloupe|America/Guadeloupe
+>Martinique|America/Martinique
+>Saint-Martin|America/Guadeloupe
+>La Réunion|Indian/Reunion
+>Galápagos|Pacific/Galapagos
+>Zanzibar|Africa/Dar_es_Salaam
