@@ -100,6 +100,28 @@ const llama = () => source('DefiLlama', async () => {
     .map((p) => ({ id: 'dl' + p.slug, src: 'dl', sec: 'crypto', title: p.name, desc: clip(`${p.category || 'DeFi'} sur ${p.chain || 'plusieurs chaînes'}. ${p.description || ''}`, 220), url: 'https://defillama.com/protocol/' + p.slug, t: now, live: 1, vel: p.change_7d * Math.log10(p.tvl), n: Math.round(p.change_7d), big: '+' + Math.round(p.change_7d) + ' %', unit: `de valeur déposée en 7 j · ${(p.tvl / 1e6).toFixed(0)} M$`, term: p.name.replace(/\s+V\d+$/i, '').length >= 4 ? p.name.replace(/\s+V\d+$/i, '') : null }));
 });
 
+// --- Marchés de prédiction et attention mondiale ---
+const polymarket = () => source('Polymarket', async () => {
+  const j = [];
+  for (let off = 0; off < 600; off += 100) { j.push(...(await get(`https://gamma-api.polymarket.com/markets?closed=false&order=volume24hr&ascending=false&limit=100&offset=${off}`))); await sleep(150); }
+  return j.filter((m) => !m.gameStartTime && !m.sportsMarketType && !/(price of|up or down|dip to|reach \$|above \$|below \$|hit \$|close (above|below)|all[- ]time high|\bvs\.?\b|o\/u|spread:|tweets? from|posts? from)/i.test(m.question) && Date.parse(m.endDate) - now > 2 * D && Math.abs(m.oneDayPriceChange || 0) >= 0.05 && (m.volume24hr || 0) > 8000 && m.question)
+    .map((m) => {
+      const d = m.oneDayPriceChange, now_ = Number(JSON.parse(m.outcomePrices || '[0]')[0]) || m.lastTradePrice || 0, pts = Math.round(d * 100);
+      return { id: 'pm' + m.id, src: 'pm', sec: 'monde', title: clip(m.question, 150), desc: `Probabilité du « oui » : ${Math.round(now_ * 100)} %, contre ${Math.round((now_ - d) * 100)} % il y a 24 h.`, url: 'https://polymarket.com/market/' + m.slug, t: now, live: 1, vel: Math.abs(d) * Math.log10(m.volume24hr), n: pts, big: (pts > 0 ? '+' : '') + pts + ' pts', unit: `de probabilité en 24 h · ${Math.round(m.volume24hr / 1000)} k$ échangés`, term: termFromTitle(m.question) };
+    }).sort((a, b) => b.vel - a.vel).slice(0, 25);
+});
+const wikipedia = () => source('Wikipédia', async () => {
+  const day = (n) => new Date(now - n * D).toISOString().slice(0, 10).replace(/-/g, '/');
+  const top = async (n) => (await get(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${day(n)}`)).items[0].articles;
+  let a, b;
+  try { [a, b] = [await top(1), await top(2)]; } catch { [a, b] = [await top(2), await top(3)]; }
+  const before = new Map(b.map((x) => [x.article, x.views])), floor = b[b.length - 1].views;
+  return a.filter((x) => !/^(Main_Page|Special:|Wikipedia:|File:|Portal:|Help:|Category:|Template:|\.xxx|XXX|Pornhub|XNXX|XVideos)/i.test(x.article) && !/^(Deaths_in_|List_of_|\d{4}$)/.test(x.article) && x.views > 40000)
+    .map((x) => ({ x, ratio: x.views / (before.get(x.article) || floor) }))
+    .filter((r) => r.ratio >= 2.5).sort((p, q) => q.ratio * Math.log10(q.x.views) - p.ratio * Math.log10(p.x.views)).slice(0, 25)
+    .map(({ x, ratio }) => { const name = decodeURIComponent(x.article).replace(/_/g, ' '); return { id: 'wk' + x.article.slice(0, 60), src: 'wk', sec: 'monde', title: name, desc: `${x.views.toLocaleString('fr-FR')} lectures hier sur Wikipédia en anglais${before.has(x.article) ? '' : ', absent du classement la veille'}.`, url: 'https://en.wikipedia.org/wiki/' + x.article, t: now, live: 1, vel: ratio * Math.log10(x.views), n: Math.round(ratio * 10) / 10, big: '× ' + String(Math.round(ratio * 10) / 10).replace('.', ','), unit: 'de lectures en 24 h', term: name.split(' ').length <= 4 && name.length >= 4 ? name.replace(/\s*\(.*\)$/, '') : null }; });
+});
+
 // --- Posts à commenter : ce qui prend en ce moment sur les réseaux ouverts ---
 const CRYPTO = /\b(bitcoin|btc|ethereum|eth|crypto\w*|defi|stablecoin\w*|solana|blockchain|onchain|on-chain|altcoin\w*|memecoin\w*|web3|hyperliquid|binance|coinbase|tether|usdc|usdt|airdrop\w*|staking|nft|nfts)\b/i;
 const strip = (h) => String(h || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").trim();
@@ -148,7 +170,7 @@ async function coverage(term, lang) {
   return (x.match(/<item>/g) || []).length;
 }
 
-const lists = await Promise.all([hn(), lobsters(), github(), hfModels(), hfPapers(), coingecko(), llama()]);
+const lists = await Promise.all([hn(), lobsters(), github(), hfModels(), hfPapers(), coingecko(), llama(), polymarket(), wikipedia()]);
 // Force : rang relatif dans sa propre source, pour comparer des métriques différentes
 for (const l of lists) { const s = [...l].sort((a, b) => a.vel - b.vel); s.forEach((x, i) => { x.force = Math.round(((i + 1) / s.length) * 100); }); }
 let all = lists.flat();
@@ -162,7 +184,7 @@ for (const g of groups.values()) { const srcs = new Set(g.map((s) => s.src)); if
 all.sort((a, b) => b.force * (b.conv ? 1.25 : 1) - a.force * (a.conv ? 1.25 : 1));
 const cache = new Map();
 let measured = 0, failed = 0;
-for (const s of all.slice(0, 125)) {
+for (const s of all.slice(0, 150)) {
   if (!s.term || failed > 6) continue;
   const k = s.term.toLowerCase();
   if (!cache.has(k)) {
@@ -173,8 +195,25 @@ for (const s of all.slice(0, 125)) {
 }
 console.log(`couverture mesurée pour ${measured} termes, ${failed} échecs`);
 
-const signals = all.slice(0, 200).map(({ vel, ...s }) => { for (const k of Object.keys(s)) if (s[k] == null || s[k] === '') delete s[k]; return s; });
+const signals = all.slice(0, 240).map(({ vel, ...s }) => { for (const k of Object.keys(s)) if (s[k] == null || s[k] === '') delete s[k]; return s; });
 if (signals.length < 20) { console.error('Trop peu de signaux, instantané précédent conservé.'); process.exit(1); }
+// Mémoire : reprend l'historique du relevé précédent pour mesurer l'accélération et l'arrivée de la presse
+const PREV = process.env.VIGIE_PREV || 'https://ghostfellah.github.io/surprise/vigie/signaux.json';
+let prev = null;
+try { prev = await get(PREV + '?t=' + now, 'json', 1); } catch (e) { console.error('relevé précédent indisponible :', e.message); }
+const old = new Map((prev?.signals || []).map((s) => [s.id, s]));
+const sameHour = prev && now - prev.ts < 20 * 60000; // relevé trop proche : on remplace le dernier point au lieu d'en ajouter un
+for (const s of signals) {
+  const o = old.get(s.id), h = o?.h ? [...o.h] : o ? [o.n] : [], c = o?.c ? [...o.c] : o ? [o.fr ?? -1] : [];
+  if (sameHour && h.length > 1) { h.pop(); c.pop(); }
+  h.push(s.n); c.push(s.fr ?? -1);
+  s.h = h.slice(-24); s.c = c.slice(-24);
+  s.first = o ? (o.first || prev.ts) : (prev ? now : 0); // 0 = ancienneté inconnue (premier relevé)
+  if (s.fr == null && o?.fr != null && o.term === s.term) { s.fr = o.fr; s.en = o.en; s.stale = 1; } // garde la dernière mesure connue
+}
+const scans = Math.max(1, (prev?.scans || 0) + (sameHour ? 0 : 1));
+console.log(`mémoire : ${[...signals].filter((s) => old.has(s.id)).length} signaux déjà connus, relevé n° ${scans}`);
+
 // Posts à commenter
 let posts = [];
 try {
@@ -187,5 +226,5 @@ try {
   console.log(`posts à commenter : ${posts.length}`);
 } catch (e) { console.error('posts indisponibles', e.message); }
 
-writeFileSync(OUT, JSON.stringify({ ts: now, signals, posts, trends: await trends() }));
+writeFileSync(OUT, JSON.stringify({ ts: now, prevTs: prev?.ts || 0, scans, signals, posts, trends: await trends() }));
 console.log(`${signals.length} signaux -> ${OUT}`);

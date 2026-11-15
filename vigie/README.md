@@ -15,6 +15,16 @@ Repérer ce qui monte chez les spécialistes avant que la presse française n'en
 - **Publié comme artifact Claude** : la page appelle Claude directement (rédaction en direct, sélection des 5 sujets du jour) et garde les idées dans la base privée de l'utilisateur.
 - **Hébergement statique** (`dist/vigie/`) : aucune clé d'API. Les boutons produisent la consigne complète à coller dans Claude, et les idées restent dans le navigateur.
 
+## Mémoire entre relevés
+
+Le collecteur relit le relevé précédent (par défaut celui publié sur GitHub Pages, variable `VIGIE_PREV` pour une autre adresse) et garde pour chaque signal sa date de première apparition, l'historique de sa métrique et l'historique de sa couverture presse. L'interface en tire trois indicateurs :
+
+- **Nouveau** : apparu depuis la dernière visite (ou depuis le relevé précédent à la première visite).
+- **Accélère** : la métrique a gagné au moins 20 % sur les trois derniers relevés.
+- **La presse arrive** : la couverture française est passée de 0-2 articles à davantage depuis que le signal est suivi. La fenêtre se referme.
+
+Deux sources en amont de la presse s'ajoutent : **Polymarket** (marchés de prédiction dont la probabilité bouge d'au moins 5 points en 24 h, hors sport et cours de cryptos) et **Wikipédia en anglais** (pages dont les lectures sont multipliées par 2,5 ou plus en un jour).
+
 ## Secteurs, conversations et vidéo
 
 - **Secteur** : Tous, Tech et IA, ou Crypto. Les signaux crypto viennent de CoinGecko (recherches en tendance) et de DefiLlama (protocoles dont la valeur déposée grimpe sur 7 jours).
