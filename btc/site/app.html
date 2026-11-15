@@ -72,6 +72,13 @@ input[type=number],input[type=date],select,textarea{background:var(--raised);bor
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:8px}
 .legend i{display:inline-block;width:11px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
 
+.phase{display:flex;flex-direction:column;gap:10px}
+.phase .tagp{align-self:flex-start;font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;border:1px solid currentColor;border-radius:6px;padding:3px 10px}
+.phase p{margin:0;font-size:14px}
+.phase ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.cysvg{width:100%;height:auto;display:block}
+.cysvg text{font:10px var(--mono);fill:var(--muted)}
+.tag2{display:inline-block;font:600 10.5px var(--mono);border:1px solid currentColor;border-radius:5px;padding:0 6px;margin-left:6px}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 @media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
 .comp{display:flex;flex-direction:column;gap:9px;margin-top:12px}
@@ -140,6 +147,14 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
     <div class="chead"><h2>Graphique 4 h et signaux</h2><div class="seg" id="range" role="group" aria-label="Durée"><button type="button" data-n="180">30 jours</button><button type="button" data-n="540">90 jours</button><button type="button" data-n="1080">6 mois</button></div></div>
     <div class="cv" id="cv"><canvas id="canvas" role="img" aria-label="Graphique du bitcoin en 4 heures avec scores de creux et de sommet"></canvas><div class="tip" id="tip" hidden></div></div>
     <div class="legend"><span><i style="background:var(--btc)"></i>EMA 20</span><span><i style="background:var(--muted)"></i>EMA 50</span><span><i style="background:var(--buy)"></i>score de creux</span><span><i style="background:var(--sell)"></i>score de sommet</span><span>▲ alerte de creux (≥ 45) · ▼ alerte de sommet (≥ 45) · lignes pointillées à 45 et 60</span></div>
+  </section>
+
+  <section class="card" id="cycle">
+    <h2>Phase du cycle (hebdomadaire)</h2>
+    <p class="note" style="margin-top:6px">DSS Bressert (stochastique à double lissage, 10 périodes, lissage 9) sur bougies hebdomadaires. Il ne prédit pas : il situe le marché dans son cycle, et ses signaux se lisent après coup.</p>
+    <div class="two" style="margin-top:14px"><div id="cyChart"></div><div class="phase" id="cyState"></div></div>
+    <div class="scroll"><table id="cyTab"></table></div>
+    <p class="note" id="cyFoot"></p>
   </section>
 
   <section class="two">
@@ -456,7 +471,96 @@ footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padd
     return { final: btc + usd / D.c[to - 1], trades };
   }
 
-  return { build, episodes, backtest, dcaTiming, trendFilter, forward, summarize, baseline, optimize, ema, sma, rsi, atr, clamp, dayStart, WB, WT, LABELS, HORIZONS, DAY };
+  // ---------- Phase du cycle : DSS Bressert hebdomadaire ----------
+  // Bougies hebdomadaires UTC (semaine du lundi) à partir de jours clos. `forming` = semaine en cours (moins de 7 jours).
+  function weekly(rows) {
+    const m = new Map();
+    for (const r of rows) {
+      const key = r[0] - ((new Date(r[0]).getUTCDay() + 6) % 7) * DAY;
+      let w = m.get(key);
+      if (!w) { w = { t: key, o: r[1], h: r[2], l: r[3], c: r[4], n: 0 }; m.set(key, w); }
+      w.h = Math.max(w.h, r[2]); w.l = Math.min(w.l, r[3]); w.c = r[4]; w.n++;
+    }
+    const all = [...m.values()].sort((a, b) => a.t - b.t), complete = all.filter((w) => w.n === 7), last = all[all.length - 1];
+    return { complete, forming: last && last.n < 7 && (!complete.length || last.t > complete[complete.length - 1].t) ? last : null };
+  }
+  // Stochastique à double lissage (Bressert) : stochastique, EMA, stochastique de l'EMA, EMA.
+  function dss(h, l, c, pds = 10, len = 9) {
+    const ema2 = (v, k) => { const a = 2 / (k + 1), out = new Float64Array(v.length); let e = NaN; for (let i = 0; i < v.length; i++) { if (isNaN(v[i])) { out[i] = NaN; continue; } e = isNaN(e) ? v[i] : v[i] * a + e * (1 - a); out[i] = e; } return out; };
+    const s1 = new Float64Array(c.length).fill(NaN);
+    for (let i = pds - 1; i < c.length; i++) { let hi = -Infinity, lo = Infinity; for (let j = i - pds + 1; j <= i; j++) { hi = Math.max(hi, h[j]); lo = Math.min(lo, l[j]); } s1[i] = hi > lo ? ((c[i] - lo) / (hi - lo)) * 100 : 50; }
+    const e1 = ema2(s1, len), s2 = new Float64Array(c.length).fill(NaN);
+    for (let i = pds - 1; i < c.length; i++) { let hi = -Infinity, lo = Infinity, ok = true; for (let j = i - pds + 1; j <= i; j++) { if (isNaN(e1[j])) { ok = false; break; } hi = Math.max(hi, e1[j]); lo = Math.min(lo, e1[j]); } if (ok) s2[i] = hi > lo ? ((e1[i] - lo) / (hi - lo)) * 100 : 50; }
+    return ema2(s2, len);
+  }
+  // Analyse complète : signaux passés, ce qu'il restait à éviter, tests en BTC (hors échantillon) et DCA modulé.
+  function cycleAnalysis(rows, cost = 0.0015) {
+    const { complete: W, forming } = weekly(rows), n = W.length;
+    const t = W.map((w) => w.t), o = W.map((w) => w.o), h = W.map((w) => w.h), l = W.map((w) => w.l), c = W.map((w) => w.c);
+    const d = dss(h, l, c, 10, 9), first = 30, split = t.findIndex((x) => x >= Date.UTC(2023, 0, 1));
+    const eo = forming ? [...o, forming.o] : o, eh = forming ? [...h, forming.h] : h, el = forming ? [...l, forming.l] : l, n2 = eo.length;
+    const r1 = (x) => (x == null || !Number.isFinite(x) ? null : Math.round(x * 1000) / 1000);
+    const sells = [], buys = [];
+    for (let i = first + 1; i < n; i++) {
+      const down = d[i - 1] >= 80 && d[i] < 80, up = d[i - 1] <= 20 && d[i] > 20;
+      if (!down && !up) continue;
+      const px = eo[i + 1]; if (px == null) continue;
+      const pending = i === n - 1, cap = pending ? n2 - 1 : n - 1, tt = pending ? forming.t : t[i + 1];
+      if (down) {
+        let peak = 0; for (let q = Math.max(0, i - 11); q <= i; q++) peak = Math.max(peak, eh[q]);
+        let lo = Infinity; for (let q = i + 1; q <= Math.min(cap, i + 26); q++) lo = Math.min(lo, el[q]);
+        sells.push({ t: tt, px: Math.round(px), done: r1(px / peak - 1), rest: r1(lo / px - 1), total: r1(lo / peak - 1), open: i + 26 > cap, pending });
+      }
+      if (up) {
+        const rr = (k) => (i + 1 + k < n ? r1(c[i + k] / px - 1) : null);
+        let ext = px; for (let q = i + 1; q <= Math.min(cap, i + 12); q++) ext = Math.min(ext, el[q]);
+        buys.push({ t: tt, px: Math.round(px), w4: rr(4), w12: rr(12), w26: rr(26), ext: r1(ext / px - 1), pending });
+      }
+    }
+    const S = sells.filter((x) => !x.pending), Bq = buys.filter((x) => !x.pending), mj = S.filter((x) => x.total < -0.4), mn = S.filter((x) => x.total >= -0.4);
+    const mm = (a) => r1(median(a.filter((x) => x != null)));
+    const sellStats = { n: S.length, major: mj.length, medDone: mm(S.map((x) => x.done)), medRestMajor: mm(mj.map((x) => x.rest)), medRestMinor: mm(mn.map((x) => x.rest)), ge20: S.filter((x) => x.rest <= -0.2).length, ge40: S.filter((x) => x.rest <= -0.4).length };
+    const buyStats = { n: Bq.length, med4: mm(Bq.map((x) => x.w4)), med12: mm(Bq.map((x) => x.w12)), med26: mm(Bq.map((x) => x.w26)), medExt: mm(Bq.map((x) => x.ext)) };
+    // Stratégie en BTC : acheter au croisement haussier de `os`, vendre `frac` au croisement baissier de `ob`.
+    const run = (dd, os, ob, frac, from, to) => {
+      let btc = 1, usd = 0, trades = 0;
+      for (let i = Math.max(from, 1); i < to - 1; i++) {
+        if (isNaN(dd[i]) || isNaN(dd[i - 1])) continue;
+        const px = o[i + 1];
+        if (dd[i - 1] <= os && dd[i] > os && usd > 1e-9) { btc += usd / (px * (1 + cost)); usd = 0; trades++; }
+        else if (dd[i - 1] >= ob && dd[i] < ob && btc > 1e-9) { const q = btc * frac; btc -= q; usd += q * px * (1 - cost); trades++; }
+      }
+      return { final: btc + usd / c[to - 1], trades };
+    };
+    const rowsG = [];
+    for (const pds of [5, 8, 10, 14]) for (const len of [5, 9, 13]) {
+      const dd = dss(h, l, c, pds, len);
+      for (const os of [10, 20, 30]) for (const ob of [70, 80, 90]) for (const frac of [0.5, 1]) {
+        const a = run(dd, os, ob, frac, first, split), b = run(dd, os, ob, frac, split, n);
+        rowsG.push({ pds, len, os, ob, frac, a: a.final, at: a.trades, b: b.final, bt: b.trades });
+      }
+    }
+    const defaults = [[20, 80, 1], [20, 80, 0.5], [10, 90, 0.5], [25, 75, 0.5]].map(([os, ob, frac]) => { const a = run(d, os, ob, frac, first, split), b = run(d, os, ob, frac, split, n); return { os, ob, frac, a: r1(a.final), at: a.trades, b: r1(b.final), bt: b.trades }; });
+    const withB = rowsG.filter((r) => r.bt > 0);
+    const dssTest = { combos: rowsG.length, beatIn: rowsG.filter((r) => r.a > 1).length, beatOut: withB.filter((r) => r.b > 1).length, both: withB.filter((r) => r.a > 1 && r.b > 1).length, medIn: r1(median(rowsG.map((r) => r.a))), medOut: r1(median(withB.map((r) => r.b))), defaults };
+    // DCA hebdomadaire modulé par la phase (jamais de cash gardé, jamais de vente) : gain de sats par dollar dépensé.
+    const dcaT = (mult, from, to) => { let u = 0, b = 0; for (let i = Math.max(from, 1); i < to; i++) { if (isNaN(d[i - 1])) continue; const q = mult(d[i - 1]); u += q; b += q / (o[i] * (1 + cost)); } return b / u; };
+    const tilt = [];
+    for (const lowM of [1.5, 2, 3]) for (const highM of [0, 0.25, 0.5]) for (const [os, ob] of [[20, 80], [30, 70]]) {
+      const m = (x) => (x < os ? lowM : x > ob ? highM : 1), pl = () => 1;
+      tilt.push({ a: dcaT(m, first, split) / dcaT(pl, first, split) - 1, b: dcaT(m, split, n) / dcaT(pl, split, n) - 1 });
+    }
+    const tiltTest = { combos: tilt.length, beatIn: tilt.filter((x) => x.a > 0).length, beatOut: tilt.filter((x) => x.b > 0).length, both: tilt.filter((x) => x.a > 0 && x.b > 0).length, medIn: r1(median(tilt.map((x) => x.a))), medOut: r1(median(tilt.map((x) => x.b))) };
+    const K = Math.min(120, n), from = n - K;
+    return {
+      weeks: W.slice(from).map((w) => ({ t: w.t, o: Math.round(w.o), h: Math.round(w.h), l: Math.round(w.l), c: Math.round(w.c) })),
+      dss: Array.from(d.slice(from), (x) => (Number.isNaN(x) ? null : Math.round(x * 10) / 10)),
+      forming: forming ? { t: forming.t, o: Math.round(forming.o), h: Math.round(forming.h), l: Math.round(forming.l), c: Math.round(forming.c), n: forming.n } : null,
+      sells, buys, sellStats, buyStats, tests: { dss: dssTest, tilt: tiltTest }, since: t[first], split: t[split], weeksTotal: n,
+    };
+  }
+
+  return { build, episodes, backtest, dcaTiming, trendFilter, weekly, dss, cycleAnalysis, forward, summarize, baseline, optimize, ema, sma, rsi, atr, clamp, dayStart, WB, WT, LABELS, HORIZONS, DAY };
 });
 </script>
 <script>
@@ -500,7 +604,8 @@ async function liveRefresh() {
   if (+r4[r4.length - 1].timestamp * 1000 + 4 * 36e5 > now) r4 = r4.slice(0, -1);
   const S = E.build(cols(r4), cols(d1.data.ohlc.filter((r) => +r.timestamp * 1000 + E.DAY <= now)), D.ctx);
   const from = Math.max(0, S.n - 1080), sl = (a) => Array.from(a.slice(from));
-  LIVE = { live: true, ts: now, price, now: nowFromS(S, price), bars: { t: sl(S.t), o: sl(S.o), h: sl(S.h), l: sl(S.l), c: sl(S.c), bot: sl(S.bot), top: sl(S.top) } };
+  const dailyRows = d1.data.ohlc.filter((r) => +r.timestamp * 1000 + E.DAY <= now).map((r) => [+r.timestamp * 1000, +r.open, +r.high, +r.low, +r.close, +r.volume]);
+  LIVE = { live: true, ts: now, price, daily: dailyRows, now: nowFromS(S, price), bars: { t: sl(S.t), o: sl(S.o), h: sl(S.h), l: sl(S.l), c: sl(S.c), bot: sl(S.bot), top: sl(S.top) } };
 }
 
 // ---------- Jauges ----------
@@ -542,6 +647,7 @@ function renderTrust() {
       <li>Après une alerte de sommet (≥ 45), le prix était <b>plus haut</b> 14 jours plus tard dans ${f0.format((1 - t45.d14.right) * 100)} % des cas (médiane ${pc(t45.d14.med * 100)}).</li>
       <li>Après une alerte de creux (≥ 45), le point bas des 7 jours suivants se situait en médiane à ${pc(b45.adverseMed * 100)} sous le prix du signal : on achetait presque toujours trop tôt.</li>
       <li>${T.dca.beatOut} combinaison${T.dca.beatOut > 1 ? 's' : ''} sur ${T.dca.combos} battent un simple DCA hors échantillon.</li>
+      <li>DSS Bressert hebdo : ${D.cycle.tests.dss.both} réglage${D.cycle.tests.dss.both > 1 ? 's' : ''} sur ${D.cycle.tests.dss.combos} battent HODL avant et après 2023.</li>
     </ul>
     <a href="#truth">Voir le test de vérité complet</a>`;
 }
@@ -607,6 +713,58 @@ function bindChart() {
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
 }
 
+// ---------- Phase du cycle (DSS hebdo) ----------
+function cycleView() {
+  const C = D.cycle, W = C.weeks; let forming = C.forming;
+  if (LIVE && LIVE.daily) { const w = E.weekly(LIVE.daily); if (w.forming) forming = w.forming; }
+  let dForm = null;
+  if (forming && forming.t > W[W.length - 1].t) { const a = E.dss([...W.map((x) => x.h), forming.h], [...W.map((x) => x.l), forming.l], [...W.map((x) => x.c), forming.c], 10, 9); dForm = a[a.length - 1]; }
+  return { C, W, dArr: C.dss, forming, dForm };
+}
+function cycleSvg(V) {
+  const { W, dArr, forming, dForm, C } = V, w = 560, h = 280, L = 34, R = 8;
+  const pts = W.map((x, i) => ({ t: x.t, c: x.c, d: dArr[i] })); if (forming && dForm != null) pts.push({ t: forming.t, c: forming.c, d: dForm });
+  const n = pts.length, x = (i) => L + (i / (n - 1)) * (w - L - R);
+  const lg = pts.map((p) => Math.log(p.c)), lo = Math.min(...lg), hi = Math.max(...lg);
+  const py = (v) => 14 + (1 - (Math.log(v) - lo) / (hi - lo)) * 112, dy = (v) => 158 + (1 - v / 100) * 92;
+  const price = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${py(p.c).toFixed(1)}`).join(' ');
+  let dpath = '', st = false; pts.forEach((p, i) => { if (p.d == null) return; dpath += `${st ? 'L' : 'M'}${x(i).toFixed(1)},${dy(p.d).toFixed(1)} `; st = true; });
+  const mk = (list, kind) => list.map((sg) => { const i = pts.findIndex((p) => p.t === sg.t); if (i < 0) return ''; const cx = x(i), cy = py(sg.px); return kind === 'sell' ? `<path d="M${cx - 5},${cy - 14} L${cx + 5},${cy - 14} L${cx},${cy - 5} Z" fill="var(--sell)"/>` : `<path d="M${cx - 5},${cy + 14} L${cx + 5},${cy + 14} L${cx},${cy + 5} Z" fill="var(--buy)"/>`; }).join('');
+  const lastD = pts[pts.length - 1];
+  return `<svg class="cysvg" viewBox="0 0 ${w} ${h}" role="img" aria-label="Prix hebdomadaire et DSS Bressert sur deux ans">
+    <rect x="${L}" y="${dy(100)}" width="${w - L - R}" height="${dy(80) - dy(100)}" fill="var(--sell)" opacity=".10"/><rect x="${L}" y="${dy(20)}" width="${w - L - R}" height="${dy(0) - dy(20)}" fill="var(--buy)" opacity=".10"/>
+    ${[20, 80].map((v) => `<line x1="${L}" x2="${w - R}" y1="${dy(v)}" y2="${dy(v)}" stroke="var(--muted)" stroke-dasharray="4 4" opacity=".6"/>`).join('')}
+    ${[0, 20, 50, 80, 100].map((v) => `<text x="${L - 4}" y="${dy(v) + 3}" text-anchor="end">${v}</text>`).join('')}
+    <text x="${L - 4}" y="${py(Math.exp(hi)) + 3}" text-anchor="end">${f0.format(Math.exp(hi) / 1000)}k</text><text x="${L - 4}" y="${py(Math.exp(lo)) + 3}" text-anchor="end">${f0.format(Math.exp(lo) / 1000)}k</text>
+    <path d="${price}" fill="none" stroke="var(--muted)" stroke-width="1.6"/>${mk(C.sells, 'sell')}${mk(C.buys, 'buy')}
+    <path d="${dpath}" fill="none" stroke="var(--btc)" stroke-width="2"/>
+    <circle cx="${x(n - 1)}" cy="${dy(lastD.d)}" r="4" fill="var(--btc)"/><text x="${x(n - 1) - 6}" y="${dy(lastD.d) - 8}" text-anchor="end" style="fill:var(--fg)">${f0.format(lastD.d)}</text>
+    <text x="${L}" y="${h - 4}">${dt(pts[0].t)}</text><text x="${w - R}" y="${h - 4}" text-anchor="end">${dt(pts[n - 1].t)}</text>
+    <text x="${L + 4}" y="152">DSS · ▼ vente (sous 80) · ▲ achat (au-dessus de 20)</text></svg>`;
+}
+function renderCycle() {
+  const V = cycleView(), C = V.C, ss = C.sellStats, bs = C.buyStats, cur = V.dForm != null ? V.dForm : V.dArr[V.dArr.length - 1];
+  $('#cyChart').innerHTML = cycleSvg(V);
+  const wkAgo = (t) => Math.max(0, Math.round((Date.now() - t) / (7 * E.DAY)));
+  const lastSell = [...C.sells].sort((a, b) => b.t - a.t)[0], lastBuy = [...C.buys].sort((a, b) => b.t - a.t)[0];
+  const sellNew = lastSell && (!lastBuy || lastSell.t > lastBuy.t) && wkAgo(lastSell.t) <= 12, buyNew = lastBuy && (!lastSell || lastBuy.t > lastSell.t) && wkAgo(lastBuy.t) <= 12;
+  const px = view().price;
+  let tag, col, body;
+  if (cur > 80) { tag = 'Zone haute'; col = 'var(--sell)'; body = `<p>Le DSS est à <b class="mono">${f0.format(cur)}</b>, au-dessus de 80. C'est une phase avancée de hausse, pas une date de sommet : lors des cycles précédents il est resté au-dessus de 80 pendant des mois, avec des hausses de plus de 100 % encore à venir.</p>`; }
+  else if (sellNew) { tag = 'Après un signal de vente'; col = 'var(--sell)'; body = `<p>Le DSS hebdo est repassé sous 80 la semaine du <b>${dt(lastSell.t - 7 * E.DAY)}</b> et vaut <b class="mono">${f0.format(cur)}</b> aujourd'hui. Prix d'exécution théorique : ${usd(lastSell.px)}, soit <b class="${px < lastSell.px ? 'sell' : 'buy'}">${pc((px / lastSell.px - 1) * 100)}</b> depuis.</p><p>Depuis 2016, sur ${ss.n} signaux de ce type : ${ss.major} ont été suivis d'une baisse totale d'au moins 40 % (il restait alors <b>${pc(ss.medRestMajor * 100, 0)}</b> à perdre en médiane), les ${ss.n - ss.major} autres non (il restait ${pc(ss.medRestMinor * 100, 0)}). La baisse supplémentaire a dépassé 20 % dans ${ss.ge20} cas sur ${ss.n}, et 40 % dans ${ss.ge40}. Au moment du signal, rien ne distingue les deux situations.</p>`; }
+  else if (cur < 20) { tag = 'Zone basse'; col = 'var(--buy)'; body = `<p>Le DSS est à <b class="mono">${f0.format(cur)}</b>, sous 20 : survente hebdomadaire, une situation rare. Le signal d'achat n'arrive qu'au retour au-dessus de 20, et même alors le point bas des 12 semaines suivantes se situait en médiane ${pc(bs.medExt * 100, 0)} sous le prix du signal.</p>`; }
+  else if (buyNew) { tag = 'Après un signal d\'achat'; col = 'var(--buy)'; body = `<p>Le DSS est remonté au-dessus de 20 la semaine du ${dt(lastBuy.t - 7 * E.DAY)} et vaut <b class="mono">${f0.format(cur)}</b>. Sur ${bs.n} signaux depuis 2016 : médiane ${pc(bs.med4 * 100)} à 4 semaines, ${pc(bs.med12 * 100)} à 12 semaines, point bas à ${pc(bs.medExt * 100, 0)} en médiane.</p>`; }
+  else { tag = 'Neutre'; col = 'var(--muted)'; body = `<p>Le DSS est à <b class="mono">${f0.format(cur)}</b>, entre 20 et 80, sans signal récent. Rien à lire.</p>`; }
+  $('#cyState').innerHTML = `<span class="tagp" style="color:${col}">${tag}</span>${body}
+    <span class="eyebrow">Comment s'en servir</span>
+    <ul><li><b>Comme une alarme de risque.</b> Après un signal de vente, évite tout levier qui ne survit pas à une baisse de 40 % et réduis tes trades tactiques : une fois sur deux le prix perd encore plus de 20 %.</li>
+    <li><b>Avec des règles écrites à l'avance</b> pour chaque phase, par exemple dans le journal de sats, pour ne pas décider sous l'émotion.</li>
+    <li><b>Pas comme un ordre.</b> Vendre sur ce signal a coûté des sats (voir le test 4), et l'acheter trop tôt aussi.</li></ul>`;
+  const rows = [...C.sells].sort((a, b) => b.t - a.t);
+  $('#cyTab').innerHTML = `<thead><tr><th>Signaux de vente hebdo (DSS sous 80)</th><th>Prix</th><th>Déjà subi</th><th>Encore à venir (26 sem.)</th><th>Baisse totale</th></tr></thead><tbody>${rows.map((r) => `<tr><td>${dt(r.t)}${r.pending ? '<span class="tag2 warn">en cours</span>' : !r.open && r.total < -0.4 ? '<span class="tag2 sell">majeur</span>' : ''}</td><td>${usd(r.px)}</td><td class="sell">${pc(r.done * 100, 0)}</td><td class="${r.rest < -0.2 ? 'sell' : 'mut'}">${pc(r.rest * 100, 0)}</td><td>${pc(r.total * 100, 0)}</td></tr>`).join('')}</tbody>`;
+  $('#cyFoot').innerHTML = `« Majeur » : baisse totale d'au moins 40 % depuis le sommet. Cette distinction n'est connue qu'après coup. « Déjà subi » : écart entre le prix d'exécution du signal et le sommet des 12 semaines précédentes. « Encore à venir » : pire creux des 26 semaines suivantes (partiel pour les signaux récents). Échantillon faible : ${ss.n} signaux de vente et ${bs.n} d'achat depuis ${dt(C.since)}.`;
+}
+
 // ---------- Composantes, contexte, plan ----------
 function renderComp() {
   const n = view().now, rows = (c, w, col) => Object.keys(w).map((k) => `<div class="crow"><span title="${esc(NAMES[k])}">${esc(NAMES[k])}</span><span class="cbar"><i style="width:${Math.round((c[k] || 0) * 100)}%;background:${col}"></i></span><span class="mono mut" style="text-align:right">${Math.round(w[k] * 100)} %</span></div>`).join('');
@@ -650,13 +808,15 @@ function curveSvg(curve, title) {
   return `<div><span class="eyebrow">${esc(title)}</span><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(title)}"><line x1="${L}" x2="${w - R}" y1="${y(1)}" y2="${y(1)}" stroke="var(--muted)" stroke-dasharray="4 4"/><text x="${L - 4}" y="${y(1) + 3}" text-anchor="end">1,00</text><path d="${path}" fill="none" stroke="${end >= 1 ? 'var(--buy)' : 'var(--sell)'}" stroke-width="2"/><text x="${w - R}" y="${y(end) - 6}" text-anchor="end" style="fill:var(--fg)">${f2.format(end)} BTC</text><text x="${L}" y="${h - 3}">${dtShort(curve[0][0])}</text><text x="${w - R}" y="${h - 3}" text-anchor="end">${dt(curve[curve.length - 1][0])}</text></svg></div>`;
 }
 function renderTruth() {
-  const B = D.backtest, T = D.tests, ev = D.evidence, th = D.thresholds;
-  $('#truthLead').innerHTML = `Chaque test part de 1 BTC (ou d'un budget identique) et se mesure en <b>nombre de BTC à la fin</b>, frais et glissement inclus (${f2.format(B.cost * 100)} % par ordre). Les ordres sont passés à l'ouverture de la bougie suivante, sans regarder le futur. Les réglages sont choisis sur ${dt(B.first)} → ${dt(B.split)}, puis jugés sur la période suivante, jamais vue pendant le choix.`;
+  const B = D.backtest, T = D.tests, ev = D.evidence, th = D.thresholds, CY = D.cycle.tests;
+  $('#truthLead').innerHTML = `Chaque test part de 1 BTC (ou d'un budget identique) et se mesure en <b>nombre de BTC à la fin</b>, frais et glissement inclus (${f2.format(B.cost * 100)} % par ordre). Les ordres sont passés à l'ouverture de la bougie suivante, sans regarder le futur. Cinq méthodes sont mesurées. Pour les trois premières, les réglages sont choisis sur ${dt(B.first)} → ${dt(B.split)}, puis jugés sur la période suivante, jamais vue pendant le choix.`;
   const hodl = (p) => pc((p.priceEnd / p.priceStart - 1) * 100);
   $('#tests').innerHTML = `
     <div class="t"><h3>1 · Vendre les sommets, racheter les creux</h3><div class="big ${B.out.btc >= 1 ? 'buy' : 'sell'}">${f2.format(B.in.btc)} → ${f2.format(B.out.btc)} BTC</div><p>Seuils retenus par l'apprentissage : creux ≥ ${th.tb}, sommet ≥ ${th.tt}, on vend ${f0.format(th.frac * 100)} % du stack. Apprentissage ${f2.format(B.in.btc)} BTC pour 1 (${B.in.trades} ordres, BTC ${hodl(B.in)}), puis ${f2.format(B.out.btc)} BTC sur ${dt(B.split)} → aujourd'hui (${B.out.trades} ordres, BTC ${hodl(B.out)}). Rester en BTC : 1,00.</p><p><b>${f0.format(B.beatShare * 100)} %</b> des ${B.combos} combinaisons de seuils battent HODL hors échantillon.</p></div>
     <div class="t"><h3>2 · Acheter plus intelligemment (DCA avec réserve)</h3><div class="big ${T.dca.beatOut ? 'buy' : 'sell'}">${T.dca.beatOut} / ${T.dca.combos}</div><p>On met de côté un montant chaque semaine et on le déploie sur signal de creux (ou après quelques semaines sans signal). Hors échantillon, ${T.dca.beatOut} combinaison${T.dca.beatOut > 1 ? 's' : ''} sur ${T.dca.combos} battent un DCA régulier ; écart médian ${pc(T.dca.medOut)}.</p></div>
-    <div class="t"><h3>3 · Filtre de tendance (moyenne mobile)</h3><div class="big">${T.trend.beatIn} / ${T.trend.combos} puis ${T.trend.beatOut} / ${T.trend.combos}</div><p>BTC au-dessus de la moyenne mobile, dollars en dessous. Pendant l'apprentissage ${T.trend.beatIn} réglages sur ${T.trend.combos} battent HODL (médiane ${f2.format(T.trend.medIn)} BTC), hors échantillon ${T.trend.beatOut} (médiane ${f2.format(T.trend.medOut)} BTC). Ce qui marchait en 2018-2022 a cessé de marcher.</p></div>`;
+    <div class="t"><h3>3 · Filtre de tendance (moyenne mobile)</h3><div class="big">${T.trend.beatIn} / ${T.trend.combos} puis ${T.trend.beatOut} / ${T.trend.combos}</div><p>BTC au-dessus de la moyenne mobile, dollars en dessous. Pendant l'apprentissage ${T.trend.beatIn} réglages sur ${T.trend.combos} battent HODL (médiane ${f2.format(T.trend.medIn)} BTC), hors échantillon ${T.trend.beatOut} (médiane ${f2.format(T.trend.medOut)} BTC). Ce qui marchait en 2018-2022 a cessé de marcher.</p></div>
+    <div class="t"><h3>4 · DSS Bressert hebdomadaire (acheter au-dessus de 20, vendre sous 80)</h3><div class="big ${CY.dss.both ? 'buy' : 'sell'}">${CY.dss.both} / ${CY.dss.combos}</div><p>Réglages qui battent HODL à la fois avant et après 2023. Réglage standard 20/80 : ${f2.format(CY.dss.defaults[0].a)} BTC pour 1 avant 2023 (vente totale), ${f2.format(CY.dss.defaults[0].b)} BTC après. Médiane de la grille : ${f2.format(CY.dss.medIn)} puis ${f2.format(CY.dss.medOut)} BTC.</p></div>
+    <div class="t"><h3>5 · DCA modulé par la phase du DSS</h3><div class="big ${CY.tilt.both ? 'buy' : 'sell'}">${CY.tilt.both} / ${CY.tilt.combos}</div><p>Acheter plus quand le DSS est bas et moins quand il est haut, sans jamais garder de cash. Aucune variante n'améliore le prix moyen sur les deux périodes ; médiane hors échantillon ${pc(CY.tilt.medOut * 100)}.</p></div>`;
   $('#curves').innerHTML = curveSvg(B.curveIn, 'Test 1 · apprentissage, BTC détenus (équivalent)') + curveSvg(B.curveOut, 'Test 1 · hors échantillon, BTC détenus (équivalent)');
   const row = (lab, s, base, side) => `<tr><td>${lab}</td><td>${s.n}</td>${['d3', 'd7', 'd14'].map((k) => `<td class="${(side === 'bot' ? s[k].med > 0 : s[k].med < 0) ? 'buy' : 'sell'}">${isNaN(s[k].med) ? '—' : pc(s[k].med * 100)}</td>`).join('')}<td>${isNaN(s.d14.right) ? '—' : f0.format(s.d14.right * 100) + ' %'}</td><td>${isNaN(s.adverseMed) ? '—' : pc(s.adverseMed * 100)}</td></tr>`;
   const bs = ev.base;
@@ -732,7 +892,7 @@ async function capabilities() {
 }
 
 // ---------- Démarrage ----------
-function renderAll() { renderTop(); renderComp(); renderPlan(); renderJournal(); drawChart(); }
+function renderAll() { renderTop(); renderComp(); renderPlan(); renderJournal(); renderCycle(); drawChart(); }
 (async function boot() {
   $('#jd').value = new Date().toISOString().slice(0, 10); $('#stack').value = ls.get('stack', 1); $('#risk').value = ls.get('risk', 1); if (J.stack != null) $('#j0').value = J.stack;
   try { D = await fetch('btc.json', { cache: 'no-store' }).then((r) => r.json()); }
