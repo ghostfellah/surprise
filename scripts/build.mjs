@@ -1,4 +1,5 @@
 // Assemble les versions autonomes (hébergement statique) dans dist/
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,5 +40,11 @@ copyFileSync(resolve(root, 'pare/site/voyage.json'), resolve(root, 'dist/pare/vo
 mkdirSync(resolve(root, 'dist/vigie'), { recursive: true });
 writeFileSync(resolve(root, 'dist/vigie/index.html'), page('vigie/site/app.html', "Les signaux qui montent chez les spécialistes et que la presse française n'a pas encore couverts, avec un atelier de rédaction."));
 copyFileSync(resolve(root, 'vigie/site/signaux.json'), resolve(root, 'dist/vigie/signaux.json'));
+
+// Sat Radar, dans /btc/ (la page est assemblée à partir du gabarit et du moteur)
+execFileSync(process.execPath, [resolve(root, 'btc/scripts/assemble.mjs')], { stdio: 'inherit' });
+mkdirSync(resolve(root, 'dist/btc'), { recursive: true });
+writeFileSync(resolve(root, 'dist/btc/index.html'), page('btc/site/app.html', 'Détection des creux et des sommets locaux du bitcoin, avec backtest honnête et journal de sats.', '<script>window.BTC_LIVE = true;</script>\n'));
+copyFileSync(resolve(root, 'btc/site/btc.json'), resolve(root, 'dist/btc/btc.json'));
 
 console.log('dist/ prêt');

@@ -1,6 +1,6 @@
 // Vigie : relève les signaux précoces sur des sources publiques et mesure leur couverture presse.
 // Écrit vigie/site/signaux.json. Usage : node vigie/scripts/collect.mjs
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -199,8 +199,11 @@ const signals = all.slice(0, 240).map(({ vel, ...s }) => { for (const k of Objec
 if (signals.length < 20) { console.error('Trop peu de signaux, instantané précédent conservé.'); process.exit(1); }
 // Mémoire : reprend l'historique du relevé précédent pour mesurer l'accélération et l'arrivée de la presse
 const PREV = process.env.VIGIE_PREV || 'https://ghostfellah.github.io/surprise/vigie/signaux.json';
+const CACHE = resolve(dirname(OUT), '../.cache/dernier.json'); // copie locale du dernier relevé, hors dépôt
 let prev = null;
-try { prev = await get(PREV + '?t=' + now, 'json', 1); } catch (e) { console.error('relevé précédent indisponible :', e.message); }
+try { const r = await get(PREV + '?t=' + now, 'json', 1); if (Array.isArray(r?.signals)) prev = r; } catch (e) { console.error('relevé publié indisponible :', e.message); }
+try { const l = JSON.parse(readFileSync(CACHE, 'utf8')); if (Array.isArray(l?.signals) && (!prev || l.ts > prev.ts)) prev = l; } catch {}
+if (!prev) console.error('aucun relevé précédent : la mémoire repart de zéro');
 const old = new Map((prev?.signals || []).map((s) => [s.id, s]));
 const sameHour = prev && now - prev.ts < 20 * 60000; // relevé trop proche : on remplace le dernier point au lieu d'en ajouter un
 for (const s of signals) {
@@ -226,5 +229,7 @@ try {
   console.log(`posts à commenter : ${posts.length}`);
 } catch (e) { console.error('posts indisponibles', e.message); }
 
-writeFileSync(OUT, JSON.stringify({ ts: now, prevTs: prev?.ts || 0, scans, signals, posts, trends: await trends() }));
+const result = JSON.stringify({ ts: now, prevTs: prev?.ts || 0, scans, signals, posts, trends: await trends() });
+writeFileSync(OUT, result);
+try { mkdirSync(dirname(CACHE), { recursive: true }); writeFileSync(CACHE, result); } catch {}
 console.log(`${signals.length} signaux -> ${OUT}`);

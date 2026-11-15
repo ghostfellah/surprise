@@ -31,6 +31,8 @@ jobs:
         run: node scripts/snapshot.mjs || echo "API indisponible, instantané du dépôt conservé"
       - name: Rafraîchir les signaux de Vigie (garde les derniers en cas d'échec)
         run: node vigie/scripts/collect.mjs || echo "Sources indisponibles, relevé du dépôt conservé"
+      - name: Rafraîchir Sat Radar (garde le dernier relevé en cas d'échec)
+        run: node btc/scripts/collect.mjs || echo "Sources bitcoin indisponibles, relevé du dépôt conservé"
       - run: node scripts/build.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

@@ -1,0 +1,748 @@
+<title>Sat Radar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Unbounded:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Mise en page : un poste de pilotage. Le prix et l'état des deux scores en tête, le graphique au centre, puis le contexte, le test de vérité et le journal. */
+:root{
+  --bg:#eef0f5; --surface:#ffffff; --raised:#f4f5f9; --line:#d9dde7; --fg:#12151d; --muted:#586177;
+  --btc:#c46a00; --buy:#0b8f6c; --sell:#d12c4f; --warn:#a07000; --btc-ink:#ffffff;
+  --display:"Unbounded","Arial Narrow",system-ui,sans-serif; --body:"Manrope","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0a0c11; --surface:#11141c; --raised:#181c27; --line:#252a38; --fg:#eceff6; --muted:#8b94a9;
+  --btc:#f7931a; --buy:#2ad1a3; --sell:#ff5c7a; --warn:#f2c14e; --btc-ink:#1a0f00; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0a0c11; --surface:#11141c; --raised:#181c27; --line:#252a38; --fg:#eceff6; --muted:#8b94a9;
+  --btc:#f7931a; --buy:#2ad1a3; --sell:#ff5c7a; --warn:#f2c14e; --btc-ink:#1a0f00; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--btc);outline-offset:2px}
+a{color:var(--btc)}
+.wrap{max-width:1200px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font:600 11px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.buy{color:var(--buy)} .sell{color:var(--sell)} .mut{color:var(--muted)} .warn{color:var(--warn)}
+h2{font:700 20px/1.2 var(--display);margin:0;letter-spacing:-.01em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0}
+.btn{border:1px solid var(--line);background:transparent;border-radius:9px;padding:7px 13px;font-weight:600;font-size:13px;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--fg)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.solid{background:var(--btc);border-color:var(--btc);color:var(--btc-ink)}
+input[type=number],input[type=date],select,textarea{background:var(--raised);border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}
+
+.mast{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand b{font:700 24px/1 var(--display);letter-spacing:-.03em}
+.brand span{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+.tick{text-align:right}
+.tick .px{font:600 34px/1 var(--mono);letter-spacing:-.03em}
+.tick .sats{font-size:13px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12px;color:var(--muted);margin-top:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.pill.live .dot{background:var(--buy)}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px}
+@media (max-width:900px){.hero{grid-template-columns:minmax(0,1fr)}}
+.gauges{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:520px){.gauges{grid-template-columns:1fr}}
+.g{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.g svg{width:100%;max-width:230px;height:auto}
+.g .zone{font:700 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:2px 9px;border:1px solid currentColor}
+.g p{margin:4px 0 0;font-size:13.5px;color:var(--muted);max-width:30ch}
+.reading{margin:16px 0 0;font-size:14.5px;border-top:1px solid var(--line);padding-top:14px}
+.trust{display:flex;flex-direction:column;gap:10px}
+.trust .lvl{display:flex;align-items:center;gap:10px}
+.trust .lvl b{font:700 15px var(--display)}
+.bars3{display:flex;gap:4px}.bars3 i{width:26px;height:8px;border-radius:3px;background:var(--line)}.bars3 i.on{background:var(--sell)}
+.trust ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.trust a{font-weight:600}
+
+.chartcard{padding:16px 16px 12px}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.seg{display:flex;gap:4px}
+.seg button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:4px 11px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.cv{position:relative;width:100%;height:440px}
+@media (max-width:600px){.cv{height:360px}}
+.cv canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font:12px/1.5 var(--mono);padding:6px 9px;border-radius:8px;white-space:nowrap;z-index:2}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:11px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+.comp{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.crow{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 42px;gap:10px;align-items:center;font-size:13px}
+.crow span:first-child{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cbar{height:7px;border-radius:4px;background:var(--raised);overflow:hidden}.cbar i{display:block;height:100%}
+.sub{display:flex;gap:14px;margin-top:6px}
+.sub .eyebrow{flex:1}
+.ov{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+.o{background:var(--raised);border-radius:12px;padding:11px 12px;min-width:0}
+.o b{display:block;font:600 18px/1.3 var(--mono)}
+.o small{display:block;color:var(--muted);font-size:12px;line-height:1.4;margin-top:2px}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+
+.plan{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
+.plan div{background:var(--raised);border-radius:12px;padding:10px 12px}
+.plan b{display:block;font:600 17px/1.3 var(--mono)}
+.plan span{font-size:12px;color:var(--muted)}
+.calc{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.calc label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.calc input{width:120px}
+.ai{background:var(--raised);border-radius:12px;padding:14px 16px;font-size:14.5px;line-height:1.65;margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+textarea.raw{width:100%;min-height:150px;font:12px/1.5 var(--mono);margin-top:10px}
+
+.tests{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:14px}
+.t{background:var(--raised);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.t h3{font:600 14px/1.35 var(--body);margin:0}
+.t .big{font:700 22px/1.2 var(--mono)}
+.t p{margin:0;font-size:13px;color:var(--muted)}
+table{border-collapse:collapse;width:100%}
+.scroll{overflow-x:auto;margin-top:12px}
+th{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);font:13px var(--mono);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+.curves{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:14px}
+.curves svg{width:100%;height:auto;display:block}
+.curves text{font:10px var(--mono);fill:var(--muted)}
+
+.jform{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px}
+.jform label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.jform input,.jform select{width:130px}
+.jsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;max-width:90ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="none" stroke="var(--btc)" stroke-width="2.4"/><path d="M14 26 L19 18 L23 22 L29 13" fill="none" stroke="var(--fg)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="29" cy="13" r="2.4" fill="var(--btc)"/></svg>
+      <div><b>Sat Radar</b><span>Creux et sommets locaux du bitcoin, avec preuves</span></div>
+    </div>
+    <div class="tick"><div class="px" id="px">—</div><div class="sats mono" id="sats"></div><span class="pill" id="pill"><span class="dot"></span><span id="pillT">Chargement…</span></span></div>
+  </header>
+
+  <section class="hero">
+    <div class="card">
+      <div class="eyebrow">Où en est-on, bougie de 4 h clôturée</div>
+      <div class="gauges" style="margin-top:12px"><div class="g" id="gB"></div><div class="g" id="gT"></div></div>
+      <p class="reading" id="reading"></p>
+    </div>
+    <div class="card trust" id="trust"></div>
+  </section>
+
+  <section class="card chartcard">
+    <div class="chead"><h2>Graphique 4 h et signaux</h2><div class="seg" id="range" role="group" aria-label="Durée"><button type="button" data-n="180">30 jours</button><button type="button" data-n="540">90 jours</button><button type="button" data-n="1080">6 mois</button></div></div>
+    <div class="cv" id="cv"><canvas id="canvas" role="img" aria-label="Graphique du bitcoin en 4 heures avec scores de creux et de sommet"></canvas><div class="tip" id="tip" hidden></div></div>
+    <div class="legend"><span><i style="background:var(--btc)"></i>EMA 20</span><span><i style="background:var(--muted)"></i>EMA 50</span><span><i style="background:var(--buy)"></i>score de creux</span><span><i style="background:var(--sell)"></i>score de sommet</span><span>▲ alerte de creux (≥ 45) · ▼ alerte de sommet (≥ 45) · lignes pointillées à 45 et 60</span></div>
+  </section>
+
+  <section class="two">
+    <div class="card"><h2>Ce qui pèse dans le score</h2><div class="sub"><span class="eyebrow buy">Creux</span><span class="eyebrow sell">Sommet</span></div><div class="two" style="gap:20px;margin-top:0"><div class="comp" id="cB"></div><div class="comp" id="cT"></div></div><p class="note">Neuf composantes à poids fixes, choisis à l'avance et jamais ajustés sur l'historique. Une barre pleine veut dire que la composante est à son extrême.</p></div>
+    <div class="card"><h2>Contexte dérivés et on-chain</h2><div class="ov" id="ov"></div><p class="note">Données indicatives, sans assez d'historique pour être testées : elles ne comptent pas dans le score.</p></div>
+  </section>
+
+  <section class="card">
+    <h2>Plan chiffré</h2>
+    <div id="plan"></div>
+    <div class="calc" style="margin-top:6px">
+      <label>Stack (BTC)<input id="stack" type="number" min="0" step="0.01" value="1" inputmode="decimal"></label>
+      <label>Risque max sur ce trade (% du stack)<input id="risk" type="number" min="0.1" max="10" step="0.1" value="1" inputmode="decimal"></label>
+      <span id="size" class="mono"></span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px"><button class="btn solid" id="ask" type="button">Demander une lecture à Claude</button><span class="mut" id="askState" style="font-size:13px"></span></div>
+    <div class="ai" id="aiOut" hidden></div>
+    <textarea class="raw" id="aiRaw" hidden readonly aria-label="Consigne à copier"></textarea>
+  </section>
+
+  <section class="card" id="truth">
+    <h2>Le test de vérité</h2>
+    <p class="note" style="margin-top:6px" id="truthLead"></p>
+    <div class="tests" id="tests"></div>
+    <div class="curves" id="curves"></div>
+    <div class="scroll"><table id="evid"></table></div>
+    <div class="scroll"><table id="events"></table></div>
+    <p class="note" id="truthFoot"></p>
+  </section>
+
+  <section class="card">
+    <h2>Journal de sats</h2>
+    <p class="note" style="margin-top:6px">Note tes achats et tes ventes. Le journal compare ton stack actuel à celui que tu aurais en n'ayant rien fait, la seule mesure qui compte quand on veut plus de satoshis.</p>
+    <div class="jform">
+      <label>Stack au départ (BTC)<input id="j0" type="number" min="0" step="0.001" inputmode="decimal"></label>
+      <label>Date<input id="jd" type="date"></label>
+      <label>Sens<select id="js"><option value="buy">Achat de BTC</option><option value="sell">Vente de BTC</option></select></label>
+      <label>Quantité (BTC)<input id="jq" type="number" min="0" step="0.0001" inputmode="decimal"></label>
+      <label>Prix (USD)<input id="jp" type="number" min="0" step="1" inputmode="decimal"></label>
+      <button class="btn solid" id="jadd" type="button">Ajouter</button>
+    </div>
+    <div class="jsum" id="jsum"></div>
+    <div class="scroll"><table id="jtab"></table></div>
+    <p class="note" id="jnote"></p>
+  </section>
+
+  <footer>Sources : chandeliers Bitstamp BTC/USD, indice Fear &amp; Greed (alternative.me), MVRV (Coinmetrics), funding et open interest (Hyperliquid), ratio long/short (OKX), DVOL et options (Deribit), marge (Bitfinex), hashrate (mempool.space). Ce n'est pas un conseil en investissement : aucun de ces signaux ne garantit un résultat, et les performances passées ne préjugent pas des suivantes. Le risque de perdre des sats en tradant est réel.</footer>
+</div>
+
+<script>// Moteur de détection des creux et des sommets locaux du bitcoin.
+// Pur calcul, sans accès réseau : utilisé par le collecteur Node et inclus tel quel dans la page.
+// Aucune anticipation : le score de la bougie i n'utilise que des données connues à sa clôture.
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.BtcEngine = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+  const DAY = 864e5;
+  const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+  const dayStart = (t) => Math.floor(t / DAY) * DAY;
+
+  function ema(v, n) {
+    const k = 2 / (n + 1), o = new Float64Array(v.length);
+    let e = v[0];
+    for (let i = 0; i < v.length; i++) { e = i ? v[i] * k + e * (1 - k) : v[0]; o[i] = e; }
+    return o;
+  }
+  function sma(v, n) {
+    const o = new Float64Array(v.length).fill(NaN);
+    let s = 0;
+    for (let i = 0; i < v.length; i++) { s += v[i]; if (i >= n) s -= v[i - n]; if (i >= n - 1) o[i] = s / n; }
+    return o;
+  }
+  function stdev(v, n) {
+    const o = new Float64Array(v.length).fill(NaN);
+    let s = 0, q = 0;
+    for (let i = 0; i < v.length; i++) {
+      s += v[i]; q += v[i] * v[i];
+      if (i >= n) { s -= v[i - n]; q -= v[i - n] * v[i - n]; }
+      if (i >= n - 1) { const m = s / n; o[i] = Math.sqrt(Math.max(0, q / n - m * m)); }
+    }
+    return o;
+  }
+  function rsi(c, n = 14) {
+    const o = new Float64Array(c.length).fill(NaN);
+    if (c.length <= n) return o;
+    let g = 0, l = 0;
+    for (let i = 1; i <= n; i++) { const d = c[i] - c[i - 1]; g += Math.max(d, 0); l += Math.max(-d, 0); }
+    g /= n; l /= n; o[n] = l === 0 ? 100 : 100 - 100 / (1 + g / l);
+    for (let i = n + 1; i < c.length; i++) {
+      const d = c[i] - c[i - 1];
+      g = (g * (n - 1) + Math.max(d, 0)) / n; l = (l * (n - 1) + Math.max(-d, 0)) / n;
+      o[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l);
+    }
+    return o;
+  }
+  function atr(h, l, c, n = 14) {
+    const o = new Float64Array(c.length).fill(NaN);
+    let a = 0;
+    for (let i = 1; i < c.length; i++) {
+      const tr = Math.max(h[i] - l[i], Math.abs(h[i] - c[i - 1]), Math.abs(l[i] - c[i - 1]));
+      if (i <= n) { a += tr; if (i === n) { a /= n; o[i] = a; } } else { a = (a * (n - 1) + tr) / n; o[i] = a; }
+    }
+    return o;
+  }
+  function rollExtreme(v, n, fn) {
+    const o = new Float64Array(v.length).fill(NaN);
+    for (let i = n - 1; i < v.length; i++) { let m = v[i]; for (let j = i - n + 1; j < i; j++) m = fn(m, v[j]); o[i] = m; }
+    return o;
+  }
+
+  // Poids fixés a priori (somme = 1). Ils ne sont jamais ajustés sur l'historique, pour limiter le surapprentissage.
+  const WB = { rsi4: 0.12, rsiD: 0.10, bb: 0.10, stretch: 0.12, dd: 0.10, cap: 0.12, div: 0.12, fng: 0.12, mvrv: 0.10 };
+  const WT = { rsi4: 0.12, rsiD: 0.10, bb: 0.10, stretch: 0.12, dd: 0.10, cap: 0.12, div: 0.12, fng: 0.12, mvrv: 0.10 };
+  const LABELS = {
+    rsi4: 'RSI 4 h', rsiD: 'RSI journalier', bb: 'Bandes de Bollinger 4 h', stretch: 'Écart à la moyenne 50',
+    dd: 'Distance au plus haut / bas 60 j', cap: 'Mèche et volume de capitulation', div: 'Divergence du RSI',
+    fng: 'Peur et avidité', mvrv: 'MVRV (valorisation on-chain)',
+  };
+
+  // Séries journalières indexées par jour UTC. 4h et journalier : { t, o, h, l, c, v } en tableaux.
+  // ctx : { fng: {jourUTC: valeur}, mvrv: {jourUTC: valeur} } ; les deux sont décalées d'un jour.
+  function build(c4, cd, ctx) {
+    const n = c4.t.length;
+    const rsi4 = rsi(c4.c, 14), atr4 = atr(c4.h, c4.l, c4.c, 14);
+    const mid = sma(c4.c, 20), sd = stdev(c4.c, 20);
+    const e50 = ema(c4.c, 50), e20 = ema(c4.c, 20);
+    const dev = new Float64Array(n); for (let i = 0; i < n; i++) dev[i] = c4.c[i] - e50[i];
+    const devSd = stdev(dev, 100), volMa = sma(c4.v, 30);
+    const hi60 = rollExtreme(c4.h, 360, Math.max), lo60 = rollExtreme(c4.l, 360, Math.min);
+    const rsiD = rsi(cd.c, 14);
+    const dIdx = new Map(); cd.t.forEach((t, i) => dIdx.set(dayStart(t), i));
+    const lag = (map, t) => { const v = map && map[dayStart(t) - DAY]; return v == null ? NaN : v; };
+
+    const bot = new Float64Array(n).fill(NaN), top = new Float64Array(n).fill(NaN);
+    const cb = {}, ct = {};
+    for (const k of Object.keys(WB)) { cb[k] = new Float32Array(n).fill(NaN); ct[k] = new Float32Array(n).fill(NaN); }
+
+    const K = 5, pl = [], ph = []; // pivots confirmés (indice, prix, rsi)
+    const START = 400;
+    for (let i = 0; i < n; i++) {
+      // Pivots confirmés avec K bougies de retard : jamais d'anticipation.
+      const j = i - K;
+      if (j >= K && !isNaN(rsi4[j])) {
+        let isL = true, isH = true;
+        for (let q = j - K; q <= j + K; q++) { if (c4.l[q] < c4.l[j]) isL = false; if (c4.h[q] > c4.h[j]) isH = false; }
+        if (isL) pl.push([j, c4.l[j], rsi4[j]]);
+        if (isH) ph.push([j, c4.h[j], rsi4[j]]);
+      }
+      if (i < START || isNaN(devSd[i]) || isNaN(hi60[i])) continue;
+
+      const dIndex = dIdx.get(dayStart(c4.t[i]) - DAY); // dernier jour clos
+      const rd = dIndex != null ? rsiD[dIndex] : NaN;
+      const pctB = sd[i] > 0 ? (c4.c[i] - (mid[i] - 2 * sd[i])) / (4 * sd[i]) : 0.5;
+      const z = devSd[i] > 0 ? dev[i] / devSd[i] : 0;
+      const dd = 1 - c4.c[i] / hi60[i], up = c4.c[i] / lo60[i] - 1;
+      const fng = lag(ctx.fng, c4.t[i]), mv = lag(ctx.mvrv, c4.t[i]);
+
+      // Mèche de capitulation (sur cette bougie ou la précédente), pondérée par le volume.
+      let capB = 0, capT = 0;
+      for (let q = Math.max(0, i - 1); q <= i; q++) {
+        const rg = c4.h[q] - c4.l[q]; if (!(rg > 0) || !(atr4[q] > 0)) continue;
+        const body = Math.min(1, rg / atr4[q]), vr = volMa[q - 1] > 0 ? c4.v[q] / volMa[q - 1] : 1;
+        const lw = (Math.min(c4.o[q], c4.c[q]) - c4.l[q]) / rg, uw = (c4.h[q] - Math.max(c4.o[q], c4.c[q])) / rg;
+        const vc = clamp((vr - 1) / 1.5);
+        capB = Math.max(capB, Math.sqrt(clamp((lw - 0.45) / 0.4) * vc) * body);
+        capT = Math.max(capT, Math.sqrt(clamp((uw - 0.45) / 0.4) * vc) * body);
+      }
+      // Divergences : nouveau extrême de prix récent sans confirmation du RSI.
+      let divB = 0, divT = 0;
+      if (pl.length >= 2) {
+        const a = pl[pl.length - 2], b = pl[pl.length - 1];
+        if (i - b[0] <= 48 && b[0] - a[0] >= 6 && b[0] - a[0] <= 120 && b[1] < a[1] * 0.998 && b[2] > a[2] + 2 && a[2] < 40) divB = clamp((b[2] - a[2]) / 12);
+      }
+      if (ph.length >= 2) {
+        const a = ph[ph.length - 2], b = ph[ph.length - 1];
+        if (i - b[0] <= 48 && b[0] - a[0] >= 6 && b[0] - a[0] <= 120 && b[1] > a[1] * 1.002 && b[2] < a[2] - 2 && a[2] > 60) divT = clamp((a[2] - b[2]) / 12);
+      }
+      const B = {
+        rsi4: clamp((35 - rsi4[i]) / 20), rsiD: isNaN(rd) ? 0 : clamp((40 - rd) / 20), bb: clamp((0.1 - pctB) / 0.5),
+        stretch: clamp((-z - 1) / 2), dd: clamp((dd - 0.15) / 0.25), cap: capB, div: divB,
+        fng: isNaN(fng) ? 0 : clamp((30 - fng) / 20), mvrv: isNaN(mv) ? 0 : clamp((1.2 - mv) / 0.5),
+      };
+      const T = {
+        rsi4: clamp((rsi4[i] - 65) / 20), rsiD: isNaN(rd) ? 0 : clamp((rd - 60) / 20), bb: clamp((pctB - 0.9) / 0.5),
+        stretch: clamp((z - 1) / 2), dd: clamp((up - 0.25) / 0.5), cap: capT, div: divT,
+        fng: isNaN(fng) ? 0 : clamp((fng - 70) / 20), mvrv: isNaN(mv) ? 0 : clamp((mv - 1.8) / 1.2),
+      };
+      let sb = 0, st = 0;
+      for (const k of Object.keys(WB)) { sb += WB[k] * B[k]; st += WT[k] * T[k]; cb[k][i] = B[k]; ct[k][i] = T[k]; }
+      bot[i] = Math.round(sb * 1000) / 10; top[i] = Math.round(st * 1000) / 10;
+    }
+    return {
+      n, t: c4.t, o: c4.o, h: c4.h, l: c4.l, c: c4.c, v: c4.v, bot, top, cb, ct,
+      ind: { rsi4, atr4, e20, e50, mid, sd, hi60, lo60, rsiD, dIdx, pl, ph },
+    };
+  }
+
+  // Épisodes : un signal par vague de survente (ou de surachat), réarmé quand le score retombe de 15 points.
+  function episodes(S, tb, tt, from = 0, to = S.n) {
+    const out = [];
+    let armB = true, armT = true;
+    for (let i = from; i < to; i++) {
+      if (isNaN(S.bot[i])) continue;
+      if (S.bot[i] < tb - 15) armB = true;
+      if (S.top[i] < tt - 15) armT = true;
+      if (armB && S.bot[i] >= tb) { out.push({ i, side: 'bot' }); armB = false; }
+      if (armT && S.top[i] >= tt) { out.push({ i, side: 'top' }); armT = false; }
+    }
+    return out;
+  }
+
+  // Stratégie « sats » : on part de 1 BTC. Au sommet on vend une fraction, au creux on rachète tout.
+  // Exécution à l'ouverture de la bougie suivante, coût aller simple (frais + glissement) = cost.
+  function backtest(S, p, from, to, wantCurve) {
+    const cost = p.cost == null ? 0.0015 : p.cost;
+    let btc = 1, usd = 0, trades = 0, wins = 0, lastSellPx = 0, minEq = 1, maxEq = 1, mdd = 0;
+    const curve = [], log = [];
+    let armB = true, armT = true;
+    for (let i = from; i < to - 1; i++) {
+      if (!isNaN(S.bot[i])) {
+        if (S.bot[i] < p.tb - 15) armB = true;
+        if (S.top[i] < p.tt - 15) armT = true;
+        const px = S.o[i + 1];
+        if (armT && S.top[i] >= p.tt && btc > 1e-9) {
+          const sell = btc * p.frac; btc -= sell; usd += sell * px * (1 - cost); lastSellPx = px; armT = false; trades++;
+          log.push({ i: i + 1, side: 'sell', px });
+        } else if (armB && S.bot[i] >= p.tb && usd > 1e-9) {
+          const got = usd / (px * (1 + cost)); if (lastSellPx && px < lastSellPx * (1 - 2 * cost)) wins++;
+          btc += got; usd = 0; armB = false; trades++; log.push({ i: i + 1, side: 'buy', px, btc });
+        }
+      }
+      const eq = btc + usd / S.c[i];
+      if (eq > maxEq) maxEq = eq; mdd = Math.min(mdd, eq / maxEq - 1); if (eq < minEq) minEq = eq;
+      if (wantCurve && (i - from) % 6 === 0) curve.push([S.t[i], eq]);
+    }
+    const final = btc + usd / S.c[to - 1];
+    return { final, edge: final - 1, trades, wins, mdd, curve, log };
+  }
+
+  const HORIZONS = { d3: 18, d7: 42, d14: 84 };
+  const median = (a) => { if (!a.length) return NaN; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  function forward(S, eps, side) {
+    const rows = [];
+    for (const e of eps) {
+      if (e.side !== side || e.i + 1 >= S.n) continue;
+      const px = S.o[e.i + 1], r = { i: e.i, t: S.t[e.i], px, score: side === 'bot' ? S.bot[e.i] : S.top[e.i] };
+      for (const [k, h] of Object.entries(HORIZONS)) r[k] = e.i + h < S.n ? S.c[e.i + h] / px - 1 : null;
+      const end = Math.min(S.n - 1, e.i + 42);
+      let ext = px; for (let q = e.i + 1; q <= end; q++) ext = side === 'bot' ? Math.min(ext, S.l[q]) : Math.max(ext, S.h[q]);
+      r.adverse = side === 'bot' ? ext / px - 1 : ext / px - 1; // creux atteint (bot) / sommet atteint (top) sur 7 j
+      rows.push(r);
+    }
+    return rows;
+  }
+  function summarize(rows, side) {
+    const o = { n: rows.length };
+    for (const k of Object.keys(HORIZONS)) {
+      const v = rows.map((r) => r[k]).filter((x) => x != null);
+      o[k] = { n: v.length, med: median(v), right: v.length ? v.filter((x) => (side === 'bot' ? x > 0 : x < 0)).length / v.length : NaN };
+    }
+    const ad = rows.map((r) => r.adverse); o.adverseMed = median(ad);
+    return o;
+  }
+  function baseline(S, from, to) {
+    const o = {};
+    for (const [k, h] of Object.entries(HORIZONS)) {
+      const v = []; for (let i = from; i < to - h; i += 3) if (!isNaN(S.bot[i])) v.push(S.c[i + h] / S.o[i + 1] - 1);
+      o[k] = { n: v.length, med: median(v), up: v.length ? v.filter((x) => x > 0).length / v.length : NaN };
+    }
+    return o;
+  }
+
+  // Sélection des seuils sur la période d'apprentissage, évaluation sur la période suivante (walk-forward simple).
+  function optimize(S, splitIdx) {
+    const first = S.bot.findIndex((x) => !isNaN(x)), grid = [];
+    const TB = [45, 50, 55, 60, 65], TT = [45, 50, 55, 60, 65], FR = [0.25, 0.5, 1];
+    for (const tb of TB) for (const tt of TT) for (const frac of FR) {
+      const p = { tb, tt, frac };
+      const a = backtest(S, p, first, splitIdx, false), b = backtest(S, p, splitIdx, S.n, false);
+      grid.push({ ...p, inEdge: a.edge, inTrades: a.trades, outEdge: b.edge, outTrades: b.trades });
+    }
+    const ok = grid.filter((g) => g.inTrades >= 6);
+    const best = [...(ok.length ? ok : grid)].sort((x, y) => y.inEdge - x.inEdge || x.inTrades - y.inTrades)[0];
+    const beat = grid.filter((g) => g.outTrades > 0 && g.outEdge > 0).length;
+    return { best, grid, beatShare: beat / grid.length };
+  }
+
+  // DCA hebdomadaire (1 unité par semaine) avec réserve de cash : on déploie la réserve sur signal de creux,
+  // ou après `W` semaines sans signal. Le cash restant est valorisé au dernier prix. Retourne les BTC accumulés.
+  function dcaTiming(S, from, to, T, W, cost = 0.0015) {
+    const WEEK = 42; let cash = 0, btc = 0, since = 0, arm = true;
+    for (let i = from; i < to - 1; i++) {
+      const px = S.o[i + 1];
+      if ((i - from) % WEEK === 0) { cash += 1; if (T == null) { btc += cash / (px * (1 + cost)); cash = 0; continue; } }
+      if (T == null) continue;
+      since++;
+      if (S.bot[i] < T - 15) arm = true;
+      const sig = arm && S.bot[i] >= T;
+      if (cash > 0 && (sig || since >= W * WEEK)) { btc += cash / (px * (1 + cost)); cash = 0; since = 0; if (sig) arm = false; }
+    }
+    return btc + cash / S.c[to - 1];
+  }
+  // Filtre de tendance sur bougies journalières : BTC au-dessus de la moyenne mobile, dollars en dessous.
+  function trendFilter(D, n, band, from, to, cost = 0.0015) {
+    const m = sma(Float64Array.from(D.c), n);
+    let btc = 1, usd = 0, trades = 0, inBtc = true;
+    for (let i = Math.max(from, n); i < to - 1; i++) {
+      if (isNaN(m[i])) continue;
+      const px = D.o[i + 1];
+      if (inBtc && D.c[i] < m[i] * (1 - band)) { usd = btc * px * (1 - cost); btc = 0; inBtc = false; trades++; }
+      else if (!inBtc && D.c[i] > m[i] * (1 + band)) { btc = usd / (px * (1 + cost)); usd = 0; inBtc = true; trades++; }
+    }
+    return { final: btc + usd / D.c[to - 1], trades };
+  }
+
+  return { build, episodes, backtest, dcaTiming, trendFilter, forward, summarize, baseline, optimize, ema, sma, rsi, atr, clamp, dayStart, WB, WT, LABELS, HORIZONS, DAY };
+});
+</script>
+<script>
+(() => {
+'use strict';
+const E = window.BtcEngine;
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nf = (d) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: d, minimumFractionDigits: d });
+const f0 = nf(0), f1 = nf(1), f2 = nf(2), f3 = nf(3);
+const usd = (x) => f0.format(x) + ' $';
+const pc = (x, d = 1) => (x > 0 ? '+' : x < 0 ? '−' : '') + nf(d).format(Math.abs(x)) + ' %';
+const dt = (t) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+const dtShort = (t) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+const ls = { get(k, d) { try { const v = localStorage.getItem('satradar.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem('satradar.' + k, JSON.stringify(v)); } catch {} } };
+const ALERT = 45, STRONG = 60;
+const NAMES = E.LABELS;
+
+let D = null, LIVE = null, range = ls.get('range', 540);
+const view = () => (LIVE ? LIVE : { price: D.price, now: D.now, bars: D.bars, ts: D.ts, live: false });
+
+// ---------- Données ----------
+function nowFromS(S, price) {
+  const k = S.n - 1, I = S.ind, atr = I.atr4[k];
+  const mn = (a, m) => Math.min(...a.slice(k - m + 1, k + 1)), mx = (a, m) => Math.max(...a.slice(k - m + 1, k + 1));
+  const lo = mn(S.l, 24), hi = mx(S.h, 24);
+  const comp = (c) => Object.fromEntries(Object.keys(c).map((q) => [q, c[q][k]]));
+  const di = I.dIdx.get(E.dayStart(S.t[k]) - E.DAY);
+  return {
+    bot: S.bot[k], top: S.top[k], rsi4: I.rsi4[k], atr, e20: I.e20[k], e50: I.e50[k], hi60: I.hi60[k], lo60: I.lo60[k], rsiD: di != null ? I.rsiD[di] : null,
+    swingLo: lo, swingHi: hi, comp: { bot: comp(S.cb), top: comp(S.ct) },
+    plan: { bot: { stop: lo - 0.5 * atr, t1: Math.max(I.e20[k], price), t2: Math.max(I.e50[k], price) }, top: { stop: hi + 0.5 * atr, t1: Math.min(I.e20[k], price), t2: Math.min(I.e50[k], price) } },
+    fng: D.now.fng, mvrv: D.now.mvrv, sma200: D.now.sma200,
+  };
+}
+async function liveRefresh() {
+  const get = async (u) => { const r = await fetch(u, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json(); };
+  const [h4, d1] = await Promise.all([get('https://www.bitstamp.net/api/v2/ohlc/btcusd/?step=14400&limit=1000'), get('https://www.bitstamp.net/api/v2/ohlc/btcusd/?step=86400&limit=400')]);
+  const now = Date.now(), cols = (rows) => ({ t: rows.map((r) => +r.timestamp * 1000), o: rows.map((r) => +r.open), h: rows.map((r) => +r.high), l: rows.map((r) => +r.low), c: rows.map((r) => +r.close), v: rows.map((r) => +r.volume) });
+  let r4 = h4.data.ohlc; const price = +r4[r4.length - 1].close;
+  if (+r4[r4.length - 1].timestamp * 1000 + 4 * 36e5 > now) r4 = r4.slice(0, -1);
+  const S = E.build(cols(r4), cols(d1.data.ohlc.filter((r) => +r.timestamp * 1000 + E.DAY <= now)), D.ctx);
+  const from = Math.max(0, S.n - 1080), sl = (a) => Array.from(a.slice(from));
+  LIVE = { live: true, ts: now, price, now: nowFromS(S, price), bars: { t: sl(S.t), o: sl(S.o), h: sl(S.h), l: sl(S.l), c: sl(S.c), bot: sl(S.bot), top: sl(S.top) } };
+}
+
+// ---------- Jauges ----------
+function gauge(v, color) {
+  const R = 74, cx = 94, cy = 92, pt = (p, r = R) => [cx + r * Math.cos(Math.PI * (1 - p)), cy - r * Math.sin(Math.PI * (1 - p))];
+  const arc = (p) => { const a = pt(0), b = pt(Math.max(0.001, p)); return `M${a[0].toFixed(1)},${a[1].toFixed(1)} A${R},${R} 0 0 1 ${b[0].toFixed(1)},${b[1].toFixed(1)}`; };
+  const tk = (th) => { const a = pt(th / 100, R - 12), b = pt(th / 100, R + 7); return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="var(--fg)" stroke-width="1.6" opacity=".55"/>`; };
+  return `<svg viewBox="0 0 188 106" aria-hidden="true"><path d="${arc(1)}" fill="none" stroke="var(--line)" stroke-width="13" stroke-linecap="round"/><path d="${arc(v / 100)}" fill="none" stroke="${color}" stroke-width="13" stroke-linecap="round"/>${tk(ALERT)}${tk(STRONG)}<text x="94" y="86" text-anchor="middle" style="font:700 34px var(--mono);fill:var(--fg)">${Math.round(v)}</text></svg>`;
+}
+const zoneOf = (v) => (v >= STRONG ? ['Signal fort', 2] : v >= ALERT ? ['Alerte', 1] : v >= ALERT - 15 ? ['Approche', 0.5] : ['Calme', 0]);
+function top3(c, w) { return Object.entries(c).map(([k, v]) => [k, v * w[k]]).filter((x) => x[1] > 0.004).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k]) => NAMES[k].toLowerCase()); }
+
+function renderTop() {
+  const v = view(), n = v.now;
+  $('#px').textContent = usd(v.price);
+  $('#sats').textContent = `1 $ = ${f0.format(1e8 / v.price)} sats · 1 000 sats = ${f2.format(1e-5 * v.price)} $`;
+  $('#pill').classList.toggle('live', !!v.live);
+  $('#pillT').textContent = v.live ? 'En direct · ' + new Date(v.ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Relevé du ' + new Date(v.ts).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const zb = zoneOf(n.bot), zt = zoneOf(n.top);
+  $('#gB').innerHTML = `<span class="eyebrow">Score de creux</span>${gauge(n.bot, 'var(--buy)')}<span class="zone buy">${zb[0]}</span><p>${top3(n.comp.bot, E.WB).length ? 'Pèsent : ' + top3(n.comp.bot, E.WB).join(', ') + '.' : 'Aucune composante marquée.'}</p>`;
+  $('#gT').innerHTML = `<span class="eyebrow">Score de sommet</span>${gauge(n.top, 'var(--sell)')}<span class="zone sell">${zt[0]}</span><p>${top3(n.comp.top, E.WT).length ? 'Pèsent : ' + top3(n.comp.top, E.WT).join(', ') + '.' : 'Aucune composante marquée.'}</p>`;
+  const dist = (x) => pc((v.price / x - 1) * 100);
+  const lines = [];
+  lines.push(`RSI 4 h à ${f0.format(n.rsi4)}${n.rsiD != null ? `, RSI journalier à ${f0.format(n.rsiD)}` : ''}. Le prix est ${dist(n.e50)} par rapport à l'EMA 50 et ${dist(n.hi60)} par rapport au plus haut de 60 jours.`);
+  if (n.fng != null) lines.push(`Fear &amp; Greed à ${n.fng}${n.mvrv ? `, MVRV à ${f2.format(n.mvrv)}` : ''}.`);
+  if (n.sma200) lines.push(`Moyenne 200 jours à ${usd(n.sma200)} : le prix est ${v.price < n.sma200 ? 'en dessous' : 'au-dessus'} (${dist(n.sma200)}).`);
+  $('#reading').innerHTML = lines.join(' ');
+}
+
+function renderTrust() {
+  const B = D.backtest, T = D.tests, ev = D.evidence;
+  const bad = B.out.edge <= 0 && T.dca.beatOut === 0;
+  const lvl = bad ? 3 : B.out.edge <= 0 ? 2 : 1;
+  const b45 = ev.bot[45].all, t45 = ev.top[45].all;
+  $('#trust').innerHTML = `<div class="eyebrow">Fiabilité de ces signaux</div>
+    <div class="lvl"><span class="bars3" aria-hidden="true">${[1, 2, 3].map((i) => `<i class="${i <= lvl ? 'on' : ''}"></i>`).join('')}</span><b class="${lvl >= 2 ? 'sell' : 'warn'}">${lvl === 3 ? 'Aucun avantage démontré' : lvl === 2 ? 'Avantage non confirmé' : 'Avantage à confirmer'}</b></div>
+    <ul>
+      <li>Vendre les sommets et racheter les creux sur 2018-2022 donnait <b class="mono">${f2.format(B.in.btc)} BTC</b> pour 1 de départ. Les mêmes réglages sur 2023-aujourd'hui : <b class="mono ${B.out.btc < 1 ? 'sell' : 'buy'}">${f2.format(B.out.btc)} BTC</b>.</li>
+      <li>Après une alerte de sommet (≥ 45), le prix était <b>plus haut</b> 14 jours plus tard dans ${f0.format((1 - t45.d14.right) * 100)} % des cas (médiane ${pc(t45.d14.med * 100)}).</li>
+      <li>Après une alerte de creux (≥ 45), le point bas des 7 jours suivants se situait en médiane à ${pc(b45.adverseMed * 100)} sous le prix du signal : on achetait presque toujours trop tôt.</li>
+      <li>${T.dca.beatOut} combinaison${T.dca.beatOut > 1 ? 's' : ''} sur ${T.dca.combos} battent un simple DCA hors échantillon.</li>
+    </ul>
+    <a href="#truth">Voir le test de vérité complet</a>`;
+}
+
+// ---------- Graphique ----------
+let hoverI = -1, geo = null;
+function drawChart() {
+  const v = view(), b = v.bars, cv = $('#canvas'), box = $('#cv');
+  const dpr = Math.min(2, window.devicePixelRatio || 1), W = box.clientWidth, H = box.clientHeight;
+  if (!W) return;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const cs = getComputedStyle(document.documentElement), g = (k) => cs.getPropertyValue(k).trim();
+  const C = { fg: g('--fg'), muted: g('--muted'), line: g('--line'), buy: g('--buy'), sell: g('--sell'), btc: g('--btc'), bg: g('--surface') };
+  const n = Math.min(range, b.t.length), s0 = b.t.length - n;
+  const L = 8, R = 54, T = 10, hp = Math.round(H * 0.68), sp0 = hp + 22, sp1 = H - 18, pw = W - L - R;
+  const idx = (i) => L + ((i + 0.5) / n) * pw;
+  let lo = Infinity, hi = -Infinity;
+  for (let i = s0; i < b.t.length; i++) { lo = Math.min(lo, b.l[i]); hi = Math.max(hi, b.h[i]); }
+  const pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+  const py = (x) => T + (1 - (x - lo) / (hi - lo)) * (hp - T), sy = (x) => sp1 - (x / 100) * (sp1 - sp0);
+  ctx.font = '11px "JetBrains Mono", monospace'; ctx.textBaseline = 'middle';
+  for (let k = 0; k <= 4; k++) { const val = lo + ((hi - lo) * k) / 4, y = py(val); ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke(); ctx.fillStyle = C.muted; ctx.textAlign = 'left'; ctx.fillText((val / 1000).toFixed(1) + 'k', W - R + 6, y); }
+  const bw = Math.max(1, Math.min(9, (pw / n) * 0.7));
+  for (let i = s0; i < b.t.length; i++) {
+    const x = idx(i - s0), up = b.c[i] >= b.o[i], col = up ? C.buy : C.sell;
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, py(b.h[i])); ctx.lineTo(x, py(b.l[i])); ctx.stroke();
+    const y1 = py(Math.max(b.o[i], b.c[i])), y2 = py(Math.min(b.o[i], b.c[i])); ctx.fillRect(x - bw / 2, y1, bw, Math.max(1, y2 - y1));
+  }
+  for (const [arr, col] of [[E.ema(b.c, 20), C.btc], [E.ema(b.c, 50), C.muted]]) { ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.beginPath(); for (let i = s0; i < b.t.length; i++) { const x = idx(i - s0), y = py(arr[i]); i === s0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); }
+  // Marqueurs d'alerte (un par vague)
+  const ep = E.episodes({ n: b.t.length, bot: b.bot, top: b.top }, ALERT, ALERT, s0, b.t.length);
+  for (const e of ep) {
+    const x = idx(e.i - s0); ctx.fillStyle = e.side === 'bot' ? C.buy : C.sell; ctx.beginPath();
+    if (e.side === 'bot') { const y = py(b.l[e.i]) + 9; ctx.moveTo(x, y - 7); ctx.lineTo(x - 5, y + 2); ctx.lineTo(x + 5, y + 2); } else { const y = py(b.h[e.i]) - 9; ctx.moveTo(x, y + 7); ctx.lineTo(x - 5, y - 2); ctx.lineTo(x + 5, y - 2); }
+    ctx.closePath(); ctx.fill();
+  }
+  // Panneau des scores
+  ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(L, sp0 - 10); ctx.lineTo(W - R, sp0 - 10); ctx.stroke();
+  for (const th of [ALERT, STRONG]) { ctx.setLineDash([4, 4]); ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(L, sy(th)); ctx.lineTo(W - R, sy(th)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = C.muted; ctx.textAlign = 'left'; ctx.fillText(th, W - R + 6, sy(th)); }
+  for (const [arr, col] of [[b.top, C.sell], [b.bot, C.buy]]) { ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.beginPath(); let st = false; for (let i = s0; i < b.t.length; i++) { if (isNaN(arr[i])) continue; const x = idx(i - s0), y = sy(arr[i]); st ? ctx.lineTo(x, y) : ctx.moveTo(x, y); st = true; } ctx.stroke(); }
+  ctx.fillStyle = C.muted; ctx.textAlign = 'center';
+  const ticks = 5; for (let k = 0; k < ticks; k++) { const i = s0 + Math.round(((n - 1) * k) / (ticks - 1)); ctx.fillText(dtShort(b.t[i]), Math.min(W - R - 20, Math.max(L + 20, idx(i - s0))), H - 6); }
+  if (hoverI >= s0) { const x = idx(hoverI - s0); ctx.strokeStyle = C.fg; ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, sp1); ctx.stroke(); ctx.globalAlpha = 1; }
+  geo = { L, pw, n, s0 };
+}
+function bindChart() {
+  const box = $('#cv'), tip = $('#tip');
+  const move = (e) => {
+    if (!geo) return; const r = box.getBoundingClientRect(), x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const b = view().bars, i = geo.s0 + Math.max(0, Math.min(geo.n - 1, Math.round(((x - geo.L) / geo.pw) * geo.n - 0.5)));
+    hoverI = i; drawChart();
+    tip.hidden = false; tip.innerHTML = `${new Date(b.t[i]).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}<br>${usd(b.c[i])}<br><span style="color:var(--buy)">creux ${isNaN(b.bot[i]) ? '—' : f0.format(b.bot[i])}</span> · <span style="color:var(--sell)">sommet ${isNaN(b.top[i]) ? '—' : f0.format(b.top[i])}</span>`;
+    tip.style.left = Math.min(r.width - 150, Math.max(4, x + 12)) + 'px'; tip.style.top = '8px';
+  };
+  box.addEventListener('mousemove', move); box.addEventListener('touchmove', move, { passive: true }); box.addEventListener('touchstart', move, { passive: true });
+  box.addEventListener('mouseleave', () => { hoverI = -1; tip.hidden = true; drawChart(); });
+  document.querySelectorAll('#range button').forEach((b) => b.addEventListener('click', () => { range = +b.dataset.n; ls.set('range', range); document.querySelectorAll('#range button').forEach((x) => x.setAttribute('aria-pressed', x === b)); drawChart(); }));
+  document.querySelectorAll('#range button').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.n === range));
+  new ResizeObserver(drawChart).observe(box);
+  new MutationObserver(drawChart).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
+}
+
+// ---------- Composantes, contexte, plan ----------
+function renderComp() {
+  const n = view().now, rows = (c, w, col) => Object.keys(w).map((k) => `<div class="crow"><span title="${esc(NAMES[k])}">${esc(NAMES[k])}</span><span class="cbar"><i style="width:${Math.round((c[k] || 0) * 100)}%;background:${col}"></i></span><span class="mono mut" style="text-align:right">${Math.round(w[k] * 100)} %</span></div>`).join('');
+  $('#cB').innerHTML = rows(n.comp.bot, E.WB, 'var(--buy)'); $('#cT').innerHTML = rows(n.comp.top, E.WT, 'var(--sell)');
+}
+function renderOverlays() {
+  const o = D.overlays, n = view().now, cards = [];
+  const add = (t, v, s) => cards.push(`<div class="o"><span class="eyebrow">${esc(t)}</span><b>${v}</b><small>${s}</small></div>`);
+  if (o.funding) add('Funding Hyperliquid', pc(o.funding.apr) + ' / an', o.funding.apr < 0 ? 'Les vendeurs à découvert paient : positionnement pessimiste.' : o.funding.apr > 30 ? 'Longs très chargés : risque de purge.' : `Neutre à modéré (moyenne 20 j : ${pc(o.funding.avgApr)}).`);
+  if (o.ls) add('Long/short OKX', f2.format(o.ls.ratio), o.ls.rank > 0.8 ? 'Comptes longs en surnombre (haut sur ' + f0.format(o.ls.days) + ' j).' : o.ls.rank < 0.2 ? 'Comptes courts en surnombre.' : 'Dans la fourchette récente.');
+  if (o.dvol) add('DVOL (volatilité implicite)', f1.format(o.dvol.now), o.dvol.rank > 0.8 ? 'Stress élevé sur 30 jours.' : o.dvol.rank < 0.2 ? 'Marché calme.' : 'Niveau moyen.');
+  if (o.putcall) add('Put/call (open interest)', f2.format(o.putcall.ratio), o.putcall.ratio > 0.9 ? 'Beaucoup de protection : prudence.' : o.putcall.ratio < 0.5 ? 'Optimisme marqué sur les options.' : 'Équilibré à légèrement haussier.');
+  if (o.ribbon) add('Hash ribbons', o.ribbon.capitulation ? 'Capitulation' : 'Normal', o.ribbon.capitulation ? `Mineurs sous pression depuis ${o.ribbon.days} j : zone souvent proche des creux de cycle.` : `Moyenne 30 j ${pc(o.ribbon.gapPct)} au-dessus de la 60 j depuis ${o.ribbon.days} j.`);
+  if (n.fng != null) add('Fear & Greed', String(n.fng), n.fng <= 20 ? 'Peur extrême.' : n.fng >= 80 ? 'Avidité extrême.' : 'Zone intermédiaire.');
+  if (n.mvrv) add('MVRV', f2.format(n.mvrv), n.mvrv < 1 ? 'Sous la valeur réalisée : zone historique de creux.' : n.mvrv > 3 ? 'Très au-dessus de la valeur réalisée.' : 'Valorisation intermédiaire.');
+  if (o.funding) add('Open interest Hyperliquid', f0.format(o.funding.oiBtc) + ' BTC', `Volume 24 h : ${f0.format(o.funding.vol24)} M$.`);
+  $('#ov').innerHTML = cards.join('') || '<p class="mut">Aucune donnée de contexte disponible.</p>';
+}
+function renderPlan() {
+  const v = view(), n = v.now, px = v.price;
+  const side = n.bot >= ALERT - 15 && n.bot >= n.top ? 'bot' : n.top >= ALERT - 15 ? 'top' : null;
+  const el = $('#plan');
+  if (!side) { el.innerHTML = '<p class="mut" style="margin:10px 0">Aucune zone active : les deux scores sont calmes. Rien à planifier, et c\'est le plus souvent la bonne décision.</p>'; $('#size').textContent = ''; return; }
+  const p = n.plan[side], long = side === 'bot', risk = Math.abs(px - p.stop) / px;
+  const rr = (t) => (Math.abs(t - px) / px) / risk;
+  const act = long ? 'Achat de BTC avec des dollars' : 'Vente de BTC contre des dollars';
+  el.innerHTML = `<p style="margin:10px 0 0"><b class="${long ? 'buy' : 'sell'}">${act}</b> si le score reste en zone (${f0.format(long ? n.bot : n.top)} / 100). Plan indicatif construit sur l'ATR 4 h et les moyennes mobiles.</p>
+    <div class="plan"><div><span>Entrée (prix actuel)</span><b>${usd(px)}</b></div><div><span>Invalidation</span><b>${usd(p.stop)}</b><span>${pc((p.stop / px - 1) * 100)}</span></div><div><span>Objectif 1 (EMA 20)</span><b>${usd(p.t1)}</b><span>${pc((p.t1 / px - 1) * 100)} · R/R ${f1.format(rr(p.t1))}</span></div><div><span>Objectif 2 (EMA 50)</span><b>${usd(p.t2)}</b><span>${pc((p.t2 / px - 1) * 100)} · R/R ${f1.format(rr(p.t2))}</span></div></div>
+    <p class="note" style="margin:0 0 10px">Rappel du test de vérité : ces niveaux ne garantissent rien. Après une alerte de ${long ? 'creux' : 'sommet'}, la médiane des 7 jours suivants était de ${long ? pc(D.evidence.bot[45].all.d7.med * 100) : pc(D.evidence.top[45].all.d7.med * 100)}.</p>`;
+  const stack = +$('#stack').value || 0, r = (+$('#risk').value || 1) / 100, frac = Math.min(1, r / risk);
+  $('#size').innerHTML = `Part du stack à engager : <b>${f0.format(frac * 100)} %</b> = ${f3.format(stack * frac)} BTC (${f0.format(stack * frac * 1e8)} sats)`;
+}
+
+// ---------- Test de vérité ----------
+function curveSvg(curve, title) {
+  const w = 420, h = 150, L = 34, R = 8, T = 18, B = 18; if (!curve || curve.length < 2) return '';
+  const ys = curve.map((p) => p[1]), lo = Math.min(...ys, 1), hi = Math.max(...ys, 1), pad = (hi - lo) * 0.08 || 0.1;
+  const x = (i) => L + (i / (curve.length - 1)) * (w - L - R), y = (v) => T + (1 - (v - (lo - pad)) / (hi - lo + 2 * pad)) * (h - T - B);
+  const path = curve.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');
+  const end = curve[curve.length - 1][1];
+  return `<div><span class="eyebrow">${esc(title)}</span><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(title)}"><line x1="${L}" x2="${w - R}" y1="${y(1)}" y2="${y(1)}" stroke="var(--muted)" stroke-dasharray="4 4"/><text x="${L - 4}" y="${y(1) + 3}" text-anchor="end">1,00</text><path d="${path}" fill="none" stroke="${end >= 1 ? 'var(--buy)' : 'var(--sell)'}" stroke-width="2"/><text x="${w - R}" y="${y(end) - 6}" text-anchor="end" style="fill:var(--fg)">${f2.format(end)} BTC</text><text x="${L}" y="${h - 3}">${dtShort(curve[0][0])}</text><text x="${w - R}" y="${h - 3}" text-anchor="end">${dt(curve[curve.length - 1][0])}</text></svg></div>`;
+}
+function renderTruth() {
+  const B = D.backtest, T = D.tests, ev = D.evidence, th = D.thresholds;
+  $('#truthLead').innerHTML = `Chaque test part de 1 BTC (ou d'un budget identique) et se mesure en <b>nombre de BTC à la fin</b>, frais et glissement inclus (${f2.format(B.cost * 100)} % par ordre). Les ordres sont passés à l'ouverture de la bougie suivante, sans regarder le futur. Les réglages sont choisis sur ${dt(B.first)} → ${dt(B.split)}, puis jugés sur la période suivante, jamais vue pendant le choix.`;
+  const hodl = (p) => pc((p.priceEnd / p.priceStart - 1) * 100);
+  $('#tests').innerHTML = `
+    <div class="t"><h3>1 · Vendre les sommets, racheter les creux</h3><div class="big ${B.out.btc >= 1 ? 'buy' : 'sell'}">${f2.format(B.in.btc)} → ${f2.format(B.out.btc)} BTC</div><p>Seuils retenus par l'apprentissage : creux ≥ ${th.tb}, sommet ≥ ${th.tt}, on vend ${f0.format(th.frac * 100)} % du stack. Apprentissage ${f2.format(B.in.btc)} BTC pour 1 (${B.in.trades} ordres, BTC ${hodl(B.in)}), puis ${f2.format(B.out.btc)} BTC sur ${dt(B.split)} → aujourd'hui (${B.out.trades} ordres, BTC ${hodl(B.out)}). Rester en BTC : 1,00.</p><p><b>${f0.format(B.beatShare * 100)} %</b> des ${B.combos} combinaisons de seuils battent HODL hors échantillon.</p></div>
+    <div class="t"><h3>2 · Acheter plus intelligemment (DCA avec réserve)</h3><div class="big ${T.dca.beatOut ? 'buy' : 'sell'}">${T.dca.beatOut} / ${T.dca.combos}</div><p>On met de côté un montant chaque semaine et on le déploie sur signal de creux (ou après quelques semaines sans signal). Hors échantillon, ${T.dca.beatOut} combinaison${T.dca.beatOut > 1 ? 's' : ''} sur ${T.dca.combos} battent un DCA régulier ; écart médian ${pc(T.dca.medOut)}.</p></div>
+    <div class="t"><h3>3 · Filtre de tendance (moyenne mobile)</h3><div class="big">${T.trend.beatIn} / ${T.trend.combos} puis ${T.trend.beatOut} / ${T.trend.combos}</div><p>BTC au-dessus de la moyenne mobile, dollars en dessous. Pendant l'apprentissage ${T.trend.beatIn} réglages sur ${T.trend.combos} battent HODL (médiane ${f2.format(T.trend.medIn)} BTC), hors échantillon ${T.trend.beatOut} (médiane ${f2.format(T.trend.medOut)} BTC). Ce qui marchait en 2018-2022 a cessé de marcher.</p></div>`;
+  $('#curves').innerHTML = curveSvg(B.curveIn, 'Test 1 · apprentissage, BTC détenus (équivalent)') + curveSvg(B.curveOut, 'Test 1 · hors échantillon, BTC détenus (équivalent)');
+  const row = (lab, s, base, side) => `<tr><td>${lab}</td><td>${s.n}</td>${['d3', 'd7', 'd14'].map((k) => `<td class="${(side === 'bot' ? s[k].med > 0 : s[k].med < 0) ? 'buy' : 'sell'}">${isNaN(s[k].med) ? '—' : pc(s[k].med * 100)}</td>`).join('')}<td>${isNaN(s.d14.right) ? '—' : f0.format(s.d14.right * 100) + ' %'}</td><td>${isNaN(s.adverseMed) ? '—' : pc(s.adverseMed * 100)}</td></tr>`;
+  const bs = ev.base;
+  $('#evid').innerHTML = `<thead><tr><th>Qualité des signaux (tout l'historique)</th><th>Épisodes</th><th>Méd. +3 j</th><th>Méd. +7 j</th><th>Méd. +14 j</th><th>Bon sens à 14 j</th><th>Extrême atteint en 7 j</th></tr></thead><tbody>
+    ${row('Creux, score ≥ 45', ev.bot[45].all, bs, 'bot')}${row('Creux, score ≥ 60', ev.bot[60].all, bs, 'bot')}${row('Sommet, score ≥ 45', ev.top[45].all, bs, 'top')}${row('Sommet, score ≥ 60', ev.top[60].all, bs, 'top')}
+    <tr><td class="mut">Toutes les bougies (référence)</td><td class="mut">${bs.d7.n}</td><td class="mut">${pc(bs.d3.med * 100)}</td><td class="mut">${pc(bs.d7.med * 100)}</td><td class="mut">${pc(bs.d14.med * 100)}</td><td class="mut">${f0.format(bs.d14.up * 100)} % de hausse</td><td class="mut">—</td></tr></tbody>`;
+  const evs = [...B.events.bot.slice(-8).map((e) => ({ ...e, side: 'bot' })), ...B.events.top.slice(-8).map((e) => ({ ...e, side: 'top' }))].sort((a, b) => b.t - a.t);
+  $('#events').innerHTML = `<thead><tr><th>Derniers signaux du backtest</th><th>Prix</th><th>Score</th><th>+3 j</th><th>+7 j</th><th>+14 j</th></tr></thead><tbody>${evs.map((e) => { const good = (x) => (x == null ? '' : (e.side === 'bot' ? x > 0 : x < 0) ? 'buy' : 'sell'); return `<tr><td>${dt(e.t)} · <span class="${e.side === 'bot' ? 'buy' : 'sell'}">${e.side === 'bot' ? 'creux' : 'sommet'}</span></td><td>${usd(e.px)}</td><td>${f0.format(e.score)}</td>${['d3', 'd7', 'd14'].map((k) => `<td class="${good(e[k])}">${e[k] == null ? '—' : pc(e[k])}</td>`).join('')}</tr>`; }).join('')}</tbody>`;
+  $('#truthFoot').innerHTML = `<b>Ce que ça veut dire.</b> Sur huit ans, le bitcoin a tellement tendu à la hausse qu'attendre un creux ou vendre un sommet a coûté plus de sats que cela n'en a rapporté, et le filtre qui marchait dans le cycle 2018-2022 a cessé de fonctionner ensuite. Ce tableau de bord est donc un outil de lecture du marché et de gestion du risque, pas une machine à produire des sats. Pour grossir un stack, le DCA régulier reste la méthode que ces tests n'ont pas réussi à battre.`;
+}
+
+// ---------- Claude ----------
+let sample = null;
+function claudePrompt() {
+  const v = view(), n = v.now, B = D.backtest, T = D.tests;
+  return `Tu es un analyste bitcoin prudent. Voici l'état d'un tableau de bord de détection des creux et des sommets locaux (bougies de 4 h). Rédige en français une lecture de 130 à 180 mots : 1) la situation en deux phrases, 2) deux scénarios chiffrés (rebond et poursuite de la baisse, ou l'inverse) avec les niveaux de prix qui les valident, 3) ce qui invaliderait ton analyse, 4) une phrase honnête sur l'incertitude. N'invente aucun chiffre absent des données. Pas de promesse de gain, pas d'ordre d'achat ou de vente.
+
+DONNÉES
+- Prix : ${Math.round(v.price)} $
+- Score de creux : ${Math.round(n.bot)}/100, score de sommet : ${Math.round(n.top)}/100 (alerte à 45, signal fort à 60)
+- RSI 4 h : ${f0.format(n.rsi4)}, RSI journalier : ${n.rsiD != null ? f0.format(n.rsiD) : 'n.d.'}
+- EMA 20 : ${Math.round(n.e20)}, EMA 50 : ${Math.round(n.e50)}, plus haut 60 j : ${Math.round(n.hi60)}, plus bas 60 j : ${Math.round(n.lo60)}
+- Dernier creux de 24 bougies : ${Math.round(n.swingLo)}, dernier sommet : ${Math.round(n.swingHi)}, ATR 4 h : ${Math.round(n.atr)}
+- Fear & Greed : ${n.fng ?? 'n.d.'}, MVRV : ${n.mvrv ?? 'n.d.'}, moyenne 200 j : ${n.sma200 ?? 'n.d.'}
+- Funding Hyperliquid : ${D.overlays.funding ? D.overlays.funding.apr + ' %/an' : 'n.d.'}, long/short OKX : ${D.overlays.ls ? D.overlays.ls.ratio : 'n.d.'}, DVOL : ${D.overlays.dvol ? D.overlays.dvol.now : 'n.d.'}, put/call : ${D.overlays.putcall ? D.overlays.putcall.ratio : 'n.d.'}
+- Fiabilité mesurée : la stratégie vendre-sommets/racheter-creux donne ${B.in.btc} BTC pour 1 en apprentissage et ${B.out.btc} BTC hors échantillon ; ${T.dca.beatOut}/${T.dca.combos} réglages battent le DCA hors échantillon.`;
+}
+async function ask() {
+  const p = claudePrompt(), out = $('#aiOut'), raw = $('#aiRaw');
+  out.hidden = true; raw.hidden = true;
+  if (!sample) { raw.value = p; raw.hidden = false; raw.focus(); raw.select(); $('#askState').textContent = 'Claude n\'est pas branché ici : copiez cette consigne dans Claude.'; return; }
+  $('#ask').disabled = true; $('#askState').textContent = 'Claude lit les données…';
+  try { const r = await sample(p, { cache: false, onText: ({ text }) => { out.hidden = false; out.textContent = text; } }); out.hidden = false; out.textContent = r.text; $('#askState').textContent = 'Lecture générée à partir des données ci-dessus. Aucune garantie.'; }
+  catch (e) { $('#askState').textContent = e && e.code === 'not_granted' ? 'Accès à Claude refusé pour cette page.' : e && e.code === 'rate_limited' ? 'Trop de demandes, réessayez dans une minute.' : 'La lecture a échoué, réessayez.'; if (e && e.code === 'not_granted') sample = null; }
+  $('#ask').disabled = false;
+}
+
+// ---------- Journal de sats ----------
+let J = { stack: ls.get('stack0', null), trades: ls.get('trades', []) }, jcol = null;
+function renderJournal() {
+  const px = view().price, s0 = J.stack, el = $('#jsum');
+  const tr = [...J.trades].sort((a, b) => a.date.localeCompare(b.date));
+  let btc = s0 || 0, cash = 0;
+  for (const t of tr) { if (t.side === 'buy') { btc += t.btc; cash -= t.btc * t.px; } else { btc -= t.btc; cash += t.btc * t.px; } }
+  const eq = btc + cash / px, edge = eq - (s0 || 0);
+  el.innerHTML = s0 == null ? '<p class="mut">Renseigne ton stack de départ pour démarrer le suivi.</p>' : `<div class="o"><span class="eyebrow">BTC détenus</span><b>${f3.format(btc)}</b><small>${tr.length} ordre${tr.length > 1 ? 's' : ''} saisi${tr.length > 1 ? 's' : ''}</small></div><div class="o"><span class="eyebrow">Dollars nets</span><b>${usd(cash)}</b><small>flux cumulé des ordres</small></div><div class="o"><span class="eyebrow">Valeur en BTC</span><b>${f3.format(eq)}</b><small>au prix actuel</small></div><div class="o"><span class="eyebrow">Écart vs rester en BTC</span><b class="${edge >= 0 ? 'buy' : 'sell'}">${edge >= 0 ? '+' : '−'}${f0.format(Math.abs(edge) * 1e8)} sats</b><small>${s0 ? pc((edge / s0) * 100) : '—'} sur ton stack de départ</small></div>`;
+  $('#jtab').innerHTML = tr.length ? `<thead><tr><th>Date</th><th>Sens</th><th>BTC</th><th>Prix</th><th></th></tr></thead><tbody>${tr.map((t) => `<tr><td>${esc(t.date)}</td><td class="${t.side === 'buy' ? 'buy' : 'sell'}">${t.side === 'buy' ? 'Achat' : 'Vente'}</td><td>${f3.format(t.btc)}</td><td>${usd(t.px)}</td><td><button class="btn" data-del="${esc(t.k)}" type="button" aria-label="Supprimer">Supprimer</button></td></tr>`).join('')}</tbody>` : '';
+  $('#jnote').textContent = jcol ? 'Journal enregistré dans ton espace privé de cette page.' : 'Journal enregistré dans ce navigateur uniquement.';
+}
+function saveJournal() { ls.set('stack0', J.stack); ls.set('trades', J.trades); }
+async function addTrade() {
+  const btc = +$('#jq').value, px = +$('#jp').value, date = $('#jd').value, side = $('#js').value;
+  if (!(btc > 0) || !(px > 0) || !date) return;
+  const t = { k: 'trade-' + Date.now().toString(36), date, side, btc, px };
+  if (jcol) { try { await jcol.doc(t.k).set(t); $('#jq').value = ''; return; } catch {} }
+  J.trades.push(t); saveJournal(); $('#jq').value = ''; renderJournal();
+}
+async function delTrade(k) { if (jcol) { try { await jcol.doc(k).delete(); return; } catch {} } J.trades = J.trades.filter((t) => t.k !== k); saveJournal(); renderJournal(); }
+async function capabilities() {
+  if (!(window.claude && window.claude.use)) return;
+  window.claude.use('sample').then((s) => { sample = s || null; }).catch(() => {});
+  try {
+    const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+    const id = db && user ? await user.id() : null; if (!id) return;
+    const col = db.collection('data/users/' + id);
+    col.onSnapshot((snap) => {
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const cfg = docs.find((d) => d.id === 'sats-config'), remote = docs.filter((d) => d.id.startsWith('trade-')).map(({ id: _i, ...r }) => r);
+      if (!jcol) { jcol = col; J.trades.forEach((t) => col.doc(t.k).set(t).catch(() => {})); if (J.stack != null && !cfg) col.doc('sats-config').set({ stack: J.stack }).catch(() => {}); ls.set('trades', []); }
+      J.trades = remote; if (cfg && cfg.stack != null) { J.stack = cfg.stack; $('#j0').value = J.stack; } renderJournal();
+    }, () => {});
+  } catch {}
+}
+
+// ---------- Démarrage ----------
+function renderAll() { renderTop(); renderComp(); renderPlan(); renderJournal(); drawChart(); }
+(async function boot() {
+  $('#jd').value = new Date().toISOString().slice(0, 10); $('#stack').value = ls.get('stack', 1); $('#risk').value = ls.get('risk', 1); if (J.stack != null) $('#j0').value = J.stack;
+  try { D = await fetch('btc.json', { cache: 'no-store' }).then((r) => r.json()); }
+  catch { $('#pillT').textContent = 'Données indisponibles'; return; }
+  renderTrust(); renderOverlays(); renderTruth(); bindChart(); renderAll(); capabilities();
+  $('#stack').addEventListener('input', () => { ls.set('stack', $('#stack').value); renderPlan(); }); $('#risk').addEventListener('input', () => { ls.set('risk', $('#risk').value); renderPlan(); });
+  $('#ask').addEventListener('click', ask); $('#jadd').addEventListener('click', addTrade);
+  $('#j0').addEventListener('change', async (e) => { const x = e.target.value === '' ? null : +e.target.value; J.stack = x; saveJournal(); if (jcol) jcol.doc('sats-config').set({ stack: x }).catch(() => {}); renderJournal(); });
+  $('#jtab').addEventListener('click', (e) => { const b = e.target.closest('[data-del]'); if (b) delTrade(b.dataset.del); });
+  if (window.BTC_LIVE) { const tick = async () => { try { await liveRefresh(); renderAll(); } catch {} }; await tick(); setInterval(() => { if (!document.hidden) tick(); }, 60000); }
+})();
+})();
+</script>
