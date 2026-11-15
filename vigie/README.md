@@ -17,7 +17,7 @@ Repérer ce qui monte chez les spécialistes avant que la presse française n'en
 
 ## Mémoire entre relevés
 
-Le collecteur relit le relevé précédent (par défaut celui publié sur GitHub Pages, variable `VIGIE_PREV` pour une autre adresse) et garde pour chaque signal sa date de première apparition, l'historique de sa métrique et l'historique de sa couverture presse. L'interface en tire trois indicateurs :
+Le collecteur relit le relevé précédent (celui publié sur GitHub Pages, variable `VIGIE_PREV` pour une autre adresse, ou la copie locale `vigie/.cache/dernier.json` si elle est plus récente) et garde pour chaque signal sa date de première apparition, l'historique de sa métrique et l'historique de sa couverture presse. L'interface en tire trois indicateurs :
 
 - **Nouveau** : apparu depuis la dernière visite (ou depuis le relevé précédent à la première visite).
 - **Accélère** : la métrique a gagné au moins 20 % sur les trois derniers relevés.
