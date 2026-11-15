@@ -169,6 +169,8 @@ const ribbon = await soft('Hash ribbons', async () => {
   return { capitulation: s30[k] < s60[k], days: since, ehs: r2(h[k] / 1e18, 0), gapPct: r2((s30[k] / s60[k] - 1) * 100, 1) };
 });
 
+const cycle = E.cycleAnalysis(closedD);
+console.log(`DSS hebdo : ${cycle.sells.length} signaux de vente, ${cycle.buys.length} d'achat | ${cycle.tests.dss.both}/${cycle.tests.dss.combos} réglages battent HODL sur les deux périodes | DCA modulé : ${cycle.tests.tilt.both}/${cycle.tests.tilt.combos}`);
 const KEEP = 1100, from = Math.max(0, n - KEEP);
 const slice = (a, d = 1) => Array.from(a.slice(from), (x) => r2(x, d));
 const ctxDays = (m) => Object.fromEntries(Object.entries(m).filter(([d]) => +d >= now - 450 * DAY));
@@ -183,7 +185,7 @@ const result = {
   bars: { t: Array.from(S.t.slice(from)), o: slice(S.o, 0), h: slice(S.h, 0), l: slice(S.l, 0), c: slice(S.c, 0), v: slice(S.v, 1), bot: slice(S.bot), top: slice(S.top) },
   ctx: { fng: ctxDays(fng), mvrv: ctxDays(mvrv) },
   daily: { t: closedD.slice(-130).map((r) => r[0]), o: closedD.slice(-130).map((r) => r[1]), h: closedD.slice(-130).map((r) => r[2]), l: closedD.slice(-130).map((r) => r[3]), c: closedD.slice(-130).map((r) => r[4]), v: closedD.slice(-130).map((r) => r[5]) },
-  tests, evidence, overlays: { funding, ls, dvol, putcall, margin, ribbon },
+  cycle, tests, evidence, overlays: { funding, ls, dvol, putcall, margin, ribbon },
   backtest: {
     split: S.t[split], first: S.t[firstScored], bars: n - firstScored, cost: 0.0015,
     in: period(A, firstScored, split), out: period(B, split, n), full: period(full, firstScored, n),

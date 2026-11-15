@@ -8,13 +8,14 @@ Tableau de bord des creux et des sommets locaux du bitcoin (bougies de 4 h), pen
 - **Graphique 4 h** avec EMA, marqueurs d'alerte et scores.
 - **Contexte** : funding et open interest (Hyperliquid), ratio long/short (OKX), DVOL et put/call (Deribit), marge (Bitfinex), hash ribbons (mempool.space). Indicatif, hors score.
 - **Plan chiffré** (entrée, invalidation, objectifs, ratio gain/risque, taille de position selon le risque accepté).
-- **Le test de vérité** : trois méthodes mesurées en nombre de BTC, sur huit ans, avec sélection des réglages sur 2018-2022 et jugement sur 2023-aujourd'hui.
+- **Phase du cycle** : DSS Bressert (stochastique à double lissage) sur bougies hebdomadaires, avec l'état actuel, ce qu'il restait à éviter après chaque signal de vente depuis 2016 et trois règles d'usage.
+- **Le test de vérité** : cinq méthodes mesurées en nombre de BTC, sur huit ans, avec sélection des réglages sur 2018-2022 et jugement sur 2023-aujourd'hui.
 - **Journal de sats** : compare le stack de l'utilisateur à celui qu'il aurait en ne faisant rien.
 - **Lecture de Claude** (artifact Claude uniquement).
 
 ## Ce que le test de vérité montre
 
-Sur les données relevées, aucune des trois méthodes (vendre les sommets et racheter les creux, DCA avec réserve de cash déployée sur signal de creux, filtre de tendance sur moyenne mobile) ne bat de façon fiable la simple détention de BTC hors échantillon. Le tableau de bord est donc un outil de lecture du marché et de gestion du risque, pas une machine à produire des sats. Les chiffres exacts sont recalculés à chaque relevé et affichés dans la page.
+Sur les données relevées, aucune des cinq méthodes (vendre les sommets et racheter les creux, DCA avec réserve de cash déployée sur signal de creux, filtre de tendance sur moyenne mobile, DSS Bressert hebdomadaire, DCA modulé par la phase du DSS) ne bat de façon fiable la simple détention de BTC hors échantillon. Le tableau de bord est donc un outil de lecture du marché et de gestion du risque, pas une machine à produire des sats. Les chiffres exacts sont recalculés à chaque relevé et affichés dans la page.
 
 ## Sans anticipation
 

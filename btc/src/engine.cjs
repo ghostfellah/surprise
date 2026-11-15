@@ -265,5 +265,94 @@
     return { final: btc + usd / D.c[to - 1], trades };
   }
 
-  return { build, episodes, backtest, dcaTiming, trendFilter, forward, summarize, baseline, optimize, ema, sma, rsi, atr, clamp, dayStart, WB, WT, LABELS, HORIZONS, DAY };
+  // ---------- Phase du cycle : DSS Bressert hebdomadaire ----------
+  // Bougies hebdomadaires UTC (semaine du lundi) à partir de jours clos. `forming` = semaine en cours (moins de 7 jours).
+  function weekly(rows) {
+    const m = new Map();
+    for (const r of rows) {
+      const key = r[0] - ((new Date(r[0]).getUTCDay() + 6) % 7) * DAY;
+      let w = m.get(key);
+      if (!w) { w = { t: key, o: r[1], h: r[2], l: r[3], c: r[4], n: 0 }; m.set(key, w); }
+      w.h = Math.max(w.h, r[2]); w.l = Math.min(w.l, r[3]); w.c = r[4]; w.n++;
+    }
+    const all = [...m.values()].sort((a, b) => a.t - b.t), complete = all.filter((w) => w.n === 7), last = all[all.length - 1];
+    return { complete, forming: last && last.n < 7 && (!complete.length || last.t > complete[complete.length - 1].t) ? last : null };
+  }
+  // Stochastique à double lissage (Bressert) : stochastique, EMA, stochastique de l'EMA, EMA.
+  function dss(h, l, c, pds = 10, len = 9) {
+    const ema2 = (v, k) => { const a = 2 / (k + 1), out = new Float64Array(v.length); let e = NaN; for (let i = 0; i < v.length; i++) { if (isNaN(v[i])) { out[i] = NaN; continue; } e = isNaN(e) ? v[i] : v[i] * a + e * (1 - a); out[i] = e; } return out; };
+    const s1 = new Float64Array(c.length).fill(NaN);
+    for (let i = pds - 1; i < c.length; i++) { let hi = -Infinity, lo = Infinity; for (let j = i - pds + 1; j <= i; j++) { hi = Math.max(hi, h[j]); lo = Math.min(lo, l[j]); } s1[i] = hi > lo ? ((c[i] - lo) / (hi - lo)) * 100 : 50; }
+    const e1 = ema2(s1, len), s2 = new Float64Array(c.length).fill(NaN);
+    for (let i = pds - 1; i < c.length; i++) { let hi = -Infinity, lo = Infinity, ok = true; for (let j = i - pds + 1; j <= i; j++) { if (isNaN(e1[j])) { ok = false; break; } hi = Math.max(hi, e1[j]); lo = Math.min(lo, e1[j]); } if (ok) s2[i] = hi > lo ? ((e1[i] - lo) / (hi - lo)) * 100 : 50; }
+    return ema2(s2, len);
+  }
+  // Analyse complète : signaux passés, ce qu'il restait à éviter, tests en BTC (hors échantillon) et DCA modulé.
+  function cycleAnalysis(rows, cost = 0.0015) {
+    const { complete: W, forming } = weekly(rows), n = W.length;
+    const t = W.map((w) => w.t), o = W.map((w) => w.o), h = W.map((w) => w.h), l = W.map((w) => w.l), c = W.map((w) => w.c);
+    const d = dss(h, l, c, 10, 9), first = 30, split = t.findIndex((x) => x >= Date.UTC(2023, 0, 1));
+    const eo = forming ? [...o, forming.o] : o, eh = forming ? [...h, forming.h] : h, el = forming ? [...l, forming.l] : l, n2 = eo.length;
+    const r1 = (x) => (x == null || !Number.isFinite(x) ? null : Math.round(x * 1000) / 1000);
+    const sells = [], buys = [];
+    for (let i = first + 1; i < n; i++) {
+      const down = d[i - 1] >= 80 && d[i] < 80, up = d[i - 1] <= 20 && d[i] > 20;
+      if (!down && !up) continue;
+      const px = eo[i + 1]; if (px == null) continue;
+      const pending = i === n - 1, cap = pending ? n2 - 1 : n - 1, tt = pending ? forming.t : t[i + 1];
+      if (down) {
+        let peak = 0; for (let q = Math.max(0, i - 11); q <= i; q++) peak = Math.max(peak, eh[q]);
+        let lo = Infinity; for (let q = i + 1; q <= Math.min(cap, i + 26); q++) lo = Math.min(lo, el[q]);
+        sells.push({ t: tt, px: Math.round(px), done: r1(px / peak - 1), rest: r1(lo / px - 1), total: r1(lo / peak - 1), open: i + 26 > cap, pending });
+      }
+      if (up) {
+        const rr = (k) => (i + 1 + k < n ? r1(c[i + k] / px - 1) : null);
+        let ext = px; for (let q = i + 1; q <= Math.min(cap, i + 12); q++) ext = Math.min(ext, el[q]);
+        buys.push({ t: tt, px: Math.round(px), w4: rr(4), w12: rr(12), w26: rr(26), ext: r1(ext / px - 1), pending });
+      }
+    }
+    const S = sells.filter((x) => !x.pending), Bq = buys.filter((x) => !x.pending), mj = S.filter((x) => x.total < -0.4), mn = S.filter((x) => x.total >= -0.4);
+    const mm = (a) => r1(median(a.filter((x) => x != null)));
+    const sellStats = { n: S.length, major: mj.length, medDone: mm(S.map((x) => x.done)), medRestMajor: mm(mj.map((x) => x.rest)), medRestMinor: mm(mn.map((x) => x.rest)), ge20: S.filter((x) => x.rest <= -0.2).length, ge40: S.filter((x) => x.rest <= -0.4).length };
+    const buyStats = { n: Bq.length, med4: mm(Bq.map((x) => x.w4)), med12: mm(Bq.map((x) => x.w12)), med26: mm(Bq.map((x) => x.w26)), medExt: mm(Bq.map((x) => x.ext)) };
+    // Stratégie en BTC : acheter au croisement haussier de `os`, vendre `frac` au croisement baissier de `ob`.
+    const run = (dd, os, ob, frac, from, to) => {
+      let btc = 1, usd = 0, trades = 0;
+      for (let i = Math.max(from, 1); i < to - 1; i++) {
+        if (isNaN(dd[i]) || isNaN(dd[i - 1])) continue;
+        const px = o[i + 1];
+        if (dd[i - 1] <= os && dd[i] > os && usd > 1e-9) { btc += usd / (px * (1 + cost)); usd = 0; trades++; }
+        else if (dd[i - 1] >= ob && dd[i] < ob && btc > 1e-9) { const q = btc * frac; btc -= q; usd += q * px * (1 - cost); trades++; }
+      }
+      return { final: btc + usd / c[to - 1], trades };
+    };
+    const rowsG = [];
+    for (const pds of [5, 8, 10, 14]) for (const len of [5, 9, 13]) {
+      const dd = dss(h, l, c, pds, len);
+      for (const os of [10, 20, 30]) for (const ob of [70, 80, 90]) for (const frac of [0.5, 1]) {
+        const a = run(dd, os, ob, frac, first, split), b = run(dd, os, ob, frac, split, n);
+        rowsG.push({ pds, len, os, ob, frac, a: a.final, at: a.trades, b: b.final, bt: b.trades });
+      }
+    }
+    const defaults = [[20, 80, 1], [20, 80, 0.5], [10, 90, 0.5], [25, 75, 0.5]].map(([os, ob, frac]) => { const a = run(d, os, ob, frac, first, split), b = run(d, os, ob, frac, split, n); return { os, ob, frac, a: r1(a.final), at: a.trades, b: r1(b.final), bt: b.trades }; });
+    const withB = rowsG.filter((r) => r.bt > 0);
+    const dssTest = { combos: rowsG.length, beatIn: rowsG.filter((r) => r.a > 1).length, beatOut: withB.filter((r) => r.b > 1).length, both: withB.filter((r) => r.a > 1 && r.b > 1).length, medIn: r1(median(rowsG.map((r) => r.a))), medOut: r1(median(withB.map((r) => r.b))), defaults };
+    // DCA hebdomadaire modulé par la phase (jamais de cash gardé, jamais de vente) : gain de sats par dollar dépensé.
+    const dcaT = (mult, from, to) => { let u = 0, b = 0; for (let i = Math.max(from, 1); i < to; i++) { if (isNaN(d[i - 1])) continue; const q = mult(d[i - 1]); u += q; b += q / (o[i] * (1 + cost)); } return b / u; };
+    const tilt = [];
+    for (const lowM of [1.5, 2, 3]) for (const highM of [0, 0.25, 0.5]) for (const [os, ob] of [[20, 80], [30, 70]]) {
+      const m = (x) => (x < os ? lowM : x > ob ? highM : 1), pl = () => 1;
+      tilt.push({ a: dcaT(m, first, split) / dcaT(pl, first, split) - 1, b: dcaT(m, split, n) / dcaT(pl, split, n) - 1 });
+    }
+    const tiltTest = { combos: tilt.length, beatIn: tilt.filter((x) => x.a > 0).length, beatOut: tilt.filter((x) => x.b > 0).length, both: tilt.filter((x) => x.a > 0 && x.b > 0).length, medIn: r1(median(tilt.map((x) => x.a))), medOut: r1(median(tilt.map((x) => x.b))) };
+    const K = Math.min(120, n), from = n - K;
+    return {
+      weeks: W.slice(from).map((w) => ({ t: w.t, o: Math.round(w.o), h: Math.round(w.h), l: Math.round(w.l), c: Math.round(w.c) })),
+      dss: Array.from(d.slice(from), (x) => (Number.isNaN(x) ? null : Math.round(x * 10) / 10)),
+      forming: forming ? { t: forming.t, o: Math.round(forming.o), h: Math.round(forming.h), l: Math.round(forming.l), c: Math.round(forming.c), n: forming.n } : null,
+      sells, buys, sellStats, buyStats, tests: { dss: dssTest, tilt: tiltTest }, since: t[first], split: t[split], weeksTotal: n,
+    };
+  }
+
+  return { build, episodes, backtest, dcaTiming, trendFilter, weekly, dss, cycleAnalysis, forward, summarize, baseline, optimize, ema, sma, rsi, atr, clamp, dayStart, WB, WT, LABELS, HORIZONS, DAY };
 });
