@@ -1,0 +1,172 @@
+{
+  "_note": "Flux suivis par Vigie. Ajouter ou retirer une ligne suffit. sec : « macro » (Macroéconomie), « monde » (actualité et marchés), « crypto », ou rien (tech et IA). Pour YouTube, « channel » est l'identifiant de la chaîne (UC…) : le flux https://www.youtube.com/feeds/videos.xml?channel_id=… ne demande aucune clé. « jours » : ancienneté maximale des éléments retenus (2 par défaut ; 7 pour les institutions qui publient peu).",
+  "presse": [
+    {
+      "id": "fed",
+      "nom": "Fed",
+      "url": "https://www.federalreserve.gov/feeds/press_all.xml",
+      "sec": "macro",
+      "jours": 7
+    },
+    {
+      "id": "bce",
+      "nom": "BCE",
+      "url": "https://www.ecb.europa.eu/rss/press.html",
+      "sec": "macro",
+      "jours": 7
+    },
+    {
+      "id": "boe",
+      "nom": "Banque d'Angleterre",
+      "url": "https://www.bankofengland.co.uk/rss/news",
+      "sec": "macro",
+      "jours": 7
+    },
+    {
+      "id": "boj",
+      "nom": "Banque du Japon",
+      "url": "https://www.boj.or.jp/en/rss/whatsnew.xml",
+      "sec": "macro",
+      "jours": 7
+    },
+    {
+      "id": "bri",
+      "nom": "BRI",
+      "url": "https://www.bis.org/doclist/bis_fsi_publs.rss",
+      "sec": "macro",
+      "jours": 7
+    },
+    {
+      "id": "bls",
+      "nom": "BLS (statistiques américaines)",
+      "url": "https://www.bls.gov/feed/bls_latest.rss",
+      "sec": "macro",
+      "jours": 7
+    },
+    {
+      "id": "fred",
+      "nom": "FRED Blog (Fed de Saint-Louis)",
+      "url": "https://fredblog.stlouisfed.org/feed/",
+      "sec": "macro",
+      "jours": 7
+    },
+    {
+      "id": "cnbc-eco",
+      "nom": "CNBC Économie",
+      "url": "https://www.cnbc.com/id/20910258/device/rss/rss.html",
+      "sec": "macro"
+    },
+    {
+      "id": "bloomberg",
+      "nom": "Bloomberg Marchés",
+      "url": "https://feeds.bloomberg.com/markets/news.rss",
+      "sec": "monde"
+    },
+    {
+      "id": "marketwatch",
+      "nom": "MarketWatch",
+      "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+      "sec": "monde"
+    },
+    {
+      "id": "wsj",
+      "nom": "WSJ Marchés",
+      "url": "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain",
+      "sec": "monde"
+    },
+    {
+      "id": "coindesk",
+      "nom": "CoinDesk",
+      "url": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+      "sec": "crypto"
+    },
+    {
+      "id": "theblock",
+      "nom": "The Block",
+      "url": "https://www.theblock.co/rss.xml",
+      "sec": "crypto"
+    },
+    {
+      "id": "decrypt",
+      "nom": "Decrypt",
+      "url": "https://decrypt.co/feed",
+      "sec": "crypto"
+    },
+    {
+      "id": "cointelegraph",
+      "nom": "Cointelegraph",
+      "url": "https://cointelegraph.com/rss",
+      "sec": "crypto"
+    },
+    {
+      "id": "bankless",
+      "nom": "Bankless",
+      "url": "https://www.bankless.com/rss/feed",
+      "sec": "crypto"
+    },
+    {
+      "id": "mit",
+      "nom": "MIT Technology Review",
+      "url": "https://www.technologyreview.com/feed/"
+    },
+    {
+      "id": "techcrunch",
+      "nom": "TechCrunch",
+      "url": "https://techcrunch.com/feed/"
+    }
+  ],
+  "youtube": [
+    {
+      "id": "bloomberg-tv",
+      "nom": "Bloomberg Television",
+      "channel": "UCIALMKvObZNtJ6AmdCLP7Lg",
+      "sec": "monde"
+    },
+    {
+      "id": "cnbc-tv",
+      "nom": "CNBC",
+      "channel": "UCvJJ_dzjViJCoLf5uKUTwoA",
+      "sec": "monde"
+    },
+    {
+      "id": "yahoo-finance",
+      "nom": "Yahoo Finance",
+      "channel": "UCEAZeUIeJs0IjQiqTCdVSIg",
+      "sec": "monde"
+    },
+    {
+      "id": "ft",
+      "nom": "Financial Times",
+      "channel": "UCoUxsWakJucWg46KW5RsvPw",
+      "sec": "monde"
+    },
+    {
+      "id": "real-vision",
+      "nom": "Real Vision",
+      "channel": "UCVFSzL3VuZKP3cN9IXdLOtw",
+      "sec": "macro"
+    },
+    {
+      "id": "bankless-yt",
+      "nom": "Bankless",
+      "channel": "UCCRxYlYOmLE2l5wxs3ckJtg",
+      "sec": "crypto"
+    },
+    {
+      "id": "coin-bureau",
+      "nom": "Coin Bureau",
+      "channel": "UCnThE8FLrlN-tYvZhZL0uaA",
+      "sec": "crypto"
+    },
+    {
+      "id": "fireship",
+      "nom": "Fireship",
+      "channel": "UC2Xd-TjJByJyK2w1zNwY0zQ"
+    },
+    {
+      "id": "lex-fridman",
+      "nom": "Lex Fridman",
+      "channel": "UCJIfeSCssxSC_Dhc5s7woww"
+    }
+  ]
+}

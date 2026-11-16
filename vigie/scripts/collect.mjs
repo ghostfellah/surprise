@@ -3,6 +3,7 @@
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { presse, youtube } from './flux.mjs';
 
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../site/signaux.json');
 const UA = { 'user-agent': 'Mozilla/5.0 (compatible; vigie-signals/1.0)', accept: '*/*' };
@@ -170,7 +171,8 @@ async function coverage(term, lang) {
   return (x.match(/<item>/g) || []).length;
 }
 
-const lists = await Promise.all([hn(), lobsters(), github(), hfModels(), hfPapers(), coingecko(), llama(), polymarket(), wikipedia()]);
+const ctx = { get, clip, sleep, now, H, D, source };
+const lists = await Promise.all([hn(), lobsters(), github(), hfModels(), hfPapers(), coingecko(), llama(), polymarket(), wikipedia(), presse(ctx), youtube(ctx)]);
 // Force : rang relatif dans sa propre source, pour comparer des métriques différentes
 for (const l of lists) { const s = [...l].sort((a, b) => a.vel - b.vel); s.forEach((x, i) => { x.force = Math.round(((i + 1) / s.length) * 100); }); }
 let all = lists.flat();
@@ -195,7 +197,18 @@ for (const s of all.slice(0, 150)) {
 }
 console.log(`couverture mesurée pour ${measured} termes, ${failed} échecs`);
 
-const signals = all.slice(0, 240).map(({ vel, ...s }) => { for (const k of Object.keys(s)) if (s[k] == null || s[k] === '') delete s[k]; return s; });
+// Macroéconomie : garantit une place aux éléments des sources macro, même quand leur rang les laisserait hors du relevé
+const MAC_MIN = 40;
+{
+  const top = all.slice(0, 320), dehors = all.slice(320).filter((s) => s.mac), manque = Math.min(MAC_MIN - top.filter((s) => s.mac).length, dehors.length);
+  if (manque > 0) {
+    let retirer = manque;
+    for (let i = top.length - 1; i >= 0 && retirer > 0; i--) if (!top[i].mac) { top.splice(i, 1); retirer--; }
+    all = [...top, ...dehors.slice(0, manque)];
+    console.log(`macro : ${manque} éléments macro ajoutés au relevé (minimum visé : ${MAC_MIN}, selon ce que les flux ont publié)`);
+  }
+}
+const signals = all.slice(0, 320).map(({ vel, ...s }) => { for (const k of Object.keys(s)) if (s[k] == null || s[k] === '') delete s[k]; return s; });
 if (signals.length < 20) { console.error('Trop peu de signaux, instantané précédent conservé.'); process.exit(1); }
 // Mémoire : reprend l'historique du relevé précédent pour mesurer l'accélération et l'arrivée de la presse
 const PREV = process.env.VIGIE_PREV || 'https://ghostfellah.github.io/surprise/vigie/signaux.json';
