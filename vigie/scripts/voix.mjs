@@ -10,7 +10,7 @@ let rev = '';
 try { rev = execFileSync('git', ['-C', dir, 'rev-parse', '--short', 'HEAD']).toString().trim(); } catch {}
 const files = {};
 for (const f of readdirSync(dir)) {
-  if (f.startsWith('.') || !/\.(md|json|txt)$/i.test(f) || f === 'README.md') continue;
+  if (f.startsWith('.') || !/\.(md|json|txt)$/i.test(f)) continue;
   files[f] = readFileSync(join(dir, f), 'utf8');
 }
 writeFileSync(new URL('../site/voix.json', import.meta.url), JSON.stringify({ rev, ts: new Date().toISOString(), files }, null, 1));
