@@ -25,6 +25,17 @@ Le collecteur relit le relevé précédent (celui publié sur GitHub Pages, vari
 
 Deux sources en amont de la presse s'ajoutent : **Polymarket** (marchés de prédiction dont la probabilité bouge d'au moins 5 points en 24 h, hors sport et cours de cryptos) et **Wikipédia en anglais** (pages dont les lectures sont multipliées par 2,5 ou plus en un jour).
 
+## Presse, sites reconnus et YouTube
+
+Pour élargir le spectre au-delà de la tech, le collecteur lit aussi des **flux RSS** de presse et de sites officiels, et le **flux public des chaînes YouTube** (aucune clé d'API). La liste est dans `scripts/sources.json` : ajouter ou retirer une ligne suffit (`scripts/flux.mjs` fait la lecture).
+
+- **Presse et sites** : banques centrales et institutions (Fed, BCE, Banque d'Angleterre, Banque du Japon, BRI, BLS, FRED Blog), marchés (Bloomberg, MarketWatch, WSJ, CNBC Économie), crypto (CoinDesk, The Block, Decrypt, Cointelegraph, Bankless), tech (MIT Technology Review, TechCrunch). Au plus 6 éléments par flux, de moins de 2 jours (7 jours pour les institutions qui publient peu).
+- **YouTube** : Bloomberg Television, CNBC, Yahoo Finance, Financial Times, Real Vision, Bankless, Coin Bureau, Fireship, Lex Fridman. Les 4 dernières vidéos de moins de 7 jours ; la force vient des vues rapportées à l'âge de la vidéo.
+- **Secteur** : chaque flux porte son secteur (`macro`, `monde`, `crypto`, ou aucun pour la tech). Les flux `macro` sont rangés dans « Actualité et marchés » et portent `mac: 1`, que la page lit pour le domaine Macroéconomie. Un minimum de 40 éléments macro est garanti dans le relevé quand les flux en fournissent assez.
+- **Ce qui est repris** : titre, date, résumé de quelques lignes du flux, lien. Jamais le texte d'un article.
+- **Indice d'avance** : ces éléments n'ont pas de terme à chercher dans Google Actualités (ils *sont* de la presse), ils apparaissent donc « Non mesuré ». Ils servent à élargir les secteurs et les sujets, pas à mesurer l'avance sur la presse.
+- **Flux qui ne répondent pas** : chaque flux est lu séparément ; un flux en échec est signalé dans le journal du relevé (« Presse <id> : indisponible ») sans bloquer les autres. Selon le réseau de l'environnement, certains sites sont refusés (essayés et refusés lors de la mise en place : Le Monde, Le Figaro, Les Échos, franceinfo, BBC, The Guardian, The Economist, Financial Times, Ars Technica, Wired, The Verge, FMI, OCDE) ; il faut autoriser ces hôtes dans l'environnement avant de les ajouter à `sources.json`.
+
 ## Secteurs, conversations et vidéo
 
 - **Secteur** : Tous, Tech et IA, ou Crypto. Les signaux crypto viennent de CoinGecko (recherches en tendance) et de DefiLlama (protocoles dont la valeur déposée grimpe sur 7 jours).
@@ -39,7 +50,7 @@ Deux sources en amont de la presse s'ajoutent : **Polymarket** (marchés de pré
 ## Limites
 
 - L'extraction du terme est heuristique : un nom courant gonfle la couverture, un titre sans nom propre n'est pas mesuré.
-- Les sources penchent vers la technologie et l'IA.
+- Les sources historiques penchent vers la technologie et l'IA ; les flux de presse, de sites officiels et YouTube corrigent en partie ce biais, surtout pour la macroéconomie et la crypto.
 - Les textes générés ne connaissent que le titre et la description du signal. Il faut ouvrir la source et vérifier avant de publier.
 
 ```bash
