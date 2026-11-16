@@ -3,3 +3,4 @@ node_modules/
 vigie/site/config.json
 vigie/.cache/
 btc/.cache/
+vigie/site/voix.json
