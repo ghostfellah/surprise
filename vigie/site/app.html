@@ -147,6 +147,13 @@ textarea.raw{width:100%;min-height:150px;background:var(--sunk);border:1px solid
 .vstat{margin:0;font-size:14px;border-left:3px solid currentColor;padding-left:11px}
 .vstat.ok{color:var(--early)}.vstat.bad{color:var(--virgin)}
 .vstat span{color:var(--fg)}
+.gitimg{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.gitimg input[type=datetime-local]{background:var(--sunk);border:1px solid var(--line);border-radius:7px;padding:3px 6px;font-size:13px}
+.gitimg small{font-size:11.5px}
+.gitwarn{color:var(--virgin)}
+.gitimg select{background:var(--sunk);border:1px solid var(--line);border-radius:7px;padding:3px 6px;font-size:13px}
+.gitnote{flex-basis:100%;font-size:12.5px;line-height:1.45;color:var(--window)}
+.gitnote a{color:var(--accent)}
 .vstat ul{margin:6px 0 0;padding-left:18px;color:var(--fg)}
 #visHost{position:absolute;left:-99999px;top:0;visibility:hidden;pointer-events:none}
 footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;max-width:88ch}
@@ -162,7 +169,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
   <section class="line" aria-label="Votre ligne éditoriale">
     <div class="field s2"><label class="eyebrow" for="pNiche">Votre sujet</label><input id="pNiche" type="text" maxlength="120" placeholder="ex. l'IA expliquée aux dirigeants de PME"></div>
     <div class="field s2"><label class="eyebrow" for="pAud">Votre audience</label><input id="pAud" type="text" maxlength="100" placeholder="ex. indépendants, 30-50 ans"></div>
-    <div class="field"><label class="eyebrow" for="pSector">Secteur</label><select id="pSector"><option value="">Tous</option><option value="tech">Tech et IA</option><option value="crypto">Crypto</option><option value="monde">Actualité et marchés</option></select></div>
+    <div class="field"><label class="eyebrow" for="pSector">Secteur</label><select id="pSector"><option value="">Tous</option><option value="tech">Tech et IA</option><option value="crypto">Crypto</option><option value="monde">Actualité et marchés</option><option value="macro">Macroéconomie</option></select></div>
     <div class="field"><label class="eyebrow" for="pPlat">Plateforme</label><select id="pPlat"><option>LinkedIn</option><option>X</option><option>Newsletter</option><option>YouTube</option><option>TikTok et Reels</option><option>Blog</option></select></div>
     <div class="field"><label class="eyebrow" for="pTon">Ton</label><select id="pTon"><option>Pédagogue</option><option>Direct et tranché</option><option>Analytique</option><option>Décontracté</option></select></div>
     <div class="field"><label class="eyebrow" for="pLang">Langue d'écriture</label><select id="pLang"><option value="fr">Français</option><option value="en">English</option></select></div>
@@ -231,7 +238,7 @@ footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);paddin
   </div>
 
   <div id="visHost" aria-hidden="true"></div>
-  <footer>Signaux relevés sur Hacker News, Lobsters, GitHub, Hugging Face, CoinGecko, DefiLlama, Polymarket (marchés de prédiction qui bougent) et Wikipédia en anglais (pages dont les lectures bondissent). Un relevé par heure : Vigie garde la trace de chaque signal pour repérer ceux qui accélèrent et ceux que la presse française commence à couvrir. Posts à commenter relevés sur Bluesky, Mastodon et Hacker News ; X et LinkedIn ne sont pas lisibles automatiquement, d'où la zone à coller. La couverture presse compte les articles de Google Actualités sur 7 jours pour le terme indiqué, en français et en anglais : c'est un indice, un nom courant peut la gonfler. Les textes générés partent du seul titre du signal. Ouvrez la source et vérifiez les faits avant de publier. Les visuels sont dessinés en code selon la charte GhostVoice (line-art, aucune image générée par IA) : les chiffres viennent de vous et restent à vérifier contre la source. En écriture anglaise, l'indice d'avance se cale sur la presse anglophone.</footer>
+  <footer>Signaux relevés sur Hacker News, Lobsters, GitHub, Hugging Face, CoinGecko, DefiLlama, Polymarket (marchés de prédiction qui bougent) et Wikipédia en anglais (pages dont les lectures bondissent). Un relevé par heure : Vigie garde la trace de chaque signal pour repérer ceux qui accélèrent et ceux que la presse française commence à couvrir. Posts à commenter relevés sur Bluesky, Mastodon et Hacker News ; X et LinkedIn ne sont pas lisibles automatiquement, d'où la zone à coller. La couverture presse compte les articles de Google Actualités sur 7 jours pour le terme indiqué, en français et en anglais : c'est un indice, un nom courant peut la gonfler. Les textes générés partent du seul titre du signal. Ouvrez la source et vérifiez les faits avant de publier. Le domaine Macroéconomie retient les signaux et les conversations qui parlent de taux, d'inflation, de banques centrales, d'emploi, de croissance, de dette, de change, de droits de douane ou de matières premières : c'est un tri par mots-clés sur les mêmes sources, pas une source dédiée. Les visuels sont dessinés en code selon la charte GhostVoice (line-art, aucune image générée par IA) : les chiffres viennent de vous et restent à vérifier contre la source. En écriture anglaise, l'indice d'avance se cale sur la presse anglophone.</footer>
 </div>
 
 <script>
@@ -710,6 +717,7 @@ const nf = new Intl.NumberFormat('fr-FR');
 const SRC = { hn: 'Hacker News', lb: 'Lobsters', gh: 'GitHub', hf: 'Hugging Face', ar: 'Recherche', cg: 'CoinGecko', dl: 'DefiLlama', pm: 'Polymarket', wk: 'Wikipédia' };
 const NET = { bs: 'Bluesky', ms: 'Mastodon', hn: 'Hacker News', x: 'Post collé' };
 const CRYPTO = /\b(bitcoin|btc|ethereum|crypto\w*|defi|stablecoin\w*|solana|blockchain|on-?chain|altcoin\w*|memecoin\w*|web3|hyperliquid|binance|coinbase|tether|usdc|usdt|airdrop\w*|staking|token\w*|nfts?)\b/i;
+const MACRO = /\b(macro\w*|inflation|disinflation|deflation|stagflation|recession\w*|gdp|gnp|interest rates?|rate (?:cut|cuts|hike|hikes|decision|decisions)|the fed|fed (?:chair|governor|minutes|meeting)|fomc|federal reserve|ecb|boj|bank of (?:england|japan|canada)|central banks?|monetary|fiscal|treasury (?:yields?|bills?|bonds?|secretary|department)|treasuries|t-bills?|bond yields?|yield curve|10-?year|jobs? report|nonfarm payrolls?|nonfarm|unemployment|cpi|ppi|pce|tariffs?|trade war|deficit|debt ceiling|sovereign debt|austerity|imf|world bank|oecd|eurozone|euro area|us dollar|dollar index|dxy|yen|yuan|currency|forex|exchange rate|commodit\w*|oil prices?|opec|bce|banque centrale|croissance|chômage|dette|déficit|pib|récession|droits de douane)\b/i;
 const STATUS = {
   virgin: { label: 'Personne n\'en parle', f: 1, say: 'Aucun article repéré, ni en français ni en anglais. Vous seriez parmi les premiers, mais le sujet demande une vérification sérieuse.' },
   window: { label: 'Fenêtre ouverte', f: 0.95, say: 'La presse anglophone en parle, pas la presse française. C\'est le meilleur moment pour le raconter en français.' },
@@ -724,6 +732,7 @@ const THEMES = [
   ['biz', 'Business', /\b(startup\w*|funding|acquir\w*|acquisition|revenue|ipo|layoff\w*|pricing|antitrust|fine[sd]?|billion|market|jobs?|hiring|ceo|company|companies)\b/i],
   ['sci', 'Science et espace', /\b(physics|biology|quantum|space|nasa|spacex|starship|climate|health|medical|brain|genom\w*|energy|battery|fusion|math\w*|astronom\w*)\b/i],
   ['fin', 'Finance et crypto', /\b(crypto\w*|bitcoin|ethereum|defi|stablecoin\w*|solana|token\w*|trading|finance|financial|bank\w*|stock\w*|tax|taxes|irs|payment\w*|lending|yield)\b/i],
+  ['macro', 'Macro', MACRO],
   ['hard', 'Robots et matériel', /\b(robot\w*|chip\w*|gpu|gpus|nvidia|hardware|drone\w*|sensor\w*|humanoid|embodied|semiconductor\w*)\b/i],
 ];
 
@@ -759,10 +768,10 @@ function prepare() {
     const press = !EN() && c.length > 1 && c[0] <= 2 && s.fr > c[0] && s.fr >= 2 ? [c[0], s.fr] : null;
     if (sector === 'crypto' && !themes.includes('fin')) themes.push('fin');
     score = Math.min(100, Math.round(score * (isNew ? 1.08 : 1) * (accel ? 1.12 : 1)));
-    return { ...s, st, mine, score, themes, sector, isNew, accel, press };
+    return { ...s, st, mine, score, themes, sector, isNew, accel, press, macro: MACRO.test(text) };
   }).sort((a, b) => b.score - a.score);
 }
-const inSector = (x) => !P.sector || (x.sector || x.sec) === P.sector;
+const inSector = (x) => !P.sector || (P.sector === 'macro' ? !!x.macro : (x.sector || x.sec) === P.sector);
 const stat = (s) => `${s.big || nf.format(s.n)} ${s.unit}`;
 const when = (s) => (s.live ? 'en ce moment' : age(s.t));
 const FLAG = { new: (s) => s.isNew, up: (s) => s.accel, press: (s) => s.press };
@@ -814,7 +823,7 @@ function preparePosts() {
   const now = Date.now();
   const a = (S.data.posts || []).map((p) => {
     const h = Math.max(0.5, (now - p.t) / 36e5), open = 1 / (1 + p.replies / (p.likes / 15 + 2)), fresh = h < 3 ? 1.15 : h < 8 ? 1 : h < 16 ? 0.75 : 0.5;
-    return { ...p, h, open, raw: ((p.likes + 2 * p.shares) / Math.pow(h, 1.1)) * open * fresh };
+    return { ...p, h, open, macro: MACRO.test(p.text || ''), raw: ((p.likes + 2 * p.shares) / Math.pow(h, 1.1)) * open * fresh };
   });
   for (const net of Object.keys(NET)) { const g = a.filter((p) => p.net === net).sort((x, y) => x.raw - y.raw); g.forEach((p, i) => { p.score = Math.round(((i + 1) / g.length) * 100); }); }
   S.posts = a.sort((x, y) => y.score - x.score || y.raw - x.raw);
@@ -885,7 +894,10 @@ function renderReplyDesk() {
 const target = () => (S.view === 'post' ? (S.post ? { title: `Réponse à ${S.post.who} : ${S.post.text.slice(0, 70)}`, url: S.post.url || '', labels: REPLIES } : null) : (S.sel ? { title: S.sel.title, url: S.sel.url, labels: FORMATS } : null));
 function setView(v) {
   if (abort) abort.abort();
+  const prevView = S.view;
+  if (prevView !== 'vis' && v === 'vis') S.stash = { view: prevView, out: S.out, outKind: S.outKind, isPrompt: S.isPrompt };
   S.view = v; S.out = ''; S.outKind = ''; S.busy = false; S.isPrompt = false;
+  if (prevView === 'vis' && S.stash && S.stash.view === v) { S.out = S.stash.out; S.outKind = S.stash.outKind; S.isPrompt = S.stash.isPrompt; }
   $('#vSig').hidden = v !== 'sig'; $('#vPost').hidden = v !== 'post'; $('#vVis').hidden = v !== 'vis'; $('#morning').hidden = v === 'vis';
   document.querySelectorAll('.views button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v));
   if (v === 'post') renderPosts();
@@ -1363,7 +1375,14 @@ $('#desk').addEventListener('click', (e) => { const b = e.target.closest('[data-
 // L'artifact ne peut pas écrire dans le dépôt : il ouvre la page « nouveau fichier » de GitHub, fichier déjà rempli.
 // Ghost n'a plus qu'à valider la pull request ; le système Grok Bot est réveillé à l'ouverture de la PR.
 const GITAT = {};
-const gitCfg = () => Object.assign({ repo: 'ghostfellah/GhostVoice', branche: 'main', dossier: 'idees' }, (CFG && CFG.git) || {});
+let GITPUB = ''; // date et heure de publication souhaitées (AAAA-MM-JJTHH:MM, heure de Paris), facultatif
+let GITIMG = 'non'; // consigne pour le système Grok Bot : créer une image pour ce post (oui) ou non
+const gitCfg = () => Object.assign({ repo: 'ghostfellah/GhostVoice', branche: 'main', dossier: 'idees', trigger: 'trig_016PWWnSo14eokdSaPQvfbHW' }, (CFG && CFG.git) || {});
+const GITSENT = {}; // clé de l'idée -> { state: 'envoi' | 'ok' | 'err', at, msg }
+let GITOFF = false; // vrai si l'envoi automatique est refusé : on retombe sur le lien GitHub
+const GITROUTE = 'Claude Code Remote';
+const gitParisNow = () => { const p = Object.fromEntries(new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date()).map((x) => [x.type, x.value])); return `${p.year}-${p.month}-${p.day}T${p.hour === '24' ? '00' : p.hour}:${p.minute}`; };
+const gitPubPast = (v) => !!v && v <= gitParisNow();
 const gitHash = (s) => { let x = 5381; for (let c = 0; c < s.length; c++) x = ((x << 5) + x + s.charCodeAt(c)) | 0; return (x >>> 0).toString(36); };
 const gitLine = (t) => JSON.stringify(String(t ?? '').replace(/\s+/g, ' ').trim());
 function gitFile(i) {
@@ -1372,10 +1391,12 @@ function gitFile(i) {
   const hh = parts.hour === '24' ? '00' : parts.hour;
   const slug = String(i.title || 'idee').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'idee';
   const name = `${c.dossier}/${parts.year}-${parts.month}-${parts.day}-${hh}${parts.minute}-${slug}.md`;
-  const body = `---\ntitre: ${gitLine(i.title)}\ndate: ${gitLine(`${parts.year}-${parts.month}-${parts.day} ${hh}:${parts.minute} (Europe/Paris)`)}\norigine: Vigie\nsource: ${gitLine(i.url || '')}\nformat: ${gitLine(i.format)}\nlangue: ${i.lang === 'en' ? 'en' : 'fr'}\nplateforme: ${gitLine(P.plat)}\nstatut: nouvelle\ngo_ghost: requis avant toute publication\n---\n\n${String(i.text || '').trim()}\n`;
-  const base = `https://github.com/${c.repo}/new/${c.branche}?filename=${encodeURIComponent(name)}`;
-  const full = `${base}&value=${encodeURIComponent(body)}`;
-  return { name, body, url: full.length <= 7000 ? full : null, blank: base };
+  const base = name.replace(/^.*\//, '').replace(/\.md$/, ''), pngPath = `${c.dossier}/images/${base}.png`, briefPath = `${c.dossier}/images/${base}.json`;
+  const img = i.image === 'fournie' ? (gitAutoOn() && i.imageBrief ? 'fournie' : 'non') : i.image === 'oui' ? 'oui' : 'non';
+  const body = `---\ntitre: ${gitLine(i.title)}\ndate: ${gitLine(`${parts.year}-${parts.month}-${parts.day} ${hh}:${parts.minute} (Europe/Paris)`)}\norigine: Vigie\nsource: ${gitLine(i.url || '')}\nformat: ${gitLine(i.format)}\nlangue: ${i.lang === 'en' ? 'en' : 'fr'}\nplateforme: ${gitLine(P.plat)}\nimage: ${img}\n${img === 'fournie' ? `image_fichier: ${gitLine(pngPath)}\n` : ''}${i.publication ? `publication: ${gitLine(String(i.publication).replace('T', ' ') + ' (Europe/Paris)')}\n` : ''}statut: nouvelle\ngo_ghost: requis avant toute publication\n---\n\n${String(i.text || '').trim()}\n`;
+  const ghBase = `https://github.com/${c.repo}/new/${c.branche}?filename=${encodeURIComponent(name)}`;
+  const full = `${ghBase}&value=${encodeURIComponent(body)}`;
+  return { name, body, url: full.length <= 7000 ? full : null, blank: ghBase, briefPath, pngPath };
 }
 // Idée en cours dans l'atelier (texte rédigé, pas une consigne), avec une clé stable pour ne pas la dupliquer.
 function deskIdea() {
@@ -1384,35 +1405,111 @@ function deskIdea() {
   const fmt = (tg.labels.find((x) => x[0] === S.outKind) || [0, 'Texte'])[1];
   const k = 'idee-git-' + gitHash(tg.title + '|' + S.out);
   GITAT[k] ||= Date.now();
-  return { k, title: tg.title, url: tg.url, format: fmt, lang: S.view === 'post' && S.post && S.post.lang ? S.post.lang : P.lang, text: S.out.slice(0, 6000), status: 'Idée', at: GITAT[k] };
+  return { k, title: tg.title, url: tg.url, format: fmt, lang: S.view === 'post' && S.post && S.post.lang ? S.post.lang : P.lang, text: S.out.slice(0, 6000), status: 'Idée', at: GITAT[k], image: GITIMG, imageBrief: GITIMG === 'fournie' && gitVisual().ok ? gitVisual().brief : null, publication: GITPUB };
 }
-const gitAnchor = (href, extra) => `<a class="btn" ${extra} href="${esc(href)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Envoyer vers les idées de Git ↗</a>`;
+const GITNOTE = '<span class="gitnote">Dans GitHub, choisissez « Create a new branch for this commit and start a pull request », pas « Commit directly to the main branch » : sans pull request, Vigie ne se réveille pas.</span>';
+const gitAnchor = (href, extra, label = 'Envoyer vers les idées de Git ↗') => `<a class="btn" ${extra} href="${esc(href)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${label}</a>`;
+const gitImgSel = (v, extra) => { const e = v === 'fournie' && !gitAutoOn() ? 'non' : v; return `<label class="gitimg">Image pour ce post <select ${extra} aria-label="Image pour ce post : non, oui (le système Grok Bot la crée) ou fournie par Vigie"><option value="non" ${e === 'oui' || e === 'fournie' ? '' : 'selected'}>non</option><option value="oui" ${e === 'oui' ? 'selected' : ''}>oui</option>${gitAutoOn() ? `<option value="fournie" ${e === 'fournie' ? 'selected' : ''}>fournie par Vigie</option>` : ''}</select></label>`; };
+const gitPubCtl = (v, extra) => `<label class="gitimg">Publier le <input type="datetime-local" ${extra} value="${esc(v || '')}" aria-label="Date et heure de publication, heure de Paris (facultatif)"><small>heure de Paris</small>${gitPubPast(v) ? ' <b class="gitwarn">date passée</b>' : ''}</label>`;
+// Image créée dans l'onglet Visuels : on joint son brief (petit JSON) ; la routine fabrique le PNG et le SVG dans la PR avec gabarits/generer.mjs.
+function gitVisual() {
+  const r = VIS.res, { b } = visBrief();
+  if (!r || !r.ok) return { ok: false, why: 'Créez d\'abord l\'image dans l\'onglet Visuels (aperçu conforme à la charte).' };
+  if (b.exemple) return { ok: false, why: 'L\'image de l\'onglet Visuels porte des données d\'exemple : elle ne peut pas être jointe.' };
+  if (!visReady()) return { ok: false, why: 'Cochez « J\'ai contrôlé l\'image » dans l\'onglet Visuels.' };
+  return { ok: true, brief: b, label: `${VIS_FMT[b.format]} · « ${b.titre.join(' ')} »` };
+}
+const gitBriefLabel = (b) => `${VIS_FMT[b.format]} · « ${b.titre.join(' ')} »`;
+const gitImgNote = (img, brief, why) => img !== 'fournie' ? '' : brief ? `<span class="gitnote">Image jointe : ${esc(gitBriefLabel(brief))}. La routine la fabrique dans la PR (PNG et SVG) : vous la contrôlez avant de fusionner.</span>` : `<span class="gitnote">${esc(why || 'Aucune image à joindre.')}</span>`;
+const gitAutoOn = () => !!(mcp && gitCfg().trigger && !GITOFF);
+const gitHour = (t) => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
+// Texte d'état d'un envoi automatique (affiché sous le bouton).
+function gitStatus(k) {
+  const st = GITSENT[k];
+  if (!st) return '<span class="gitnote">Une routine crée la branche et ouvre la pull request ; Vigie se réveille à son ouverture. Vous fusionnez après avoir validé.</span>';
+  if (st.state === 'envoi') return '<span class="gitnote">Envoi à la routine…</span>';
+  if (st.state === 'ok') return `<span class="gitnote">Envoyé à la routine à ${gitHour(st.at)}. Elle ouvre la pull request dans 1 à 2 minutes : vérifiez dans les <a href="https://github.com/${esc(gitCfg().repo)}/pulls" target="_blank" rel="noopener">pull requests ↗</a>. Rien n'est confirmé tant qu'elle n'y apparaît pas.</span>`;
+  return `<span class="gitnote">${esc(st.msg)}</span>`;
+}
 function gitLink() {
   const i = deskIdea();
   if (!i) return '<button class="btn" type="button" disabled title="Rédigez un texte pour pouvoir l\'envoyer">Envoyer vers les idées de Git</button>';
-  const g = gitFile(i);
-  return g.url ? gitAnchor(g.url, 'data-git="1"') : `<button class="btn" type="button" data-gitcopy="1">Copier le fichier pour GitHub</button><a class="btn" data-git="1" href="${esc(g.blank)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ouvrir GitHub ↗</a>`;
+  const g = gitFile(i), st = GITSENT[i.k];
+  if (gitAutoOn()) return gitImgSel(GITIMG, 'id="gitImg"') + gitPubCtl(GITPUB, 'id="gitPub"') + `<button class="btn solid" type="button" data-gitauto="1" ${st && st.state === 'envoi' ? 'disabled' : ''}>${st && st.state === 'ok' ? 'Renvoyer vers les idées de Git' : 'Envoyer vers les idées de Git'}</button>` + gitImgNote(i.image, i.imageBrief, i.image === 'fournie' ? gitVisual().why : '') + gitStatus(i.k);
+  return gitImgSel(GITIMG, 'id="gitImg"') + gitPubCtl(GITPUB, 'id="gitPub"') + (g.url ? gitAnchor(g.url, 'data-git="1"') : `<button class="btn" type="button" data-gitcopy="1">Copier le fichier pour GitHub</button><a class="btn" data-git="1" href="${esc(g.blank)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ouvrir GitHub ↗</a>`) + (st && st.state === 'err' ? gitStatus(i.k) : '') + GITNOTE;
 }
 function gitIdeaBtn(i) {
-  const g = gitFile(i), tag = i.git ? '<span class="tag">lien GitHub ouvert</span>' : '';
-  return (g.url ? gitAnchor(g.url, 'data-act="git"') : `<button class="btn" type="button" data-act="gitcopy">Copier pour GitHub</button><a class="btn" data-act="git" href="${esc(g.blank)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ouvrir GitHub ↗</a>`) + tag;
+  const g = gitFile(i), st = GITSENT[i.k];
+  const tag = st && st.state === 'ok' ? `<span class="tag">envoyé à la routine à ${gitHour(st.at)}</span>` : i.git ? `<span class="tag">${i.gitMode === 'routine' ? 'envoyé à la routine' : 'lien GitHub ouvert'}</span>` : '';
+  if (gitAutoOn()) return gitImgSel(i.image, 'data-act="img"') + gitPubCtl(i.publication, 'data-act="pub"') + `<button class="btn" type="button" data-act="gitauto" ${st && st.state === 'envoi' ? 'disabled' : ''}>${i.git || (st && st.state === 'ok') ? 'Renvoyer vers Git' : 'Envoyer vers Git'}</button>` + tag + gitImgNote(i.image, i.imageBrief, '') + (st && st.state === 'err' ? gitStatus(i.k) : '');
+  return gitImgSel(i.image, 'data-act="img"') + gitPubCtl(i.publication, 'data-act="pub"') + (g.url ? gitAnchor(g.url, 'data-act="git"') : `<button class="btn" type="button" data-act="gitcopy">Copier pour GitHub</button><a class="btn" data-act="git" href="${esc(g.blank)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Ouvrir GitHub ↗</a>`) + tag + GITNOTE;
+}
+const gitRefresh = () => { if (S.view !== 'vis') renderDesk(); renderIdeas(); };
+// Envoi automatique : on déclenche la routine « Idées Vigie vers GhostVoice (PR) », qui crée la branche et ouvre la pull request.
+async function gitSend(i) {
+  const g = gitFile(i), c = gitCfg();
+  if (!mcp || (GITSENT[i.k] && GITSENT[i.k].state === 'envoi')) return;
+  if (i.image === 'fournie' && !i.imageBrief) { GITSENT[i.k] = { state: 'err', msg: 'Image non jointe : ' + (gitVisual().why || 'aucune image disponible') + ' Choisissez « non » ou « oui », ou créez l\'image.' }; gitRefresh(); return; }
+  if (gitPubPast(i.publication)) { GITSENT[i.k] = { state: 'err', msg: 'La date de publication est passée : choisissez une date à venir, ou videz le champ.' }; gitRefresh(); return; }
+  GITSENT[i.k] = { state: 'envoi' }; gitRefresh();
+  try {
+    await mcp.callTool(GITROUTE, 'fire_trigger', { trigger_id: c.trigger, text: `${i.image === 'fournie' && i.imageBrief ? `IMAGE-BRIEF: ${g.briefPath}\n${JSON.stringify(i.imageBrief)}\n` : ''}FICHIER: ${g.name}\n${g.body}` }, { cache: false });
+    GITSENT[i.k] = { state: 'ok', at: Date.now() };
+    await saveIdea({ ...i, git: Date.now(), gitMode: 'routine' });
+  } catch (e) {
+    const code = e && e.code;
+    if (['not_granted', 'consent_required', 'approval_required', 'blocked_by_policy', 'not_in_manifest', 'server_not_connected', 'server_not_found', 'self_only', 'capability_disabled', 'capability_removed', 'needs_reauth'].includes(code)) {
+      GITOFF = true;
+      GITSENT[i.k] = { state: 'err', msg: 'L\'envoi automatique n\'est pas autorisé pour cette page : utilisez le lien GitHub ci-dessous.' };
+    } else if (code === 'cancelled') delete GITSENT[i.k];
+    else if (code === 'rate_limited') GITSENT[i.k] = { state: 'err', msg: 'Trop de demandes. Réessayez dans une minute.' };
+    else {
+      // Erreur non prévue : on affiche le code, le message et les outils que le connecteur offre à ce compte, pour pouvoir corriger.
+      let tools = '';
+      try { const l = await mcp.listTools(GITROUTE); const n = ((l && l.servers) || []).flatMap((x) => (x.tools || []).map((t) => t.name)); tools = n.length ? ` · outils offerts : ${n.join(', ')}` : ' · aucun outil offert'; } catch (e2) { tools = ` · liste des outils indisponible (${(e2 && e2.code) || 'erreur'})`; }
+      GITSENT[i.k] = { state: 'err', msg: `L'envoi a échoué (code : ${code || 'inconnu'}${e && e.message ? ' · ' + String(e.message).slice(0, 220) : ''}${tools}). Rien n'est confirmé : vérifiez dans GitHub avant de renvoyer.` };
+    }
+  }
+  gitRefresh();
 }
 $('#desk').addEventListener('click', (e) => {
   if (S.view === 'vis') return;
   const m = $('#deskMsg');
-  if (e.target.closest('[data-git]')) {
+  if (e.target.closest('[data-gitauto]')) {
+    const i = deskIdea(); if (i) gitSend(i);
+  } else if (e.target.closest('[data-git]')) {
     const i = deskIdea(); if (i) saveIdea({ ...i, git: Date.now() });
-    if (m) m.textContent = 'GitHub s\'ouvre avec le fichier prêt. Choisissez « Créer une nouvelle branche et ouvrir une pull request », puis validez.';
+    if (m) m.textContent = 'GitHub s\'ouvre avec le fichier prêt. Choisissez « Create a new branch for this commit and start a pull request », puis ouvrez la pull request.';
   } else if (e.target.closest('[data-gitcopy]')) {
     const i = deskIdea(); if (i && m) copy(gitFile(i).body, m);
   }
 });
 $('#ideas').addEventListener('click', (e) => {
-  const a = e.target.closest('[data-act="git"],[data-act="gitcopy"]'); if (!a) return;
+  const a = e.target.closest('[data-act="git"],[data-act="gitcopy"],[data-act="gitauto"]'); if (!a) return;
   const art = e.target.closest('.idea'), i = art && S.ideas.find((x) => x.k === art.dataset.k); if (!i) return;
-  if (a.dataset.act === 'git') saveIdea({ ...i, git: Date.now() });
+  if (a.dataset.act === 'gitauto') gitSend(i);
+  else if (a.dataset.act === 'git') saveIdea({ ...i, git: Date.now() });
   else copy(gitFile(i).body, art.querySelector('.tools span:last-child'));
 });
+
+// Choix « image oui/non » : dans l'atelier, il change le fichier à envoyer ; sur une idée gardée, il est enregistré avec elle.
+$('#desk').addEventListener('change', (e) => {
+  if (e.target.id === 'gitImg') { GITIMG = ['oui', 'fournie'].includes(e.target.value) ? e.target.value : 'non'; renderDesk(); }
+  else if (e.target.id === 'gitPub') { GITPUB = e.target.value || ''; renderDesk(); }
+});
+$('#ideas').addEventListener('change', (e) => {
+  if (e.target.dataset.act !== 'img' && e.target.dataset.act !== 'pub') return;
+  e.stopPropagation(); // le sélecteur d'avancement de l'idée écoute aussi les changements : ne pas le déclencher
+  const art = e.target.closest('.idea'), i = art && S.ideas.find((x) => x.k === art.dataset.k);
+  if (!i) return;
+  if (e.target.dataset.act === 'pub') return saveIdea({ ...i, publication: e.target.value || '' });
+  if (e.target.value === 'fournie') {
+    const v = gitVisual();
+    if (!v.ok) { GITSENT[i.k] = { state: 'err', msg: 'Image non jointe : ' + v.why }; gitRefresh(); return; }
+    return saveIdea({ ...i, image: 'fournie', imageBrief: v.brief });
+  }
+  saveIdea({ ...i, image: e.target.value === 'oui' ? 'oui' : 'non', imageBrief: null });
+}, true);
 
 async function capabilities() {
   if (!(window.claude && window.claude.use)) { S.ai = null; aiState(); return; }
