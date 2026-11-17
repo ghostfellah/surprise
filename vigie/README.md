@@ -1,4 +1,6 @@
-# Vigie
+# Sonar
+
+L'application s'appelait Vigie. Elle a été renommée Sonar (17/11/2026) pour ne pas la confondre avec l'agent Vigie du système Grok Bot. Le dossier garde son nom `vigie/` (chemins utilisés par le relevé horaire et par le déploiement).
 
 Repérer ce qui monte chez les spécialistes avant que la presse française n'en parle, puis l'écrire.
 

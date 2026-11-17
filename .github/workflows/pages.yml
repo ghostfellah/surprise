@@ -29,7 +29,7 @@ jobs:
           node-version: 22
       - name: Rafraîchir l'instantané (garde le dernier en cas d'échec)
         run: node scripts/snapshot.mjs || echo "API indisponible, instantané du dépôt conservé"
-      - name: Rafraîchir les signaux de Vigie (garde les derniers en cas d'échec)
+      - name: Rafraîchir les signaux de Sonar (garde les derniers en cas d'échec)
         run: node vigie/scripts/collect.mjs || echo "Sources indisponibles, relevé du dépôt conservé"
       - name: Rafraîchir Sat Radar (garde le dernier relevé en cas d'échec)
         run: node btc/scripts/collect.mjs || echo "Sources bitcoin indisponibles, relevé du dépôt conservé"

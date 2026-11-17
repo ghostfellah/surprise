@@ -1,5 +1,5 @@
 {
-  "_note": "Flux suivis par Vigie. Ajouter ou retirer une ligne suffit. sec : « macro » (Macroéconomie), « monde » (actualité et marchés), « crypto », ou rien (tech et IA). Pour YouTube, « channel » est l'identifiant de la chaîne (UC…) : le flux https://www.youtube.com/feeds/videos.xml?channel_id=… ne demande aucune clé. « jours » : ancienneté maximale des éléments retenus (2 par défaut ; 7 pour les institutions qui publient peu).",
+  "_note": "Flux suivis par Sonar. Ajouter ou retirer une ligne suffit. sec : « macro » (Macroéconomie), « monde » (actualité et marchés), « crypto », ou rien (tech et IA). Pour YouTube, « channel » est l'identifiant de la chaîne (UC…) : le flux https://www.youtube.com/feeds/videos.xml?channel_id=… ne demande aucune clé. « jours » : ancienneté maximale des éléments retenus (2 par défaut ; 7 pour les institutions qui publient peu).",
   "presse": [
     {
       "id": "fed",

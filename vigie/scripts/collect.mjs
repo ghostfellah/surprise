@@ -1,4 +1,4 @@
-// Vigie : relève les signaux précoces sur des sources publiques et mesure leur couverture presse.
+// Sonar : relève les signaux précoces sur des sources publiques et mesure leur couverture presse.
 // Écrit vigie/site/signaux.json. Usage : node vigie/scripts/collect.mjs
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
