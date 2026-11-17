@@ -36,7 +36,7 @@ mkdirSync(resolve(root, 'dist/pare'), { recursive: true });
 writeFileSync(resolve(root, 'dist/pare/index.html'), page('pare/site/app.html', 'Préparez votre voyage : fiche pratique du pays, valise sur mesure selon la météo et compte à rebours des démarches.'));
 copyFileSync(resolve(root, 'pare/site/voyage.json'), resolve(root, 'dist/pare/voyage.json'));
 
-// Vigie, dans /vigie/
+// Sonar (ancien nom : Vigie), dans /vigie/
 mkdirSync(resolve(root, 'dist/vigie'), { recursive: true });
 writeFileSync(resolve(root, 'dist/vigie/index.html'), page('vigie/site/app.html', "Les signaux qui montent chez les spécialistes et que la presse française n'a pas encore couverts, avec un atelier de rédaction."));
 copyFileSync(resolve(root, 'vigie/site/signaux.json'), resolve(root, 'dist/vigie/signaux.json'));

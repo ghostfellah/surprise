@@ -1,4 +1,4 @@
-// Vigie : sources par flux RSS / Atom (presse et sites reconnus) et YouTube (flux public des chaînes, sans clé d'API).
+// Sonar : sources par flux RSS / Atom (presse et sites reconnus) et YouTube (flux public des chaînes, sans clé d'API).
 // La liste est dans sources.json. Seuls le titre, la date, un court résumé et le lien sont repris : jamais le texte d'un article.
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
