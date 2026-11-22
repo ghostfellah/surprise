@@ -33,6 +33,8 @@ jobs:
         run: node vigie/scripts/collect.mjs || echo "Sources indisponibles, relevé du dépôt conservé"
       - name: Rafraîchir Sat Radar (garde le dernier relevé en cas d'échec)
         run: node btc/scripts/collect.mjs || echo "Sources bitcoin indisponibles, relevé du dépôt conservé"
+      - name: Tests de Kairos
+        run: npm test
       - run: node scripts/build.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
