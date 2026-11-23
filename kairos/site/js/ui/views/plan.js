@@ -95,12 +95,14 @@ export default {
     const reduce = prefersReducedMotion;
     const mq = typeof matchMedia === 'function' ? matchMedia('(min-width: 900px)') : { matches: true, addEventListener() {}, removeEventListener() {} };
     const savedMode = lsGet('kairos.plan.mode', '');
+    const narrowMq = typeof matchMedia === 'function' ? matchMedia('(max-width: 599px)') : { matches: false, addEventListener() {}, removeEventListener() {} };
     const S = {
       sel: 0, mode: savedMode === 'week' || savedMode === 'day' ? savedMode : (mq.matches ? 'week' : 'day'), userMode: !!savedMode,
       filter: lsGet('kairos.plan.filter', 'todo'), group: lsGet('kairos.plan.group', 'none'),
       busy: false, assemble: null, flashTask: null, landKey: null, focusKey: null, celebrate: false, dragging: false, pending: false,
       slide: null, sigs: {},
     };
+    if (narrowMq.matches) S.mode = 'day';
     if (!P.FILTERS.some((f) => f.id === S.filter)) S.filter = 'todo';
     if (!P.GROUPS.some((g) => g.id === S.group)) S.group = 'none';
     const timers = new Set();
@@ -196,15 +198,15 @@ export default {
     const goBtnMain = h('button', { class: 'btn btn--primary btn--lg pl-go', type: 'button', onclick: () => planWeek() },
       h('span', { class: 'pl-go__orbit', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
       h('span', { class: 'pl-go__ico' }, icon('sparkle', { size: 22 })), h('span', { class: 'pl-go__label' }, 'Planifier ma semaine'));
-    const undoBtn = h('button', { class: 'btn btn--ghost btn--sm', type: 'button', hidden: true, onclick: () => undoPlan() }, icon('undo', { size: 16 }), 'Annuler le plan');
+    const undoBtn = h('button', { class: 'btn btn--ghost btn--sm', type: 'button', hidden: true, 'aria-label': 'Annuler le dernier plan', onclick: () => undoPlan() }, icon('undo', { size: 16 }), 'Annuler');
     const icsChip = h('span', { class: 'pl-ics', hidden: true });
     const actionsBar = h('section', { class: 'pl-actions', 'aria-label': 'Planification et agenda' },
       h('div', { class: 'pl-actions__main' }, goBtnMain, goHint),
       h('div', { class: 'pl-actions__side' },
         undoBtn,
-        h('button', { class: 'btn btn--ghost btn--sm', type: 'button', onclick: () => fileInput.click() }, icon('upload', { size: 16 }), 'Importer .ics'),
-        h('button', { class: 'btn btn--ghost btn--sm', type: 'button', onclick: () => exportICS() }, icon('download', { size: 16 }), 'Exporter .ics'),
-        h('button', { class: 'btn btn--ghost btn--sm', type: 'button', onclick: () => copyPlan() }, icon('copy', { size: 16 }), 'Copier le plan'),
+        h('button', { class: 'btn btn--ghost btn--sm', type: 'button', 'aria-label': 'Importer un agenda .ics', onclick: () => fileInput.click() }, icon('upload', { size: 16 }), 'Importer', h('span', { class: 'hide-sm' }, ' .ics')),
+        h('button', { class: 'btn btn--ghost btn--sm', type: 'button', 'aria-label': 'Exporter le plan en .ics', onclick: () => exportICS() }, icon('download', { size: 16 }), 'Exporter', h('span', { class: 'hide-sm' }, ' .ics')),
+        h('button', { class: 'btn btn--ghost btn--sm', type: 'button', onclick: () => copyPlan() }, icon('copy', { size: 16 }), 'Copier', h('span', { class: 'hide-sm' }, ' le plan')),
         icsChip));
 
     function updateActions(D) {
@@ -507,7 +509,7 @@ export default {
         h('span', { class: 'pl-legend__i pl-legend__i--ev' }, h('i'), 'Événement fixe'), h('span', { class: 'pl-legend__i pl-legend__i--gold' }, h('i'), 'Prime time'));
       const colsStyle = { '--cols': days.length, '--ppm': `${D.ppm}px`, '--span': D.range.span };
       const gutter = h('div', { class: 'pl-gutter', style: { '--span': D.range.span }, 'aria-hidden': 'true' }, ...P.hourLabels(D.range).map((l) => h('span', { class: 'pl-hour num', style: { '--t': l.min - D.range.startMin } }, l.label)));
-      grid = h('div', { class: `pl-grid${slide ? ` pl-slide-${slide}` : ''}`, style: colsStyle },
+      grid = h('div', { class: `pl-grid${S.mode === 'day' ? ' pl-grid--day' : ''}${slide ? ` pl-slide-${slide}` : ''}`, style: colsStyle },
         h('div', { class: 'pl-corner' }), ...days.map((d, i) => dayHead(d, D, i)), gutter, ...days.map((d) => dayBody(d, D)));
       const scroller = h('div', { class: 'pl-scroller' }, grid);
       attachGridEvents(scroller);
@@ -907,7 +909,8 @@ export default {
     let raf = 0;
     const schedule = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; renderAll(); }); };
     const off = ctx.subscribe((_state, change) => { if (change && (change.type === 'tick' || change.type === 'clock')) { if (!S.dragging) updateNow(); } schedule(); });
-    const onMq = () => { if (!S.userMode) { S.mode = mq.matches ? 'week' : 'day'; S.sigs.board = null; schedule(); } };
+    const onMq = () => { if (narrowMq.matches) S.mode = 'day'; else if (!S.userMode) S.mode = mq.matches ? 'week' : 'day'; else return; S.sigs.board = null; schedule(); };
+    if (narrowMq.addEventListener) narrowMq.addEventListener('change', onMq);
     if (mq.addEventListener) mq.addEventListener('change', onMq);
     refreshEntry();
     renderAll();
@@ -919,6 +922,7 @@ export default {
       window.removeEventListener('keydown', onSlash, true);
       for (const [t, f] of [['dragenter', onDragEnter], ['dragover', onDragOver], ['dragleave', onDragLeave], ['drop', onDrop]]) document.removeEventListener(t, f);
       if (mq.removeEventListener) mq.removeEventListener('change', onMq);
+      if (narrowMq.removeEventListener) narrowMq.removeEventListener('change', onMq);
       if (dock) dock.remove();
       document.documentElement.classList.remove('pl-is-dragging');
     };

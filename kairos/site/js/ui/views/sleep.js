@@ -181,10 +181,10 @@ export default {
     const chronoBox = h('section', { class: 'card sl-chrono', style: { '--o': 7 } });
     const heatBox = h('section', { class: 'card sl-heat', style: { '--o': 8 } });
     const journalBox = h('section', { class: 'card sl-journal', style: { '--o': 9 } });
-    colL.append(debtBox, pressBox, heatBox);
+    colL.append(logBox, debtBox, pressBox, heatBox);
     colR.append(napBox, regBox, chronoBox, journalBox);
     heroBox.style.setProperty('--o', 1);
-    page.append(heroBox, logBox, colL, colR);
+    page.append(heroBox, colL, colR);
     setTimeout(() => page.classList.remove('sl--enter'), 1800);
 
     const killCharts = () => { for (const k of chartKill) { try { k(); } catch { /* déjà détruit */ } } chartKill = []; };

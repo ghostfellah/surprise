@@ -4,7 +4,7 @@
 // la vue ne calcule aucune physiologie, elle la raconte. Elle se rafraîchit à chaque changement d'état et à
 // chaque minute (ctx.subscribe) sans reconstruire le graphique ni rejouer les animations d'entrée.
 import { h, svg, icon, replaceChildren, animateNumber, confetti, haptic, prefersReducedMotion, uniqueId } from '../dom.js';
-import { alertnessChart, ringGauge } from '../charts.js';
+import { alertnessChart, ringGauge, findExtrema } from '../charts.js';
 import { MIN, HOUR, DAY, startOfDay, addDays, fmtTime, fmtDuration, fmtDateFR, clamp } from '../../core/time.js';
 import { valueAt } from '../../core/model.js';
 import { planNap } from '../../core/sleep.js';
@@ -90,7 +90,7 @@ function moonRing(frac, label) {
   return svg('svg', { viewBox: '0 0 100 100', class: 'td-moon', role: 'img', 'aria-label': label },
     svg('circle', { cx: 50, cy: 50, r: R, fill: 'none', stroke: 'var(--surface-3)', 'stroke-width': 9 }),
     svg('circle', { class: 'td-moon__arc', cx: 50, cy: 50, r: R, fill: 'none', stroke: 'var(--night)', 'stroke-width': 9, 'stroke-linecap': 'round', 'stroke-dasharray': `${C * f} ${C}`, transform: 'rotate(-90 50 50)' }),
-    svg('path', { d: 'M58 36a15 15 0 1 0 6 22 12 12 0 0 1-6-22z', fill: 'var(--night)', opacity: '.9' }));
+    null);
 }
 
 function welcomeArt() {
@@ -213,7 +213,8 @@ export default {
       replaceChildren(heroPhrase, ...phrase(m));
 
       // stats
-      const st = m.stats, mk = (label, big, sub, cls) => h('div', { class: `stat td-stat ${cls || ''}` }, h('span', { class: 'stat__label' }, label), h('span', { class: 'stat__value num' }, big), h('span', { class: 'td-stat__sub num' }, sub));
+      const ex = findExtrema(m, [dayStart(), dayStart() + DAY]);
+      const st = { ...m.stats, peak: ex.peak || m.stats.peak, trough: ex.trough || m.stats.trough }, mk = (label, big, sub, cls) => h('div', { class: `stat td-stat ${cls || ''}` }, h('span', { class: 'stat__label' }, label), h('span', { class: 'stat__value num' }, big), h('span', { class: 'td-stat__sub num' }, sub));
       const gw = st.goldenWindows.filter((g) => g.endMs > n && g.startMs < dayStart() + DAY)[0];
       replaceChildren(heroStats, 
         mk('Pic', String(round(st.peak.value)), fmtTime(st.peak.ms), 'td-stat--sun'),
@@ -224,7 +225,8 @@ export default {
       const d0 = dayStart(), stops = [];
       for (let k = 0; k <= 48; k++) {
         const t = d0 + k * 30 * MIN, i = slot(m, t), v = alertAt(m, t), p = (k / 48) * 100;
-        stops.push(m.asleep[i] ? `color-mix(in srgb, var(--night) 46%, transparent) ${p.toFixed(1)}%` : `color-mix(in oklab, var(--sun-hot) ${clamp(round(v * 1.05 - 8), 0, 100)}%, var(--dip)) ${p.toFixed(1)}%`);
+        const hot = clamp(round(((v - 30) / 55) * 100), 0, 100);
+        stops.push(m.asleep[i] ? `color-mix(in srgb, var(--night) 42%, var(--surface-3)) ${p.toFixed(1)}%` : `color-mix(in oklab, var(--sun) ${hot}%, color-mix(in oklab, var(--dip) 65%, var(--night-deep))) ${p.toFixed(1)}%`);
       }
       ribbon.style.setProperty('--bar', `linear-gradient(90deg, ${stops.join(', ')})`);
       replaceChildren(ribbon, h('span', { class: 'td-ribbon__bar' }),
@@ -330,7 +332,7 @@ export default {
       const total = todays.reduce((a, c) => a + c.mg, 0);
       const past = cutoff != null && today && n > cutoff;
       const projected = today && bed ? m.stats.caffeineAtBedMg + caffeineAmount(80, (bed - n) / HOUR, rates()) : null;
-      const quick = (d) => h('button', { class: 'chip td-drink', type: 'button', disabled: !today, onclick: () => addDrink(d) }, icon(d.kind === 'thé' ? 'leaf' : 'coffee', { size: 16 }), h('span', null, d.label), h('small', { class: 'num' }, `${d.mg} mg`));
+      const quick = (d) => h('button', { class: 'td-drink', type: 'button', disabled: !today, onclick: () => addDrink(d) }, icon(d.kind === 'thé' ? 'leaf' : 'coffee', { size: 20 }), h('span', { class: 'td-drink__l' }, d.label), h('small', { class: 'num' }, `${d.mg} mg`), h('span', { class: 'td-drink__plus', 'aria-hidden': 'true' }, icon('plus', { size: 12, stroke: 2.6 })));
       replaceChildren(cCaf, 
         head('coffee', 'Caféine', today ? 'Active dans ton sang maintenant' : 'Disponible pour aujourd\'hui'),
         h('div', { class: 'td-caf__top' }, cupSvg(clamp(active / 160, 0, 1)), h('div', { class: 'td-caf__big' }, cafNum, h('span', { class: 'td-caf__unit' }, 'mg')),
@@ -430,8 +432,8 @@ export default {
       const box = h('button', { class: 'td-check', type: 'button', role: 'checkbox', 'aria-checked': String(!!t.done), 'aria-label': `${t.done ? 'Rouvrir' : 'Terminer'} : ${t.title}`,
         onclick: (e) => toggleTask(t, e.currentTarget) }, svg('svg', { viewBox: '0 0 24 24', width: 18, height: 18, 'aria-hidden': 'true' }, svg('path', { d: 'M5 12.5l4.5 4.5L19 7.5', fill: 'none', stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', pathLength: 1 })));
       return h('li', { class: `td-task-row${t.done ? ' is-done' : ''}` }, box,
-        h('div', { class: 'td-task-row__main' }, h('span', { class: 'td-task-row__title' }, t.title), h('span', { class: 'td-task-row__meta' }, loadDots(t.load), h('span', { class: 'tiny faint num' }, fmtDuration(t.durMin)), late ? h('span', { class: 'badge badge--coral' }, 'en retard') : null)),
-        block ? chipTime(fmtTime(block.startMs)) : (t.deadlineMs && !t.done ? h('span', { class: 'tiny faint num' }, `avant ${fmtTime(t.deadlineMs)}`) : null));
+        h('div', { class: 'td-task-row__main' }, h('span', { class: 'td-task-row__title' }, t.title), h('span', { class: 'td-task-row__meta' }, loadDots(t.load), h('span', { class: 'tiny faint num' }, fmtDuration(t.durMin)), t.deadlineMs && !t.done ? h('span', { class: 'tiny faint num' }, `avant ${fmtTime(t.deadlineMs)}`) : null, late ? h('span', { class: 'badge badge--coral' }, 'en retard') : null)),
+        block ? chipTime(fmtTime(block.startMs)) : null);
     }
     function toggleTask(t, btn) {
       const done = !t.done, r = btn.getBoundingClientRect();

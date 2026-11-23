@@ -59,7 +59,7 @@
 /* ---------- 2. Planificateur & import/export ---------- */
 .pl-actions { display: grid; gap: 10px; }
 .pl-actions__main { display: grid; gap: 8px; justify-items: stretch; }
-.pl-actions__side { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.pl-actions__side { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 4px; }
 .pl-go { position: relative; overflow: hidden; isolation: isolate; width: 100%; min-height: 62px; font-size: 1.125rem; letter-spacing: -.01em; justify-content: center; }
 .pl-go::after { content: ""; position: absolute; inset: 0; z-index: -1; transform: translateX(-120%); background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%); animation: pl-shine 5.5s var(--ease-inout) infinite; }
 .pl-go__ico { display: grid; place-items: center; transition: transform var(--dur-3) var(--ease-spring); }
@@ -394,7 +394,20 @@ button.pl-pl:hover { background: color-mix(in srgb, var(--night) 22%, transparen
   .pl-blk__title { font-size: .8125rem; }
   .pl-blk__time { font-size: .6875rem; }
 }
-@media (max-width: 899px) { .pl-seg { display: inline-flex; } }
+@media (max-width: 599px) {
+  .pl-board__head { flex-wrap: nowrap; align-items: center; padding-bottom: 8px; }
+  .pl-board__title { font-size: 1.3rem; }
+  .pl-board__ctrl .pl-seg { display: none; }
+  .pl-board__ctrl { gap: 4px; flex-wrap: nowrap; }
+  .pl-nav { width: 36px; height: 36px; }
+  .pl-today { padding: 0 10px; min-height: 34px; }
+  .pl-legend { padding-bottom: 8px; }
+  .pl-grid--day .pl-dayhead { grid-template-columns: auto 1fr; grid-auto-flow: row; padding: 6px 12px; border-radius: 14px 14px 0 0; align-items: center; justify-items: start; gap: 4px 12px; }
+  .pl-grid--day .pl-dayhead__dow, .pl-grid--day .pl-dayhead__num { display: none; }
+  .pl-grid--day .pl-dayhead__sub { grid-column: 1; font-size: .75rem; }
+  .pl-grid--day .pl-dayhead__bar { grid-column: 2; width: 100%; margin: 0; }
+  .pl-grid--day .pl-allday { grid-column: 1 / -1; }
+}
 
 /* ---------- Animations ---------- */
 @keyframes pl-assemble {
