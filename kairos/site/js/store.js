@@ -521,7 +521,7 @@ export function createStore({ backend, now = Date.now, saveDelayMs = 150 } = {})
         if (sameJSON(old, next)) return NOOP;
         replaceIn(s.tasks, id, next);
         return structuredClone(next);
-      }, { key: `updateTask:${id}`, id });
+      }, { key: `updateTask:${id}`, id }) ?? structuredClone(state.tasks.find((t) => t.id === id));
     },
     removeTask(id) {
       return commit('removeTask', (s) => {
@@ -558,7 +558,7 @@ export function createStore({ backend, now = Date.now, saveDelayMs = 150 } = {})
         if (sameJSON(old, next)) return NOOP;
         replaceIn(s.events, id, next);
         return structuredClone(next);
-      }, { key: `updateEvent:${id}`, id });
+      }, { key: `updateEvent:${id}`, id }) ?? structuredClone(state.events.find((e) => e.id === id));
     },
     removeEvent(id) {
       return commit('removeEvent', (s) => {
@@ -627,7 +627,7 @@ export function createStore({ backend, now = Date.now, saveDelayMs = 150 } = {})
         if (sameJSON(next, s.profile)) return NOOP;
         s.profile = next;
         return structuredClone(next);
-      }, { key: 'setProfile' });
+      }, { key: 'setProfile' }) ?? structuredClone(state.profile);
     },
     setPrefs(patch) {
       const clean = normalizePrefsPatch(patch, true);
@@ -636,7 +636,7 @@ export function createStore({ backend, now = Date.now, saveDelayMs = 150 } = {})
         if (sameJSON(next, s.prefs)) return NOOP;
         s.prefs = next;
         return structuredClone(next);
-      }, { key: 'setPrefs' });
+      }, { key: 'setPrefs' }) ?? structuredClone(state.prefs);
     },
     setPlan(plan) {
       const clean = normalizePlan(plan, now());
