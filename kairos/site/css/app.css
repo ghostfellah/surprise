@@ -734,11 +734,11 @@ a.list__item:active, button.list__item:active { transform: scale(.985); }
 .confetti { position: fixed; inset: 0; z-index: 400; pointer-events: none; }
 
 /* ---------- Vues : transitions (View Transitions API, repli CSS plus haut) ---------- */
-::view-transition-group(root) { animation-duration: .5s; }
-::view-transition-old(root) { animation: vt-out .22s var(--ease) both; }
-::view-transition-new(root) { animation: vt-in .45s var(--ease) both; }
-@keyframes vt-out { to { opacity: 0; transform: translateY(-8px) scale(.995); filter: blur(4px); } }
-@keyframes vt-in { from { opacity: 0; transform: translateY(14px); filter: blur(5px); } }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(view) { animation: vt-out .2s var(--ease) both; }
+::view-transition-new(view) { animation: vt-in .46s var(--ease) both; }
+@keyframes vt-out { to { opacity: 0; transform: translateY(-10px) scale(.992); filter: blur(5px); } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(16px) scale(.995); filter: blur(6px); } }
 .is-vt .view__inner > * { animation: none; }
 
 /* ---------- Mouvement réduit ---------- */
