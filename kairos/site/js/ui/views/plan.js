@@ -41,6 +41,8 @@ const modelIds = new WeakMap(); let modelSeq = 0;
 const modelId = (m) => { if (!m) return 0; let i = modelIds.get(m); if (!i) { i = ++modelSeq; modelIds.set(m, i); } return i; };
 const pct = (x) => `${Math.round(x * 100)} %`;
 const cap1 = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+/** replaceChildren natif qui ignore null/false (le natif écrirait « null »). */
+const setKids = (el, ...kids) => { el.replaceChildren(...kids.filter((k) => k != null && k !== false)); return el; };
 
 function ensureCss() {
   const href = new URL('css/views-plan.css', document.baseURI).href;
@@ -331,7 +333,7 @@ export default {
       const unpl = P.unplacedFromPlan(active, D.blocks);
       const key = sig(D.blocks.map((b) => b.taskId + b.startMs + b.endMs), unpl, !!lastRun, lastRun && lastRun.at, S.celebrate, D.st.tasks.map((t) => [t.id, t.title, t.deadlineMs, t.durMin, t.splittable]), modelId(D.model));
       if (S.sigs.result === key) return; S.sigs.result = key;
-      if (!D.blocks.length && !unpl.length) { resultCard.hidden = true; return; }
+      if (!D.blocks.length && !(lastRun && lastRun.result.blocks.length === 0 && unpl.length)) { resultCard.hidden = true; return; }
       resultCard.hidden = false;
       const H = ctx.planHorizon(7), hc = curveOf(H);
       const sum = P.summarizePlan({ blocks: D.blocks, tasks: D.st.tasks, curve: hc });
@@ -351,7 +353,7 @@ export default {
       const list = unpl.length ? h('div', { class: 'pl-unpl' },
         h('h3', { class: 'pl-unpl__h' }, icon('alert', { size: 18 }), `${P.plural(unpl.length, 'tâche sans créneau', 'tâches sans créneau')}`),
         h('ul', { class: 'pl-unpl__list' }, ...unpl.map((u) => unplacedRow(u, D.tasksById.get(u.taskId), why.get(u.taskId))))) : null;
-      resultCard.replaceChildren(h('div', { class: 'pl-result__top' }, left, tiles), list);
+      setKids(resultCard, h('div', { class: 'pl-result__top' }, left, tiles), list);
       if (celebrate) { resultCard.classList.remove('is-pop'); void resultCard.offsetWidth; resultCard.classList.add('is-pop'); }
     }
     const tile = (label, value, ico) => h('div', { class: 'pl-tile' }, h('span', { class: 'pl-tile__l' }, ico, label), h('strong', { class: 'pl-tile__v num' }, value));
@@ -511,7 +513,7 @@ export default {
       attachGridEvents(scroller);
       const overlay = boardOverlay(D);
       const foc = S.focusKey; S.focusKey = null;
-      board.replaceChildren(gradDefs, head, strip, legend, scroller, overlay, h('div', { class: 'pl-think', 'aria-hidden': 'true' }, h('span', null, 'Je cherche tes meilleurs créneaux…')));
+      setKids(board, gradDefs, head, strip, legend, scroller, overlay, h('div', { class: 'pl-think', 'aria-hidden': 'true' }, h('span', null, 'Je cherche tes meilleurs créneaux…')));
       if (S.landKey) { const lk = S.landKey; later(() => { if (S.landKey === lk) S.landKey = null; }, 1200); }
       if (foc) { const el = grid.querySelector(`[data-key="${CSS.escape(foc)}"]`); if (el) el.focus({ preventScroll: true }); }
       updateNow(D);
@@ -855,7 +857,7 @@ export default {
       } else {
         body = h('div', { class: 'pl-groups' }, ...groups.map((g) => h('div', { class: 'pl-group' }, g.label ? h('h3', { class: 'pl-group__h eyebrow' }, g.label, h('span', { class: 'num' }, String(g.items.length))) : null, h('ul', { class: 'pl-tasks' }, ...g.items.map((t) => taskRow(t, D))))));
       }
-      backlog.replaceChildren(head, filters, body);
+      setKids(backlog, head, filters, body);
     }
 
     // ═══════════════════════ 6. Statistiques ═══════════════════════
@@ -876,7 +878,7 @@ export default {
           svg('circle', { cx: 42, cy: 42, r, fill: 'none', class: 'pl-ring__arc pl-st__arc', 'stroke-width': 7, 'stroke-linecap': 'round', 'stroke-dasharray': `${c * deep.ratio} ${c}`, transform: 'rotate(-90 42 42)' })),
           h('b', { class: 'num' }, deep.deepMin ? pct(deep.ratio) : '—'));
       })();
-      stats.replaceChildren(
+      setKids(stats,
         h('div', { class: 'card__head' }, h('div', null, h('h2', { class: 'card__title' }, 'En un coup d\'œil'), h('p', { class: 'card__sub' }, 'Sur les 7 prochains jours'))),
         h('div', { class: 'pl-st' },
           h('div', { class: 'pl-st__row' }, ring, h('div', null, h('strong', { class: 'pl-st__h' }, 'Travail profond dans tes pics'),
