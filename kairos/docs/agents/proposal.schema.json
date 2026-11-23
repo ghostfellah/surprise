@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "proposal.schema.json",
+  "title": "Proposition d'agent pour Kairos",
+  "description": "Un agent propose, l'utilisateur dispose : la proposition entre dans la boîte de réception et n'est appliquée qu'après son accord.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "source",
+    "kind",
+    "payload"
+  ],
+  "properties": {
+    "schema": {
+      "const": "kairos.proposal/1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{8,64}$",
+      "description": "Identifiant unique choisi par l'agent."
+    },
+    "createdMs": {
+      "type": "integer",
+      "description": "Epoch en millisecondes (UTC)."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,48}$",
+          "description": "Identifiant de l'agent, affiché à l'utilisateur."
+        },
+        "run": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Identifiant d'exécution (traçabilité)."
+        }
+      }
+    },
+    "kind": {
+      "enum": [
+        "event",
+        "task",
+        "sleep",
+        "caffeine"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "description": "Dépend de kind : voir oneOf ci-dessous."
+    },
+    "rationale": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Pourquoi l'agent propose cela. Texte affiché, jamais interprété."
+    },
+    "dedupeKey": {
+      "type": "string",
+      "maxLength": 80,
+      "description": "Une proposition de même clé remplace la précédente en attente."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "expiresMs": {
+      "type": "integer",
+      "description": "Epoch en millisecondes (UTC)."
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "kind": {
+          "const": "event"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "startMs",
+            "endMs"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "startMs": {
+              "type": "integer",
+              "description": "Epoch en millisecondes (UTC)."
+            },
+            "endMs": {
+              "type": "integer",
+              "description": "Epoch en millisecondes (UTC)."
+            },
+            "location": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "task"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "durMin"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "durMin": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 2400
+            },
+            "load": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4
+            },
+            "deadlineMs": {
+              "type": "integer",
+              "description": "Epoch en millisecondes (UTC)."
+            },
+            "tags": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "maxLength": 30
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "sleep"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bedMs",
+            "wakeMs"
+          ],
+          "properties": {
+            "bedMs": {
+              "type": "integer",
+              "description": "Epoch en millisecondes (UTC)."
+            },
+            "wakeMs": {
+              "type": "integer",
+              "description": "Epoch en millisecondes (UTC)."
+            },
+            "quality": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "nap": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "caffeine"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tMs",
+            "mg"
+          ],
+          "properties": {
+            "tMs": {
+              "type": "integer",
+              "description": "Epoch en millisecondes (UTC)."
+            },
+            "mg": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "kind": {
+              "type": "string",
+              "maxLength": 40
+            }
+          }
+        }
+      }
+    }
+  ]
+}

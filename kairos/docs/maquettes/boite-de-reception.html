@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maquette : boîte de réception des agents</title>
+  <!-- Maquette statique, utilisée uniquement pour produire docs/img/maquette-boite-de-reception.png.
+       Elle réutilise le vrai design système ; les données sont fictives et l'interface N'EXISTE PAS encore dans l'application. -->
+  <link rel="stylesheet" href="../../site/css/app.css">
+  <style>
+    .mq { max-width: 1120px; margin: 0 auto; padding: 36px 20px 48px; position: relative; z-index: 1; }
+    .mq-stamp { position: absolute; top: 18px; right: 20px; transform: rotate(4deg); border: 2px dashed var(--coral); color: var(--coral); padding: 6px 14px; border-radius: 10px; font: 700 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; background: color-mix(in srgb, var(--coral) 10%, transparent); }
+    .mq-prop { display: grid; gap: 10px; }
+    .mq-why { font-size: 14px; color: var(--text-2); padding: 10px 12px; border-left: 2px solid var(--sun); background: var(--surface-hi); border-radius: 0 10px 10px 0; }
+    .mq-src { font: 600 11px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+    .mq-warn { font-size: 13px; color: var(--coral); }
+    .mq-agent { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
+    .mq-agent:first-of-type { border-top: 0; }
+    .mq-scopes { display: flex; flex-wrap: wrap; gap: 6px; }
+    .mq-scopes .chip { font-size: 11px; padding: 3px 9px; min-height: 0; }
+  </style>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"><i class="aurora__blob"></i><i class="aurora__blob"></i><i class="aurora__blob"></i></div>
+  <main class="mq stack stack--lg">
+    <span class="mq-stamp">Maquette · pas encore construit</span>
+    <header class="stack stack--sm">
+      <p class="eyebrow">Boîte de réception · agents</p>
+      <h1 class="display" style="font-size:clamp(34px,5vw,54px)">3 propositions <em>t'attendent</em>.</h1>
+      <p class="lead">Les agents proposent, tu décides. Rien n'entre dans ton planning sans ton accord.</p>
+    </header>
+
+    <div class="split" style="--gap:20px">
+      <section class="stack" aria-label="Propositions en attente">
+        <article class="card card--glow mq-prop">
+          <div class="row row--between"><span class="mq-src">assistant-reunions · il y a 4 min</span><span class="badge badge--night">Réunion</span></div>
+          <h2 class="h2">Point produit avec Camille</h2>
+          <div class="row row--wrap"><span class="num">jeu. 26 nov. · 15:00–15:45</span><span class="chip chip--night">énergie basse à ce moment-là</span></div>
+          <p class="mq-why">« Créneau commun avec Camille. Ton énergie est basse à ce moment-là : idéal pour une réunion, et ta fenêtre d'or de 10:30 reste libre pour le travail profond. »</p>
+          <div class="row row--wrap"><button class="btn btn--primary" type="button">Accepter</button><button class="btn btn--secondary" type="button">Modifier</button><button class="btn btn--ghost" type="button">Refuser</button></div>
+        </article>
+
+        <article class="card mq-prop">
+          <div class="row row--between"><span class="mq-src">veille-mails · il y a 1 h</span><span class="badge badge--sun">Tâche</span></div>
+          <h2 class="h2">Répondre au devis du comptable</h2>
+          <div class="row row--wrap"><span class="num">20 min</span><span class="chip">charge 2 sur 5</span><span class="chip chip--coral">avant ven. 27 nov. · 16:00</span></div>
+          <p class="mq-why">« Échéance trouvée dans un mail du 22 novembre. »</p>
+          <div class="row row--wrap"><button class="btn btn--primary" type="button">Accepter et planifier</button><button class="btn btn--ghost" type="button">Refuser</button></div>
+        </article>
+
+        <article class="card mq-prop">
+          <div class="row row--between"><span class="mq-src">import-sante · il y a 2 h</span><span class="badge">Nuit</span></div>
+          <h2 class="h2">Nuit du 22 au 23 novembre · 7 h 30</h2>
+          <div class="row row--wrap"><span class="num">23:10 → 06:40</span><span class="chip">qualité 3 sur 5</span></div>
+          <p class="mq-warn">Une nuit saisie à la main existe déjà sur cette période : ta saisie est conservée, cette proposition est marquée en conflit.</p>
+          <div class="row row--wrap"><button class="btn btn--secondary" type="button" disabled>Accepter</button><button class="btn btn--ghost" type="button">Refuser</button></div>
+        </article>
+      </section>
+
+      <aside class="card stack" aria-label="Agents connectés">
+        <div class="card__head"><div><h2 class="card__title">Agents</h2><p class="card__sub">Qui a accès à quoi</p></div></div>
+        <div class="mq-agent">
+          <div class="row row--between"><strong>assistant-reunions</strong><span class="dot dot--ok"></span></div>
+          <div class="mq-scopes"><span class="chip chip--sun">read:busy</span><span class="chip chip--sun">propose:event</span></div>
+          <div class="row row--between small muted"><span>Validation : à chaque fois</span><button class="btn btn--ghost btn--sm" type="button">Révoquer</button></div>
+        </div>
+        <div class="mq-agent">
+          <div class="row row--between"><strong>veille-mails</strong><span class="dot dot--ok"></span></div>
+          <div class="mq-scopes"><span class="chip chip--sun">read:tasks</span><span class="chip chip--sun">propose:task</span></div>
+          <div class="row row--between small muted"><span>Validation : à chaque fois</span><button class="btn btn--ghost btn--sm" type="button">Révoquer</button></div>
+        </div>
+        <div class="mq-agent">
+          <div class="row row--between"><strong>import-sante</strong><span class="dot dot--night"></span></div>
+          <div class="mq-scopes"><span class="chip chip--sun">propose:sleep</span></div>
+          <div class="row row--between small muted"><span>Source non vérifiée</span><button class="btn btn--ghost btn--sm" type="button">Révoquer</button></div>
+        </div>
+        <p class="small muted">Aucun agent n'a accès à ton sommeil brut, à tes check-ins ni à tes notes.</p>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

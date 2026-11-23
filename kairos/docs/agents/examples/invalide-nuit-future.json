@@ -1,0 +1,12 @@
+{
+  "schema": "kairos.proposal/1",
+  "id": "slp_futur_0001",
+  "source": {
+    "agent": "import-sante"
+  },
+  "kind": "sleep",
+  "payload": {
+    "bedMs": 1796079600000,
+    "wakeMs": 1796108400000
+  }
+}

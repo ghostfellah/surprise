@@ -6,6 +6,28 @@ Kairos prédit ton énergie heure par heure (rythme circadien, pression de somme
 
 Tout se passe sur ton appareil : pas de compte, pas de serveur, pas de dépendance, pas de clé d'API. L'application fonctionne hors-ligne une fois chargée et s'installe comme une application (PWA).
 
+## Aperçu
+
+Captures de l'application réelle avec les données de démonstration (fictives), mardi 24 novembre, 10 h 20. Elles se régénèrent avec `scripts/captures-docs.cjs`.
+
+![Aujourd'hui : énergie en direct, prochain pic et courbe de la journée](docs/img/aujourdhui.webp)
+
+![Planning de la semaine : blocs placés selon l'énergie prédite, +18 % d'alignement](docs/img/planning.webp)
+
+| Labo | Sommeil |
+| --- | --- |
+| ![Labo : simulateur « et si ? » avec optimiseur](docs/img/labo.webp) | ![Sommeil : dette, coucher idéal, régularité](docs/img/sommeil.webp) |
+| **Voyage** | **Bilan** |
+| ![Voyage : globe jour/nuit et plan anti-décalage horaire](docs/img/voyage.webp) | ![Bilan : constats chiffrés et calibration du modèle](docs/img/bilan.webp) |
+
+Sur mobile, et en thème clair :
+
+| Aujourd'hui | Planning | Labo | Thème clair |
+| --- | --- | --- | --- |
+| ![](docs/img/mobile-aujourdhui.webp) | ![](docs/img/mobile-planning.webp) | ![](docs/img/mobile-labo.webp) | ![](docs/img/aujourdhui-clair.webp) |
+
+Les captures des écrans Réglages et La science sont dans `docs/img/`. Celles des agents sont dans `docs/agents.md`.
+
 ## Ce que fait l'application
 
 | Écran | Rôle |
@@ -18,6 +40,12 @@ Tout se passe sur ton appareil : pas de compte, pas de serveur, pas de dépendan
 | **Bilan** | Statistiques, constats chiffrés et calibration du modèle sur tes propres check-ins. |
 | **Réglages** | Profil, thème, export et import JSON ou chiffré (AES-GCM), données de démo, installation. |
 | **La science** | Le modèle expliqué avec des courbes interactives, ses limites et ses références. |
+
+## Pour les agents
+
+Des agents (réunions, mails, montre) peuvent lire un contexte d'énergie minimal et **proposer** des événements, des tâches ou des nuits, sans rien appliquer sans ton accord. Le protocole est spécifié dans `docs/agents.md` : droits étroits, boîte de réception, modèle de menaces, catalogue d'outils MCP. La démonstration est en ligne sur `/kairos/agents.html`.
+
+Statut honnête : la spécification, les schémas, la sémantique des outils (`site/js/core/agent-tools.js`) et les tests existent. Le serveur MCP, la boîte de réception dans l'application et le relais chiffré restent à construire.
 
 ## Comment ça marche
 
@@ -48,14 +76,23 @@ Pour développer sans build : `cd kairos/site && python3 -m http.server 8000`, p
 | --- | --- |
 | `ARCHITECTURE.md` | Contrat entre les modules : modèle de données, signatures, conventions |
 | `docs/science.md` | Le modèle, ses paramètres, ses sources, ses limites |
+| `docs/img/` | Captures d'écran de la documentation (WebP) |
+| `docs/maquettes/` | Maquette de la boîte de réception des agents (non construite) |
 | `docs/etude.md` | Étude de positionnement et paysage concurrentiel |
+| `docs/agents.md`, `docs/agents/` | Protocole pour les agents : schémas JSON, catalogue MCP, exemples |
+| `scripts/agent-schema.mjs` | Régénère les schémas des agents depuis le code (un test vérifie qu'ils sont à jour) |
 | `site/index.html` | Coquille de l'application |
-| `site/js/core/` | Logique pure, testée avec `node:test` : `chrono`, `caffeine`, `sleep`, `jetlag`, `model`, `scheduler`, `personalize`, `lab`, `insights`, `demo`, `nlp-fr`, `ics`, `crypto`, `time` |
+| `site/js/core/` | Logique pure, testée avec `node:test` : `chrono`, `caffeine`, `sleep`, `jetlag`, `model`, `scheduler`, `personalize`, `lab`, `insights`, `demo`, `agent-tools`, `nlp-fr`, `ics`, `crypto`, `time` |
 | `site/js/store.js` | État, annulation, persistance locale, import et export |
 | `site/js/ui/` | Interface : `app.js`, `charts.js`, `dom.js`, `modal.js`, `palette.js`, `toast.js` et `views/` |
 | `site/css/` | Système de design et styles de chaque vue |
 | `site/sw.js`, `site/precache.json` | Service worker et liste de fichiers pré-cachés |
 | `tests/` | Tests unitaires |
+
+## Pistes
+
+- **Hébergement sur un VPS** (noté pour plus tard) : application statique, serveur MCP ou relais chiffré. Voir `docs/agents.md`, section 14.
+- **Import Apple Santé** (export XML) et **connexion à l'agenda** : envisagés, pas encore construits.
 
 ## Données et vie privée
 

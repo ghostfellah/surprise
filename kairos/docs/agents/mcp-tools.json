@@ -1,0 +1,160 @@
+{
+  "tools": [
+    {
+      "name": "kairos_get_energy",
+      "description": "Courbe d'énergie prédite (0-100) de l'utilisateur et ses fenêtres d'or. Donnée dérivée de son sommeil : à n'utiliser que pour décider, pas à redistribuer.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fromMs": {
+            "type": "number",
+            "description": "Début (epoch ms). Défaut : minuit du jour courant."
+          },
+          "hours": {
+            "type": "number",
+            "description": "Durée en heures, 1 à 168. Défaut 24.",
+            "minimum": 1,
+            "maximum": 168
+          },
+          "stepMin": {
+            "type": "number",
+            "description": "Pas en minutes, multiple de 5, 5 à 60. Défaut 15.",
+            "minimum": 5,
+            "maximum": 60
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "requiresScopes": [
+          "read:energy"
+        ]
+      }
+    },
+    {
+      "name": "kairos_get_free_busy",
+      "description": "Intervalles occupés (agenda et blocs planifiés), fusionnés, sans titre. Pour ne jamais proposer un créneau pris.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fromMs": {
+            "type": "number",
+            "description": "Début (epoch ms). Défaut : maintenant."
+          },
+          "toMs": {
+            "type": "number",
+            "description": "Fin (epoch ms), au plus 31 jours après le début."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "requiresScopes": [
+          "read:busy"
+        ]
+      }
+    },
+    {
+      "name": "kairos_find_slots",
+      "description": "Meilleurs créneaux libres, dans les heures de travail, pour une activité de durée et de charge cognitive données (1 = réunion légère, 5 = travail profond). Les créneaux sont classés selon l'énergie prédite ; sans le droit read:energy, seul le classement sort.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "durationMin"
+        ],
+        "properties": {
+          "durationMin": {
+            "type": "number",
+            "description": "Durée en minutes, 5 à 480.",
+            "minimum": 5,
+            "maximum": 480
+          },
+          "load": {
+            "type": "number",
+            "description": "Charge cognitive 1 à 5. Défaut 2.",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "earliestMs": {
+            "type": "number",
+            "description": "Plus tôt (epoch ms). Défaut : maintenant."
+          },
+          "latestMs": {
+            "type": "number",
+            "description": "Plus tard (epoch ms). Défaut : +7 jours, maximum +14 jours."
+          },
+          "count": {
+            "type": "number",
+            "description": "Nombre de créneaux, 1 à 20. Défaut 5.",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "granularityMin": {
+            "type": "number",
+            "description": "Pas de départ, multiple de 5, 5 à 60. Défaut 15.",
+            "minimum": 5,
+            "maximum": 60
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "requiresScopes": [
+          "read:busy"
+        ]
+      }
+    },
+    {
+      "name": "kairos_list_tasks",
+      "description": "Tâches ouvertes (titre, durée, charge, priorité, échéance). Sans notes ni étiquettes.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "type": "number",
+            "description": "1 à 200. Défaut 50.",
+            "minimum": 1,
+            "maximum": 200
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "requiresScopes": [
+          "read:tasks"
+        ]
+      }
+    },
+    {
+      "name": "kairos_propose",
+      "description": "Dépose des propositions (événement, tâche, nuit, caféine) dans la boîte de réception de l'utilisateur. Rien n'est appliqué sans son accord. Jusqu'à 50 par appel.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "proposals"
+        ],
+        "properties": {
+          "proposals": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "proposal.schema.json"
+            },
+            "description": "Propositions au format kairos.proposal/1."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "requiresScopes": [
+          "propose:*"
+        ]
+      }
+    }
+  ]
+}

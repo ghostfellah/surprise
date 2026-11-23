@@ -1,0 +1,15 @@
+{
+  "schema": "kairos.proposal/1",
+  "id": "slp_20261123a",
+  "source": {
+    "agent": "import-sante",
+    "run": "export-2026-11-23"
+  },
+  "kind": "sleep",
+  "payload": {
+    "bedMs": 1795389000000,
+    "wakeMs": 1795416000000,
+    "quality": 3
+  },
+  "dedupeKey": "nuit-2026-11-23"
+}

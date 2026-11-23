@@ -1,0 +1,13 @@
+{
+  "schema": "kairos.proposal/1",
+  "id": "caf_20261123m",
+  "source": {
+    "agent": "montre-assistant"
+  },
+  "kind": "caffeine",
+  "payload": {
+    "tMs": 1795421100000,
+    "mg": 63,
+    "kind": "expresso"
+  }
+}
