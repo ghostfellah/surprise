@@ -4,8 +4,11 @@
 import * as T from '../core/time.js';
 
 /** Réexport de time.js + deux helpers d'affichage. */
+const MOIS_COURTS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 export const fmt = {
   ...T,
+  /** « lun. 23 nov. » */
+  dateShort: (ms) => { const d = new Date(ms); return `${T.JOURS_FR[d.getDay()].slice(0, 3)}. ${d.getDate()} ${MOIS_COURTS[d.getMonth()]}`; },
   pct: (x, d = 0) => `${(x * 100).toFixed(d).replace('.', ',')} %`,
   num: (x, d = 0) => Number(x).toFixed(d).replace('.', ','),
 };

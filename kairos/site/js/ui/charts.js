@@ -288,6 +288,7 @@ function createSurface(canvas, { getHeight, resized, draw, loop, label, interact
     S.dt = last ? Math.min(.05, (ts - last) / 1000) : 0; last = ts; S.t = ts;
     const mode = loop ? loop(S) : 0; // 0 = repos, 1 = pleine cadence, 2 = cadence réduite (ambiance)
     if (!dirty && mode === 2 && ts - lastDraw < 32) { schedule(); return; }
+    if ((dirty || mode) && (S.w < 40 || S.h < 16)) { dirty = true; return; } // pas encore mesuré (canvas hors du DOM)
     if (dirty || mode) {
       dirty = false; lastDraw = ts;
       ctx.setTransform(S.dpr, 0, 0, S.dpr, 0, 0); ctx.clearRect(0, 0, S.w, S.h);
@@ -313,6 +314,13 @@ function createSurface(canvas, { getHeight, resized, draw, loop, label, interact
 }
 
 const roundRect = (g, x, y, w, h, r) => { r = Math.max(0, Math.min(r, w / 2, h / 2)); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+/** Tronque `text` avec une ellipse pour tenir dans maxW (mesure avec la police courante de g). */
+function fitText(g, text, maxW) {
+  if (g.measureText(text).width <= maxW) return text;
+  let lo = 0, hi = text.length;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (g.measureText(`${text.slice(0, mid)}…`).width <= maxW) lo = mid; else hi = mid - 1; }
+  return lo > 0 ? `${text.slice(0, lo)}…` : '';
+}
 const setLS = (g, v) => { if ('letterSpacing' in g) g.letterSpacing = v; };
 
 /** Info-bulle dessinée sur le canvas : lines = [{dot?, sq?, text, value?, muted?, bold?}]. */
@@ -551,7 +559,7 @@ export function alertnessChart(canvas, options = {}) {
     }
     g.save(); clipPlot();
     g.beginPath(); traceMonotone(g, A.xs, A.ys); g.lineTo(A.xs[A.xs.length - 1], y1); g.lineTo(A.xs[0], y1); g.closePath();
-    const ag = g.createLinearGradient(0, ys(100), 0, y1); ag.addColorStop(0, rgba(th.sunHot, dark ? .5 : .5)); ag.addColorStop(.45, rgba(th.sun, dark ? .2 : .24)); ag.addColorStop(1, rgba(th.sun, 0)); g.fillStyle = ag; g.fill();
+    const ag = g.createLinearGradient(0, ys(100), 0, y1); ag.addColorStop(0, rgba(th.sunHot, dark ? .5 : .62)); ag.addColorStop(.45, rgba(th.sun, dark ? .2 : .3)); ag.addColorStop(1, rgba(th.sun, 0)); g.fillStyle = ag; g.fill();
     const lg = g.createLinearGradient(0, ys(100), 0, ys(0)); lg.addColorStop(0, rgba(th.sunHot, 1)); lg.addColorStop(.36, rgba(th.sun, 1)); lg.addColorStop(.66, rgba(th.sunDeep, 1)); lg.addColorStop(1, rgba(th.coral, 1));
     g.lineJoin = 'round'; g.lineCap = 'round';
     if (dark) g.globalCompositeOperation = 'lighter';
@@ -580,7 +588,8 @@ export function alertnessChart(canvas, options = {}) {
         const x = xs(e.ms), y = ys(clamp(seriesAt(disp.alert, m.t0, m.stepMin, e.ms), 0, 100));
         g.beginPath(); g.arc(x, y, 3.6, 0, 7); g.fillStyle = rgba(th.bg, 1); g.fill(); g.lineWidth = 1.8; g.strokeStyle = rgba(col, 1); g.stroke();
         g.font = `600 9.5px ${th.fontMono}`; setLS(g, '.8px'); g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = rgba(col, 1);
-        g.fillText(txt, clamp(x, x0 + 24, x1 - 24), up ? y - 10 : Math.min(y1 - 4, y + 18)); setLS(g, '0px');
+        const lx = clamp(x, x0 + 24, x1 - 24), ly = up ? y - 10 : Math.min(y1 - 4, y + 18);
+        g.lineJoin = 'round'; g.lineWidth = 3.5; g.strokeStyle = rgba(th.bg, .85); g.strokeText(txt, lx, ly); g.fillText(txt, lx, ly); setLS(g, '0px');
       };
       mk(extrema.peak, true, `PIC ${Math.round(extrema.peak.value)}`, dark ? th.sunHot : mixColors(th.sunDeep, th.text, .2));
       if (extrema.trough && Math.abs(extrema.trough.ms - extrema.peak.ms) > 2 * HOUR) mk(extrema.trough, false, `CREUX ${Math.round(extrema.trough.value)}`, th.text2);
@@ -590,7 +599,7 @@ export function alertnessChart(canvas, options = {}) {
     evs.forEach((e, i) => {
       const xa = clamp(xs(Math.max(e.startMs, range[0])), x0, x1), xb = clamp(xs(Math.min(e.endMs, range[1])), x0, x1), w = Math.max(3, xb - xa), y = L.eventsTop + evLanes.lanes[i] * (LANE.event + LANE.gap);
       roundRect(g, xa, y, w, LANE.event, 4); g.fillStyle = rgba(th.text, dark ? .12 : .1); g.fill(); g.lineWidth = 1; g.strokeStyle = rgba(th.text, dark ? .2 : .2); g.stroke();
-      if (w > 44) { g.save(); g.beginPath(); g.rect(xa + 4, y, w - 8, LANE.event); g.clip(); g.font = `500 9.5px ${th.fontSans}`; g.fillStyle = rgba(th.text2, 1); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(e.title || 'Événement', xa + 5, y + LANE.event / 2 + .5); g.restore(); }
+      if (w > 44) { g.save(); g.beginPath(); g.rect(xa + 4, y, w - 8, LANE.event); g.clip(); g.font = `500 9.5px ${th.fontSans}`; g.fillStyle = rgba(th.text2, 1); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(fitText(g, e.title || 'Événement', w - 10), xa + 5, y + LANE.event / 2 + .5); g.restore(); }
     });
     bls.forEach((b, i) => {
       const task = (o.tasks || []).find((t) => t.id === b.taskId), col = th.load[clamp((task && task.load) || 3, 1, 5) - 1];
@@ -599,7 +608,7 @@ export function alertnessChart(canvas, options = {}) {
       const bg = g.createLinearGradient(0, y, 0, y + LANE.block); bg.addColorStop(0, rgba(mixColors(col, [255, 255, 255, 1], .18), dark ? .95 : .92)); bg.addColorStop(1, rgba(col, dark ? .82 : .85)); g.fillStyle = bg;
       if (dark) { g.shadowColor = rgba(col, .45); g.shadowBlur = 10; } g.fill(); g.shadowColor = 'transparent'; g.shadowBlur = 0;
       if (b.locked) { g.lineWidth = 1.5; g.strokeStyle = rgba([255, 255, 255, 1], .75); g.stroke(); }
-      if (w > 34) { g.save(); g.beginPath(); g.rect(xa + 5, y, w - 9, LANE.block); g.clip(); g.font = `650 10.5px ${th.fontSans}`; g.fillStyle = rgba(pickInk(col), 1); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText((task && task.title) || b.reason || 'Bloc', xa + 6, y + LANE.block / 2 + .5); g.restore(); }
+      if (w > 34) { g.save(); g.beginPath(); g.rect(xa + 5, y, w - 9, LANE.block); g.clip(); g.font = `650 10.5px ${th.fontSans}`; g.fillStyle = rgba(pickInk(col), 1); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(fitText(g, (task && task.title) || b.reason || 'Bloc', w - 11), xa + 6, y + LANE.block / 2 + .5); g.restore(); }
     });
 
     // 9. Axe des heures
@@ -650,7 +659,7 @@ export function alertnessChart(canvas, options = {}) {
       const ph = anim ? (S.t % 2000) / 2000 : 0, br = anim ? .5 + .5 * Math.sin(S.t / 700) : .5;
       const hg = g.createRadialGradient(x, yv, 0, x, yv, 26); hg.addColorStop(0, rgba(th.sunHot, .5 + .15 * br)); hg.addColorStop(1, rgba(th.sun, 0)); g.fillStyle = hg; g.beginPath(); g.arc(x, yv, 26, 0, 7); g.fill();
       if (anim) { g.strokeStyle = rgba(th.sunHot, .6 * (1 - ph)); g.lineWidth = 1.4; g.beginPath(); g.arc(x, yv, 5 + 15 * easeOutCubic(ph), 0, 7); g.stroke(); }
-      g.fillStyle = rgba(th.sunHot, 1); g.strokeStyle = rgba(th.bg, 1); g.lineWidth = 2.2; g.beginPath(); g.arc(x, yv, 4.6, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = rgba(dark ? th.sunHot : th.sunDeep, 1); g.strokeStyle = rgba(dark ? th.bg : [255, 255, 255, 1], 1); g.lineWidth = 2.2; g.beginPath(); g.arc(x, yv, 4.6, 0, 7); g.fill(); g.stroke();
       // particules : poussières de lumière qui s'élèvent du point
       if (anim && S.visible) {
         acc += S.dt * 15; while (acc >= 1 && parts.length < 48) { acc -= 1; parts.push({ x: x + (rnd() - .5) * 5, y: yv - 2, vx: (rnd() - .5) * 16, vy: -(14 + rnd() * 34), life: 0, ttl: 1.2 + rnd() * 1.6, r: .7 + rnd() * 1.5 }); }
@@ -782,7 +791,7 @@ export function heatmap(canvas, options = {}) {
       let mn = o.min, mx = o.max; if (mn == null || mx == null) { let a = Infinity, b = -Infinity; for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) { const v = val(r, c); if (v !== null) { a = Math.min(a, v); b = Math.max(b, v); } } mn = mn ?? (a === Infinity ? 0 : a); mx = mx ?? (b === -Infinity ? 1 : b); }
       const ramp = rampFor(th, o.ramp);
       g.textBaseline = 'middle';
-      if (cl) { g.textAlign = 'center'; g.fillStyle = rgba(th.text3, 1); const every = Math.ceil(30 / cw); for (let c = 0; c < C; c += every) g.fillText(String(cl[c]), left + (c + .5) * cw, 8); }
+      if (cl) { g.textAlign = 'center'; g.fillStyle = rgba(th.text3, 1); const every = Math.max(1, Math.ceil(30 / cw)); for (let c = 0; c < C; c += every) g.fillText(String(cl[c]), left + (c + .5) * cw, 8); }
       if (rl) { g.textAlign = 'right'; g.fillStyle = rgba(th.text3, 1); for (let r = 0; r < R; r++) g.fillText(String(rl[r]), left - 8, topH + (r + .5) * ch); }
       for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
         const v = val(r, c), x = left + c * cw + gap / 2, y = topH + r * ch + gap / 2, w = cw - gap, hh = ch - gap;
@@ -798,7 +807,7 @@ export function heatmap(canvas, options = {}) {
       mark(selected, rgba(th.text, .95), 2); mark(hover, rgba(th.sunHot, 1), 2);
       if (o.legend) {
         const lx = left, ly = S.h - 12, lwd = Math.min(160, S.w - left - 60), gr = g.createLinearGradient(lx, 0, lx + lwd, 0); ramp.forEach((c, i) => gr.addColorStop(i / (ramp.length - 1), rgba(c, 1)));
-        roundRect(g, lx, ly - 3, lwd, 6, 3); g.fillStyle = gr; g.fill(); g.font = `500 10px ${th.fontMono}`; g.fillStyle = rgba(th.text3, 1); g.textAlign = 'left'; g.fillText(o.format ? o.format(mn) : String(Math.round(mn)), lx + lwd + 8, ly); g.textAlign = 'right'; g.fillText(o.format ? o.format(mx) : String(Math.round(mx)), lx - 8, ly);
+        roundRect(g, lx, ly - 3, lwd, 6, 3); g.fillStyle = gr; g.fill(); g.font = `500 10px ${th.fontMono}`; g.fillStyle = rgba(th.text3, 1); g.textAlign = 'right'; g.fillText(o.format ? o.format(mn) : String(Math.round(mn)), lx - 8, ly); g.textAlign = 'left'; g.fillText(o.format ? o.format(mx) : String(Math.round(mx)), lx + lwd + 8, ly);
       }
       if (hover) {
         const v = val(hover.r, hover.c); const x = left + (hover.c + .5) * cw, y = topH + (hover.r + .5) * ch;
@@ -854,7 +863,7 @@ export function barChart(canvas, options = {}) {
           acc += v;
         });
         if ((o.showValues || hover === i) && slot >= 30 && anim >= 1) { g.font = `600 10.5px ${th.fontMono}`; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = rgba(th.text, .95); g.fillText(fmtV(tot[i]), cx, y(tot[i]) - 6); }
-        if (o.labels && o.labels[i] != null) { const every = Math.ceil(34 / slot); if (i % every === 0 || i === N - 1 && every === 1) { g.font = `${o.highlight === i ? 700 : 500} 10.5px ${th.fontMono}`; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = rgba(o.highlight === i ? th.text : th.text3, 1); g.fillText(String(o.labels[i]), cx, S.h - 7); } }
+        if (o.labels && o.labels[i] != null) { const every = Math.max(1, Math.ceil(34 / slot)); if (i % every === 0 || i === N - 1 && every === 1) { g.font = `${o.highlight === i ? 700 : 500} 10.5px ${th.fontMono}`; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = rgba(o.highlight === i ? th.text : th.text3, 1); g.fillText(String(o.labels[i]), cx, S.h - 7); } }
       }
       if (o.target != null) { const yy = Math.round(y(o.target)) + .5; g.strokeStyle = rgba(th.coral, .9); g.lineWidth = 1.2; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(left, yy); g.lineTo(S.w - right, yy); g.stroke(); g.setLineDash([]);
         if (o.targetLabel) { g.font = `600 9.5px ${th.fontMono}`; g.textAlign = 'right'; g.textBaseline = 'alphabetic'; g.fillStyle = rgba(th.coral, 1); g.fillText(o.targetLabel, S.w - right - 2, yy - 5); } }

@@ -190,7 +190,7 @@ async function main() {
   // Coque
   // ---------------------------------------------------------------------
   const navIndex = (id) => Math.max(0, NAV_BAR.findIndex((n) => n.id === (id === 'science' ? 'settings' : id)));
-  const navItems = NAV_BAR.map((n) => h('a', { class: 'nav__item', href: `#/${n.id}`, 'data-id': n.id, 'aria-label': n.title, onclick: () => haptic(6) }, h('span', { class: 'nav__icon' }, icon(n.icon, { size: 22 })), h('span', { class: 'nav__label' }, n.id === 'today' ? 'Aujourd\'hui' : n.title)));
+  const navItems = NAV_BAR.map((n) => h('a', { class: 'nav__item', href: `#/${n.id}`, 'data-id': n.id, 'data-short': n.id === 'today' ? 'Jour' : null, 'aria-label': n.title, onclick: () => haptic(6) }, h('span', { class: 'nav__icon' }, icon(n.icon, { size: 22 })), h('span', { class: 'nav__label', 'data-short': n.id === 'today' ? 'Jour' : null }, n.id === 'today' ? 'Aujourd\'hui' : n.title)));
   const navInd = h('span', { class: 'nav__ind', 'aria-hidden': 'true' });
   const fitBadge = h('button', { class: 'fit-badge', type: 'button', hidden: true, 'data-tip': 'Le modèle a appris de tes check-ins', onclick: () => navigate('#/insights') }, icon('sparkle', { size: 14 }), h('span'));
   const installBtn = h('button', { class: 'iconbtn hide-sm', type: 'button', hidden: true, 'aria-label': 'Installer l\'application', 'data-tip': 'Installer', onclick: () => install() }, icon('download'));
@@ -214,7 +214,8 @@ async function main() {
   viewEl.style.viewTransitionName = 'view';
 
   function updateEyebrow() {
-    const now = clock(); eyebrow.textContent = `${fmtDateFR(now)} · ${fmtTime(now)}${offsetMs ? ' · simulé' : ''}`.toUpperCase();
+    const now = clock(), tail = `${fmtTime(now)}${offsetMs ? ' · simulé' : ''}`;
+    eyebrow.replaceChildren(h('span', { class: 'long' }, `${fmtDateFR(now)} · ${tail}`.toUpperCase()), h('span', { class: 'short' }, `${fmt.dateShort(now)} · ${tail}`.toUpperCase()));
     const fit = ctx.state.profile && ctx.state.profile.fit;
     if (fit && fit.confidence != null) { fitBadge.hidden = false; fitBadge.lastChild.textContent = `Ajusté à toi · ${Math.round(fit.confidence * 100)} %`; fitBadge.setAttribute('aria-label', `Modèle ajusté à toi, confiance ${Math.round(fit.confidence * 100)} pour cent`); } else fitBadge.hidden = true;
   }
@@ -290,7 +291,7 @@ async function main() {
   function renderTimeTravel() {
     const input = h('input', { class: 'input', type: 'datetime-local', 'aria-label': 'Date et heure simulées', value: toLocalInput(clock()), style: { width: 'auto', minHeight: '38px' }, onchange: (e) => { const t = new Date(e.target.value).getTime(); if (Number.isFinite(t)) setClock(t); } });
     const step = (label, ms) => h('button', { class: 'btn btn--sm btn--secondary', type: 'button', onclick: () => setClock(clock() + ms) }, label);
-    ttBar.replaceChildren(icon('history', { size: 18 }), h('strong', { class: 'timetravel__time', 'data-role': 'tt-time' }, `${fmtDateFR(clock(), { short: true })} ${fmtTime(clock())}`), input,
+    ttBar.replaceChildren(icon('history', { size: 18 }), h('strong', { class: 'timetravel__time', 'data-role': 'tt-time' }, `${fmt.dateShort(clock())} ${fmtTime(clock())}`), input,
       step('−1 j', -DAY), step('−1 h', -HOUR), step('+1 h', HOUR), step('+6 h', 6 * HOUR), step('+1 j', DAY), h('span', { class: 'spacer' }),
       h('button', { class: 'btn btn--sm btn--primary', type: 'button', onclick: () => toggleTimeTravel(false) }, 'Revenir au présent'));
   }
@@ -575,7 +576,7 @@ async function main() {
   lastTheme = ctx.state.prefs && ctx.state.prefs.theme; applyTheme(lastTheme);
 
   // Horloge : tic à chaque minute pile
-  (function loop() { const wait = 60000 - (Date.now() % 60000) + 40; setTimeout(() => { updateEyebrow(); updateAtmosphere(); const tt = ttBar.querySelector('[data-role="tt-time"]'); if (tt) tt.textContent = `${fmtDateFR(clock(), { short: true })} ${fmtTime(clock())}`; notify(ctx.state, { type: 'tick' }); loop(); }, wait); })();
+  (function loop() { const wait = 60000 - (Date.now() % 60000) + 40; setTimeout(() => { updateEyebrow(); updateAtmosphere(); const tt = ttBar.querySelector('[data-role="tt-time"]'); if (tt) tt.textContent = `${fmt.dateShort(clock())} ${fmtTime(clock())}`; notify(ctx.state, { type: 'tick' }); loop(); }, wait); })();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { updateEyebrow(); updateAtmosphere(); notify(ctx.state, { type: 'tick' }); } });
 
   // ---------------------------------------------------------------------
@@ -593,7 +594,7 @@ async function main() {
       const dur = () => ((data.wake - data.bed) % 1440 + 1440) % 1440 || 1440;
       const sync = () => dial.update(data.wake, data.bed, data.need);
       const panels = [
-        () => h('div', { class: 'onboard__panel' }, h('div', { style: { color: 'var(--text)' } }, logo(72)),
+        () => h('div', { class: 'onboard__panel' }, introArt(),
           h('h1', { class: 'display' }, 'Ton cerveau a un ', h('em', null, 'emploi du temps'), '.'),
           h('p', { class: 'lead' }, 'Kairos prédit ton énergie heure par heure (rythme circadien, pression de sommeil, caféine) et place chaque tâche là où tu seras au meilleur de toi.'),
           h('p', { class: 'small faint' }, 'Tout reste sur cet appareil. Pas de compte, pas de serveur.')),
@@ -639,6 +640,12 @@ async function main() {
   updateEyebrow(); updateAtmosphere(); armReminder();
   await route();
   window.kairos = ctx; // utile pour le débogage et les tests de bout en bout
+}
+
+/** Illustration d'accueil : cadrans qui tournent lentement autour d'un soleil qui respire. */
+function introArt() {
+  const ring = (r, n, len, cls, op) => svg('g', { class: cls, opacity: op }, ...Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2, big = i % 5 === 0; return svg('line', { x1: 100 + Math.cos(a) * r, y1: 100 + Math.sin(a) * r, x2: 100 + Math.cos(a) * (r - (big ? len * 1.9 : len)), y2: 100 + Math.sin(a) * (r - (big ? len * 1.9 : len)), stroke: big ? 'var(--sun)' : 'currentColor', 'stroke-width': big ? 1.8 : 1, 'stroke-linecap': 'round' }); }));
+  return h('div', { class: 'intro-art', 'aria-hidden': 'true' }, svg('svg', { viewBox: '0 0 200 200' }, ring(98, 120, 4, 'ring-a', .5), ring(80, 60, 5, 'ring-b', .35), svg('circle', { cx: 100, cy: 100, r: 62, fill: 'none', stroke: 'var(--night)', 'stroke-width': 1, 'stroke-dasharray': '2 6', opacity: .6 })), h('span', { class: 'orb' }), h('span', { class: 'intro-art__k' }, logo(70)));
 }
 
 /** Illustration d'état vide : petit cadran. */

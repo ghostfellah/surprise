@@ -1,6 +1,6 @@
 // Palette de commandes (Ctrl/Cmd+K) : recherche floue sur la navigation et les actions rapides,
 // plus analyse de saisie rapide (parseEntry) : « Finir le rapport 2h avant vendredi 17h » -> « Créer la tâche… ».
-import { h, icon, uniqueId } from './dom.js';
+import { h, icon, uniqueId, fmt } from './dom.js';
 import { openModal } from './modal.js';
 import { fmtTime, fmtDuration, fmtDateFR, startOfDay, MIN } from '../core/time.js';
 
@@ -69,7 +69,7 @@ const LOAD_LABELS = ['', 'Routine', 'Léger', 'Soutenu', 'Exigeant', 'Concentrat
 const PRIO_LABELS = ['', 'Urgent', 'Important', 'Normal', 'Un jour'];
 export { LOAD_LABELS, PRIO_LABELS };
 
-const dayWord = (ms, now) => { const d = Math.round((startOfDay(ms) - startOfDay(now)) / 86400000); return d === 0 ? 'aujourd\'hui' : d === 1 ? 'demain' : fmtDateFR(ms, { short: true }); };
+const dayWord = (ms, now) => { const d = Math.round((startOfDay(ms) - startOfDay(now)) / 86400000); return d === 0 ? 'aujourd\'hui' : d === 1 ? 'demain' : fmt.dateShort(ms); };
 
 /** Résumé lisible d'une saisie analysée : [{ type, text }]. */
 export function describeEntry(p, now = Date.now()) {
@@ -123,7 +123,7 @@ const COFFEES = [
 
 function buildCommands(ctx) {
   const st = ctx.state, now = ctx.nowMs(), cmds = [];
-  for (const n of NAV) cmds.push({ id: `nav-${n.id}`, group: 'Aller à', label: n.title, hint: `g ${n.key}`, kbd: ['g', n.key], icon: n.icon, words: n.words, run: () => ctx.navigate(`#/${n.id}`) });
+  for (const n of NAV) cmds.push({ id: `nav-${n.id}`, group: 'Aller à', label: n.title, hint: 'Navigation', kbd: ['g', n.key], icon: n.icon, words: n.words, run: () => ctx.navigate(`#/${n.id}`) });
   for (const c of COFFEES) cmds.push({
     id: `coffee-${c.kind}`, group: 'Actions rapides', label: `${c.label} · ${c.mg} mg`, hint: c.kind === 'café' ? 'Ajoute une prise de caféine maintenant' : 'Caféine maintenant', icon: c.icon, words: `${c.words} cafe`, kbd: c.kind === 'café' ? ['c'] : null,
     run: () => { ctx.actions.logCaffeine({ tMs: ctx.nowMs(), mg: c.mg, kind: c.kind }); ctx.toast(`${c.label} enregistré · ${c.mg} mg`, { undoLabel: 'Annuler', onUndo: () => ctx.store.undo() }); },
@@ -194,11 +194,11 @@ export function openPalette(ctx, { initial = '' } = {}) {
     if (nlp && q.length >= 3 && /\S+\s+\S+|\S{4,}/.test(q)) {
       let parsed = null; try { parsed = nlp.parseEntry(q, ctx.nowMs()); } catch { /* ignoré */ }
       if (parsed && parsed.title) {
-        const strong = parsed.tokens && parsed.tokens.length > 0, summary = describeEntry(parsed, ctx.nowMs());
+        const strong = (parsed.tokens || []).some((t) => t.type !== 'load'), summary = describeEntry(parsed, ctx.nowMs());
         const item = { id: 'create', group: 'Créer', create: true, parsed, icon: parsed.kind === 'event' ? 'calendar' : 'plus', label: `${parsed.kind === 'event' ? 'Créer l\'événement' : 'Créer la tâche'} : ${parsed.title}`, summary, tokens: parsed.tokens || [], text: q, idx: [], run: () => {
           const r = createFromParsed(ctx, parsed); ctx.toast(`${r.kind === 'event' ? 'Événement' : 'Tâche'} ajouté${r.kind === 'event' ? '' : 'e'} : ${parsed.title}`, { undoLabel: 'Annuler', onUndo: () => ctx.store.undo() });
         } };
-        if (strong || !top.length || top[0]._s < 60) top.unshift(item); else top.push(item);
+        if (!top.length || top[0]._s < 40 || (strong && top[0]._s < 90)) top.unshift(item); else top.push(item);
       }
     }
     return top;
