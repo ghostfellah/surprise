@@ -239,6 +239,7 @@ button.pl-dayhead:active { transform: scale(.98); }
 .pl-blk.is-new::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; border: 2px solid var(--c); opacity: 0; animation: pl-ring 900ms var(--ease) both; animation-delay: var(--delay, 0ms); }
 .pl-blk.is-landed { animation: pl-land 760ms var(--ease-spring) both; }
 html.pl-is-dragging, html.pl-is-dragging * { cursor: grabbing !important; }
+html.pl-is-dragging .toasts { opacity: 0; transition: opacity var(--dur-1); }
 html.pl-is-dragging { scroll-behavior: auto; -webkit-user-select: none; user-select: none; }
 
 /* Fantôme du déplacement */

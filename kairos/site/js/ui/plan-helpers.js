@@ -532,11 +532,11 @@ export function keyMove(key, shift = false) {
  */
 export function moveVerdict(res) {
   if (!res) return { tone: 'refused', headline: 'Indisponible', detail: '' };
-  if (!res.ok) return { tone: 'refused', headline: 'Impossible ici', detail: res.why || '' };
+  if (!res.ok) return { tone: 'refused', headline: 'Impossible ici', detail: fixMonths(res.why) };
   const d = res.deltaScore || 0;
-  if (d > 0) return { tone: 'good', headline: `+${d} pts`, detail: res.reason || '' };
-  if (d < 0) return { tone: 'bad', headline: `−${Math.abs(d)} pts`, detail: res.reason || '' };
-  return { tone: 'same', headline: '= même adéquation', detail: res.reason || '' };
+  if (d > 0) return { tone: 'good', headline: `+${d} pts`, detail: fixMonths(res.reason) };
+  if (d < 0) return { tone: 'bad', headline: `−${Math.abs(d)} pts`, detail: fixMonths(res.reason) };
+  return { tone: 'same', headline: '= même adéquation', detail: fixMonths(res.reason) };
 }
 
 /** Plan après déplacement : le bloc devient verrouillé (la main de l'utilisateur prime). */

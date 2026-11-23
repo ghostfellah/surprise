@@ -75,6 +75,8 @@
 
 /* ---------- Métriques ---------- */
 .lab-metrics { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); }
+@media (min-width: 640px) { .lab-metrics { grid-template-columns: repeat(6, minmax(0, 1fr)); } .lab-m { grid-column: span 2; } .lab-m:nth-child(n+4) { grid-column: span 3; } }
+@media (min-width: 1180px) { .lab-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); } .lab-m, .lab-m:nth-child(n+4) { grid-column: span 1; } }
 .lab-m { position: relative; display: grid; align-content: start; gap: 10px; padding: 16px 16px 14px; border-radius: var(--r-lg); overflow: hidden; background: var(--glass); border: 1px solid var(--glass-edge);
   -webkit-backdrop-filter: blur(16px) saturate(1.35); backdrop-filter: blur(16px) saturate(1.35); box-shadow: var(--elev-1), inset 0 1px 0 var(--glass-hi); animation: rise var(--dur-3) var(--ease) both; }
 .lab-m:nth-child(2) { animation-delay: 60ms; } .lab-m:nth-child(3) { animation-delay: 120ms; } .lab-m:nth-child(4) { animation-delay: 180ms; } .lab-m:nth-child(5) { animation-delay: 240ms; }
@@ -128,7 +130,7 @@
   background: color-mix(in srgb, var(--surface) 60%, transparent); border: 1px solid var(--line); animation: rise var(--dur-3) var(--ease) both; animation-delay: calc(var(--i, 0) * 50ms); }
 .lab-cafe.is-planned { border-color: color-mix(in srgb, var(--sun) 40%, transparent); background: linear-gradient(120deg, var(--sun-soft), transparent 70%); }
 .lab-cafe__ico { grid-area: ico; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; color: var(--caffeine); background: color-mix(in srgb, var(--caffeine) 16%, transparent); }
-.lab-cafe__name { grid-area: name; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: capitalize; min-width: 0; }
+.lab-cafe__name { grid-area: name; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-weight: 600; text-transform: capitalize; min-width: 0; overflow: hidden; }
 .lab-cafe__time { grid-area: time; min-height: 42px; max-width: 132px; padding: 4px 10px; }
 .lab-cafe__step { grid-area: step; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 .lab-cafe__rm { grid-area: rm; width: 36px; height: 36px; }

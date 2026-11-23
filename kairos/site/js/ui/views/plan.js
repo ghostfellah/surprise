@@ -470,7 +470,7 @@ export default {
       h('span', { class: 'pl-blk__grip', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'), h('i'), h('i'), h('i')),
       h('div', { class: 'pl-blk__main' },
         h('span', { class: 'pl-blk__title' }, done ? icon('check', { size: 12, stroke: 2.6 }) : null, title, part && part.parts > 1 ? h('em', { class: 'pl-blk__part num' }, ` ${part.part}/${part.parts}`) : null),
-        size !== 'xs' ? h('span', { class: 'pl-blk__time num' }, S.mode === 'week' ? (size === 'md' ? `${fmtTime(b.startMs)} · ${fmtDuration(mins)}` : fmtTime(b.startMs)) : `${fmtTime(b.startMs)}–${fmtTime(b.endMs)}${size === 'md' ? ` · ${fmtDuration(mins)}` : ''}`) : null,
+        size !== 'xs' ? h('span', { class: 'pl-blk__time num' }, S.mode === 'week' ? fmtTime(b.startMs) : `${fmtTime(b.startMs)}–${fmtTime(b.endMs)}${size === 'md' ? ` · ${fmtDuration(mins)}` : ''}`) : null,
         size === 'md' && m.alert >= 78 ? h('span', { class: 'pl-blk__peak' }, icon('bolt', { size: 11 }), 'pic') : null),
       size === 'md' ? h('span', { class: `pl-blk__fit pl-tone-${m.tone} num`, title: `Adéquation ${m.score} %` }, String(m.score)) : null,
       h('button', { class: 'pl-blk__lock', type: 'button', tabindex: -1, 'aria-label': b.locked ? 'Déverrouiller ce bloc' : 'Verrouiller ce bloc', 'aria-pressed': String(!!b.locked), onclick: (e) => { e.stopPropagation(); toggleLock(b); } }, icon(b.locked ? 'lock' : 'unlock', { size: 13, stroke: 2 })));
@@ -594,7 +594,7 @@ export default {
       e.preventDefault();
       const target = addDays(b.startMs, mv.dDay) + mv.dMin * MIN;
       const res = validateMove(b, target, vctx(D));
-      if (!res.ok) { toast(res.why || 'Déplacement impossible', { kind: 'warn', duration: 2400 }); say(res.why || 'Déplacement impossible'); return; }
+      if (!res.ok) { toast(P.fixMonths(res.why) || 'Déplacement impossible', { kind: 'warn', duration: 2400 }); say(P.fixMonths(res.why) || 'Déplacement impossible'); return; }
       commitMove(b, res, D, true);
     }
 
@@ -687,10 +687,11 @@ export default {
       cancelAnimationFrame(g.raf);
       const D = g.D, res = g.res;
       suppressUntil = performance.now() + 350;
+      if (!commit) window.addEventListener('pointerup', () => { suppressUntil = performance.now() + 300; }, { once: true, capture: true }); // pas de clic fantôme après Échap
       const moved = commit && res && res.startMs !== g.block.startMs;
       if (moved && res.ok) { endGesture(false); commitMove(g.block, res, D, false); return; }
       // retour élastique
-      if (moved && !res.ok) { toast(res.why || 'Déplacement impossible', { kind: 'warn', duration: 3000 }); haptic([14, 40, 14]); }
+      if (moved && !res.ok) { toast(P.fixMonths(res.why) || 'Déplacement impossible', { kind: 'warn', duration: 3000 }); haptic([14, 40, 14]); }
       g.el.style.transition = reduce() ? 'none' : 'transform 340ms var(--ease-spring)';
       g.el.style.transform = '';
       const el = g.el; later(() => { el.style.transition = ''; el.classList.remove('is-dragging'); }, 360);
@@ -746,7 +747,7 @@ export default {
     function openExplain(b) {
       const D = derive(), task = D.tasksById.get(b.taskId); if (!task) return;
       const m = P.blockMetrics(b, task, D.curve), parts = P.annotateParts(D.blocks).get(P.blockKey(b)) || {};
-      const text = explainBlock({ ...b, ...parts }, task, D.curve);
+      const text = P.fixMonths(explainBlock({ ...b, ...parts }, task, D.curve));
       const due = P.dueInfo(task.deadlineMs, D.nowMs);
       const mins = Math.round((b.endMs - b.startMs) / MIN);
       const row = (k, v) => h('div', { class: 'pl-why__row' }, h('dt', null, k), h('dd', null, v));

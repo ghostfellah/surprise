@@ -5,7 +5,7 @@ import {
   hourLabels, yToMin, minToY, slotStartMs, layoutColumns, energySamples, haloGradient, energyPaths, workBand, capacityMin,
   blockMetrics, eventWorkOverlap, annotateParts, dayLoad, deepInPeaks, summarizePlan, remainingMin, unplacedFromPlan, dueInfo, sortTasks,
   filterTasks, countFilters, groupTasks, tokenSegments, describeParsed, entryToItem, gestureStep, swipeIntent, keyMove,
-  moveVerdict, applyMove, withoutBlock, icsRange, planToText, plural, blockKey, navStep,
+  moveVerdict, fixMonths, applyMove, withoutBlock, icsRange, planToText, plural, blockKey, navStep,
 } from '../site/js/ui/plan-helpers.js';
 import { MIN, HOUR, DAY } from '../site/js/core/time.js';
 
@@ -286,6 +286,8 @@ test('verdict de déplacement et application', () => {
   assert.equal(r.tone, 'refused');
   assert.equal(r.detail, 'Chevauche un autre bloc du plan');
   assert.equal(moveVerdict(null).tone, 'refused');
+  assert.equal(fixMonths('avant lun. 23 nove. 19:00 et mar. 1 déce.'), 'avant lun. 23 nov. 19:00 et mar. 1 déc.');
+  assert.equal(moveVerdict({ ok: false, why: 'Dépasse (mer. 25 nove. 18:00)' }).detail, 'Dépasse (mer. 25 nov. 18:00)');
 
   const a = { taskId: 'a', startMs: 100, endMs: 200, score: 50, reason: 'x' };
   const b = { taskId: 'b', startMs: 300, endMs: 400, score: 60, reason: 'y' };
