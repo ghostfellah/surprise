@@ -257,14 +257,15 @@ export default {
         if (ok) { setProfile({ chronoShiftMin: 0, fit: null }); ctx.toast('Décalage réinitialisé', { kind: 'ok', undoLabel: 'Annuler', onUndo: () => store.undo() }); paintModel(); }
       } }, icon('refresh', { size: 18 }), 'Réinitialiser le décalage');
       if (!fit) {
-        const prog = Math.min(100, (n / 8) * 100);
+        const prog = Math.min(100, (n / 8) * 100), ready = n >= 8;
         replaceChildren(modelHost,
           h('div', { class: 'st-empty' },
             h('div', { class: 'st-empty__art', 'aria-hidden': 'true' }, h('span', { class: 'orb', style: { '--orb-size': '84px', '--orb-color': 'var(--night)' } })),
-            h('h4', { class: 'st-empty__t' }, 'Pas encore appris'),
-            h('p', { class: 'small muted' }, 'Après environ 8 check-ins (« comment te sens-tu ? »), Kairos ajuste ton chronotype et ta sensibilité à la caféine. Tout reste sur ton appareil.'),
+            h('h4', { class: 'st-empty__t' }, ready ? 'Prêt à apprendre' : 'Pas encore appris'),
+            h('p', { class: 'small muted' }, ready ? `Tu as ${n} check-ins : c'est assez pour que Kairos ajuste ton chronotype et ta sensibilité à la caféine. Regarde l'écran Bilan pour voir ce qu'il en ressort ; tout reste sur ton appareil.` : 'Après environ 8 check-ins (« comment te sens-tu ? »), Kairos ajuste ton chronotype et ta sensibilité à la caféine. Tout reste sur ton appareil.'),
             h('div', { class: 'st-empty__prog' }, h('div', { class: 'progress progress--night', style: { '--pct': String(prog) }, role: 'img', 'aria-label': `${Math.min(n, 8)} check-ins sur 8` }, h('div', { class: 'progress__bar' })), h('span', { class: 'num tiny muted' }, `${Math.min(n, 8)} / 8`)),
-            ctx.openCheckIn ? h('button', { class: 'btn btn--primary', type: 'button', onclick: () => ctx.openCheckIn() }, icon('plus', { size: 18 }), 'Faire un check-in') : null),
+            ready ? h('button', { class: 'btn btn--primary', type: 'button', onclick: () => ctx.navigate('#/insights') }, icon('chart', { size: 18 }), 'Voir le bilan')
+              : ctx.openCheckIn ? h('button', { class: 'btn btn--primary', type: 'button', onclick: () => ctx.openCheckIn() }, icon('plus', { size: 18 }), 'Faire un check-in') : null),
           shift ? h('p', { class: 'small muted st-shift' }, icon('clock', { size: 16 }), `Décalage de chronotype actuel : ${shift > 0 ? '+' : '−'}${Math.abs(shift)} min.`) : null,
           resetBtn);
         return;
@@ -302,7 +303,7 @@ export default {
       clearTimeout(sizeTimer);
       sizeTimer = setTimeout(() => {
         const s = ctx.state; let bytes = 0;
-        try { bytes = new Blob([store.exportJSON()]).size; } catch { bytes = 0; }
+        try { bytes = new Blob([actions.exportJSON()]).size; } catch { bytes = 0; }
         sizeEl.textContent = fmtBytes(bytes);
         const c = [['moon', s.sleeps.length, 'nuits'], ['coffee', s.caffeine.length, 'cafés'], ['heart', s.checkins.length, 'check-ins'], ['list', s.tasks.length, 'tâches'], ['calendar', s.events.length, 'événements']];
         replaceChildren(countsEl, ...c.map(([ic, n, l]) => h('li', null, icon(ic, { size: 15 }), h('b', { class: 'num' }, String(n)), h('span', null, l))));
@@ -528,7 +529,7 @@ function buildDial() {
   const pol = (min, r) => { const a = (ang(min) * Math.PI) / 180; return [C + r * Math.cos(a), C + r * Math.sin(a)]; };
   const ticks = [];
   for (let i = 0; i < 96; i++) { const big = i % 4 === 0, a = ((i / 96) * 360 + 90) * Math.PI / 180, r1 = 96, r2 = big ? 90 : 93; ticks.push(svg('line', { class: big ? 'st-dial__tick st-dial__tick--big' : 'st-dial__tick', x1: C + Math.cos(a) * r1, y1: C + Math.sin(a) * r1, x2: C + Math.cos(a) * r2, y2: C + Math.sin(a) * r2 })); }
-  const labels = [[0, '0 h'], [360, '6 h'], [720, '12 h'], [1080, '18 h']].map(([m, t]) => { const [x, y] = pol(m, 80); return svg('text', { class: 'st-dial__lbl', x, y: y + 3, 'text-anchor': 'middle' }, t); });
+  const labels = [[0, '0 h'], [360, '6 h'], [720, '12 h'], [1080, '18 h']].map(([m, t]) => { const [x, y] = pol(m, 61); return svg('text', { class: 'st-dial__lbl', x, y: y + 2.6, 'text-anchor': 'middle' }, t); });
   const sleep = svg('path', { class: 'st-dial__sleep', fill: 'none', 'stroke-width': 13, 'stroke-linecap': 'round' });
   const work = svg('path', { class: 'st-dial__work', fill: 'none', 'stroke-width': 4, 'stroke-linecap': 'round' });
   const awake = svg('path', { class: 'st-dial__awake', fill: 'none', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-dasharray': '.5 5' });

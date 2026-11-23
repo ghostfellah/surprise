@@ -45,12 +45,15 @@ function countdown(ms, nowMs) {
   return `il y a ${durLabel(-d)}`;
 }
 
-/** Prochaine occurrence de l'heure `str` (HH:MM) strictement après nowMs. */
+/**
+ * Réveil visé pour LA PROCHAINE nuit : l'occurrence de `str` (HH:MM) qui tombe au moins 4 h après maintenant
+ * (à 07 h 07, on prépare ce soir pour demain, pas une nuit déjà terminée ; à 01 h on prépare encore la nuit en cours).
+ */
 function nextOccurrence(str, nowMs) {
   let min = 7 * 60;
   try { min = parseHHMM(str); } catch { /* défaut */ }
   const t = atMinutes(nowMs, min);
-  return t > nowMs ? t : atMinutes(addDays(nowMs, 1), min);
+  return t - nowMs >= 4 * HOUR ? t : atMinutes(addDays(nowMs, 1), min);
 }
 
 /** Phase de la Lune (0 = nouvelle, 0,5 = pleine) d'après la lunaison moyenne (précision ≈ 1 jour : suffisant pour un décor). */
@@ -221,7 +224,7 @@ export default {
       const chips = options.map((o) => h('button', {
         class: 'sl-opt', type: 'button', 'aria-pressed': String(o.cycles === chosen.cycles), 'data-best': o.cycles === best.cycles ? '1' : null,
         onclick: () => { ui.cycles = o.cycles; haptic(6); renderHero(); },
-      }, h('b', null, hhmm(o.bedMs)), h('span', null, `${o.cycles} cycles · ${durLabel(o.durationMin)}`), o.cycles === best.cycles ? h('em', null, 'idéal') : null));
+      }, h('b', null, hhmm(o.bedMs)), h('span', null, `${o.cycles} cycle${o.cycles > 1 ? 's' : ''} · ${durLabel(o.durationMin)}`), o.cycles === best.cycles ? h('em', null, 'idéal') : null));
       const rows = h('ul', { class: 'sl-hero__steps' },
         h('li', null, icon('wind', { size: 16 }), h('span', null, 'Ralentis dès ', h('b', null, hhmm(chosen.bedMs - 90 * MIN)), ' : lumière douce, écrans en pause')),
         h('li', null, icon('coffee', { size: 16 }), h('span', null, 'Dernier café avant ', h('b', null, hhmm(cut)))),
@@ -235,7 +238,7 @@ export default {
         h('div', { class: 'sl-hero__body' },
           h('div', { class: 'eyebrow sl-hero__eyebrow' }, late ? 'Il se fait tard' : 'Ton coucher idéal ce soir'),
           time, count,
-          h('p', { class: 'sl-hero__why' }, late ? chosen.why : `${chosen.cycles} cycles de 90 min + 15 min pour t'endormir : tu te réveilles à la fin d'un cycle, pas au milieu d'un sommeil profond.`),
+          h('p', { class: 'sl-hero__why' }, late ? chosen.why : `${chosen.cycles} cycle${chosen.cycles > 1 ? 's' : ''} de 90 min + 15 min pour t'endormir : tu te réveilles à la fin d'un cycle, pas au milieu d'un sommeil profond.`),
           h('label', { class: 'sl-hero__wakeRow' }, h('span', null, 'Je dois me lever à'), wakeInput),
           h('div', { class: 'sl-opts', role: 'group', 'aria-label': 'Autres heures de coucher' }, chips),
           rows));
