@@ -16,7 +16,7 @@
 //  - AUCUN médicament n'est recommandé. La mélatonine est seulement mentionnée comme « à discuter avec un
 //    professionnel de santé ».
 // Module pur (Intl est disponible dans Node 22 et dans les navigateurs).
-import { MIN, HOUR, DAY, clamp, fmtDuration } from './time.js';
+import { MIN, HOUR, DAY, clamp } from './time.js';
 import { usualSchedule } from './sleep.js';
 
 export const JET = Object.freeze({
@@ -283,10 +283,10 @@ export function planJetlag({ originTz, destTz, departMs, arriveMs, profile = {} 
     const lo = Math.max(awakeFrom, k === 0 ? usableFrom : dayMs);
     const hi = Math.min(awakeTo, dayMs + 24 * HOUR);
     const seek = wins.map((w) => overlapRange(w.seek, lo, hi)).filter(Boolean);
-    const avoid = wins.map((w) => overlapRange(w.avoid, k === 0 ? usableFrom : dayMs, dayMs + 24 * HOUR)).filter(Boolean);
+    const avoid = wins.map((w) => overlapRange(w.avoid, k === 0 ? arriveMs : dayMs, dayMs + 24 * HOUR)).filter(Boolean);
     // Efficacité = part de la meilleure fenêtre de 3 h réellement exploitée (lumière uniquement éveillé).
     let eff = 0;
-    for (const s of seek) for (const n of [-1, 0, 1]) eff += prcIntegral(sign, cbt + n * DAY, s.start, s.end);
+    for (const s of seek) eff += prcIntegral(sign, cbt, s.start, s.end); // la PRC est périodique (24 h)
     eff = clamp(eff / REF[sign], 0, 1);
     const gain = Math.min(R, rate * eff);
     const Rnext = Math.max(0, R - gain);
@@ -319,7 +319,7 @@ export function planJetlag({ originTz, destTz, departMs, arriveMs, profile = {} 
   };
   let summary = `${cityD} est ${diffH > 0 ? 'en avance' : 'en retard'} de ${r1(Math.abs(diffH))} h sur ${tzCity(originTz)}. `
     + `Il faut ${dirTxt} ton horloge d'environ ${r1(best.hours)} h : compte ≈ ${adaptDays} jours en suivant le plan `
-    + `(≈ ${fmtDuration(Math.round(Math.abs(diffH) * 24 * 60))} d'ajustement spontané, grossièrement 1 jour par heure de décalage).`;
+    + '(sans stratégie, on compte grossièrement un jour par heure de décalage).';
   if (best.hours >= 9) summary += ` Avec un décalage aussi grand, ${other.dir === 'avance' ? 'avancer' : 'retarder'} de ${r1(other.hours)} h serait l'autre option (≈ ${Math.ceil(other.days)} jours).`;
   return {
     ...base, phaseDirection: best.dir, phaseShiftH: r1(best.hours), daysToAdapt: adaptDays,

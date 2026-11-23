@@ -792,6 +792,12 @@ function unplacedWhy(ti, S, G, S0) {
   return prefix + why;
 }
 
+function fixedCellsOf(lockedAll, ti, G) {
+  let c = 0;
+  for (const lb of lockedAll) if (lb.taskId === ti.id) c += Math.round((lb.endMs - lb.startMs) / CELL);
+  return c;
+}
+
 function makeAvailability(S0) {
   const occ = S0.occ;
   const N = occ.length;
@@ -857,12 +863,22 @@ export function schedule({
   const taskById = new Map((tasks || []).map((t) => [t.id, t]));
   const lockedAll = (locked || []).filter((b) => b && Number.isFinite(b.startMs) && Number.isFinite(b.endMs) && b.endMs > b.startMs && taskById.get(b.taskId)?.done !== true)
     .map((b) => ({ ...b }));
+  const S0avail = makeAvailability(makeState(G, T, lockedAll)); // disponibilité initiale (après blocs verrouillés), pour les explications
+  // Une tâche qui ne pourra de toute façon jamais être terminée (pas assez de capacité avant son
+  // échéance) ne doit pas voler la place de tâches réalisables : on la rétrograde (poids et ordre).
+  for (const ti of T) {
+    const lo = Math.min(ti.earliestC, G.N);
+    const hi = Math.max(lo, Math.min(ti.endC, G.N));
+    const need = ti.durC - fixedCellsOf(lockedAll, ti, G);
+    const hopeless = S0avail.availPre[hi] - S0avail.availPre[lo] < need
+      || (!ti.splittable && S0avail.longestRun(lo, hi) < need);
+    if (hopeless) { ti.w *= 0.1; ti.effPrio = 4; ti.prio = 4; }
+  }
   const evaluate = makeEvaluator(G, T);
   const rand = rng(o.seed);
 
   // 1) planification naïve (référence) : ordre de priorité, premier créneau disponible
   const Sbase = makeState(G, T, lockedAll);
-  const S0avail = makeAvailability(makeState(G, T, lockedAll)); // disponibilité initiale (après blocs verrouillés), pour les explications
   for (const ti of naiveOrder(T)) placeTask(Sbase, G, ti, 'first');
   const base = evaluate(Sbase);
 

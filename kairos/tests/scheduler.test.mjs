@@ -38,7 +38,9 @@ const task = (over = {}) => ({
 });
 
 // ── Vérification des invariants durs d'un résultat
-function checkInvariants(res, { tasks, events = [], locked = [], now, horizonEnd = HORIZON, profile = PROFILE, options = {}, curve = CURVE }, label = '') {
+function checkInvariants(res, { tasks, events = [], locked = [], now: nowArg, nowMs, horizonEnd: heArg, horizonEndMs, profile = PROFILE, options = {}, curve = CURVE }, label = '') {
+  const now = nowArg ?? nowMs;
+  const horizonEnd = heArg ?? horizonEndMs ?? HORIZON;
   const brk = options.breakMin ?? 10;
   const maxBlock = options.maxBlockMin ?? 120;
   const lunch = options.protectLunch !== false;
@@ -485,8 +487,9 @@ test('validateMove : accepte les créneaux valides, explique les refus', () => {
   assert.equal(lunch.ok, false);
   assert.match(lunch.why, /déjeuner/);
   // hors plage / week-end
-  assert.match(validateMove(b, at(2, 19), ctx).why, /plages de travail/);
-  assert.match(validateMove(b, at(5, 10), ctx).why, /jour de travail/);
+  const fb = plan.blocks.find((x) => x.taskId === filler.id);
+  assert.match(validateMove(fb, at(2, 19), ctx).why, /plages de travail/);
+  assert.match(validateMove(fb, at(5, 10), ctx).why, /jour de travail/);
   // passé et au-delà de l'échéance
   assert.match(validateMove(b, at(0, 7), ctx).why, /passé/);
   const late = validateMove(b, at(3, 10), ctx);
