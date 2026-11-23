@@ -499,7 +499,7 @@ export function foldLine(line) {
  * Extensions : `nowMs` (DTSTAMP, pour des sorties reproductibles) et `includeTodos` (VTODO des tâches à échéance).
  */
 export function buildICS({ blocks = [], tasks = [], events = [], calName = 'Kairos', nowMs = Date.now(), includeTodos = false } = {}) {
-  const taskById = new Map((tasks || []).map((t) => [t.id, t]));
+  const taskById = new Map((tasks || []).filter(Boolean).map((t) => [t.id, t]));
   const stamp = utcStamp(nowMs);
   const L = [];
   const add = (l) => L.push(foldLine(l));
