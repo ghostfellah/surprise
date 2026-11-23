@@ -414,7 +414,7 @@ export default {
       loadRef(true); renderCafes(); renderRail(); syncControls(); renderOpt(); frameTitle(); recalc();
       haptic(6);
     }
-    function frameTitle() { const el = chartCard.querySelector('#lab-day'); if (el) el.textContent = `${fmtDateFR(dayMs())} · de ${fmtTime(rangeOf(dayMs())[0])} à ${fmtTime(rangeOf(dayMs())[1])}`; }
+    function frameTitle() { const el = chartCard.querySelector('#lab-day'); if (el) el.textContent = `${fmtDateFR(dayMs())} · de ${fmtTime(rangeOf(dayMs())[0])} à ${fmtTime(rangeOf(dayMs())[1])} le lendemain`; }
     function resetAll() { loadRef(true); opt = null; renderCafes(); renderRail(); syncControls(); renderOpt(); recalc(); haptic(8); }
 
     // -------------------------------------------------------------- optimiseur

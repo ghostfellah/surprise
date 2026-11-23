@@ -72,7 +72,7 @@ export function passwordStrength(pw) {
   if (/(.)\1{2,}/.test(s)) bits -= 8;
   if (/(0123|1234|2345|3456|4567|5678|6789|abcd|bcde|cdef|qwer|azer|wxcv)/i.test(s)) bits -= 14;
   if (/^(?:19|20)\d{2}$|^\d{4,8}$/.test(s)) bits = Math.min(bits, 18);   // une date ou un code PIN
-  if (/(password|motdepasse|mot de passe|azerty|qwerty|kairos|soleil|123456|letmein|admin)/i.test(s)) bits = Math.min(bits, 22);
+  if (/(password|motdepasse|mot de passe|azerty|qwerty|kairos|soleil|123456|letmein|admin)/i.test(s)) bits = s.length < 14 ? Math.min(bits, 22) : bits - 10;
   bits = Math.max(0, bits);
   const score = bits < 28 ? 0 : bits < 40 ? 1 : bits < 56 ? 2 : bits < 72 ? 3 : 4;
   const label = ['Très faible', 'Faible', 'Correct', 'Solide', 'Excellent'][score];
@@ -444,7 +444,7 @@ export default {
       const offline = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
       const canInstall = typeof ctx.canInstall === 'function' && ctx.canInstall();
       const rows = [];
-      rows.push(h('div', { class: 'st-chips' }, h('span', { class: `chip ${standalone ? 'chip--night' : ''}` }, icon(standalone ? 'check-circle' : 'smartphone', { size: 15 }), standalone ? 'Installée' : 'Dans le navigateur'), h('span', { class: `chip ${offline ? 'chip--sun' : ''}` }, icon(offline ? 'wifi-off' : 'info', { size: 15 }), offline ? 'Prête hors-ligne' : 'Hors-ligne après le 1er chargement')));
+      rows.push(h('div', { class: 'st-chips' }, h('span', { class: `chip ${standalone ? 'chip--night' : ''}` }, icon(standalone ? 'check-circle' : 'smartphone', { size: 15 }), standalone ? 'Installée' : 'Dans le navigateur'), h('span', { class: `chip ${offline ? 'chip--sun' : ''}` }, icon(offline ? 'check-circle' : 'info', { size: 15 }), offline ? 'Prête hors-ligne' : 'Hors-ligne après le 1er chargement')));
       if (standalone) rows.push(h('p', { class: 'small muted' }, 'Tu utilises déjà Kairos comme une application. Elle fonctionne sans connexion.'));
       else if (canInstall) rows.push(h('button', { class: 'btn btn--primary btn--lg', type: 'button', onclick: async () => { haptic(10); await ctx.install(); paintInstall(); } }, icon('download', { size: 20 }), 'Installer Kairos'), h('p', { class: 'small muted' }, 'Une icône sur ton écran d\'accueil, un lancement plein écran, et tout reste en local.'));
       else {

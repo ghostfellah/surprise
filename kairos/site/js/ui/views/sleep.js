@@ -213,7 +213,7 @@ export default {
       const { now, wakeMs, best, options, chosen } = suggestion();
       const st = ctx.state;
       const moon = moonSvg(now, 132);
-      const cut = caffeineCutoff({ logs: st.caffeine.filter((c) => c.tMs > chosen.bedMs - 2 * DAY), profile: st.profile, bedMs: chosen.bedMs });
+      const cut = caffeineCutoff({ logs: [], profile: st.profile, bedMs: chosen.bedMs }); // pour une tasse de référence (80 mg)
       const late = !chosen.feasible;
       const time = h('div', { class: 'sl-hero__time', 'aria-live': 'polite' }, hhmm(chosen.bedMs));
       const count = h('div', { class: 'sl-hero__count' }, countdown(chosen.bedMs, now));
@@ -227,7 +227,9 @@ export default {
       }, h('b', null, hhmm(o.bedMs)), h('span', null, `${o.cycles} cycle${o.cycles > 1 ? 's' : ''} · ${durLabel(o.durationMin)}`), o.cycles === best.cycles ? h('em', null, 'idéal') : null));
       const rows = h('ul', { class: 'sl-hero__steps' },
         h('li', null, icon('wind', { size: 16 }), h('span', null, 'Ralentis dès ', h('b', null, hhmm(chosen.bedMs - 90 * MIN)), ' : lumière douce, écrans en pause')),
-        h('li', null, icon('coffee', { size: 16 }), h('span', null, 'Dernier café avant ', h('b', null, hhmm(cut)))),
+        h('li', null, icon('coffee', { size: 16 }), cut <= now
+          ? h('span', null, 'Plus de café d\'ici le coucher : le dernier utile était avant ', h('b', null, hhmm(cut)))
+          : h('span', null, 'Dernier café avant ', h('b', null, hhmm(cut)), ' (une tasse de 80 mg)')),
         h('li', null, icon('sunrise', { size: 16 }), h('span', null, 'Réveil à ', h('b', null, hhmm(wakeMs)), ` après ${durLabel(chosen.durationMin)} de sommeil`)));
       replaceChildren(heroBox,
         h('div', { class: 'sl-sky', 'aria-hidden': 'true' }, starField(), h('i', { class: 'sl-shoot' }), h('i', { class: 'sl-shoot sl-shoot--b' }),

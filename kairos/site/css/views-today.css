@@ -79,7 +79,7 @@
 .td-grid { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 700px) { .td-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .td-card--next { grid-column: span 2; } }
 @media (min-width: 1100px) { .td-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .td-card--tasks { grid-column: span 2; } }
-.td-card { display: flex; flex-direction: column; gap: 14px; animation: rise var(--dur-3) var(--ease) both; animation-delay: calc(var(--i) * 70ms + 260ms); height: 100%; }
+.td-card { display: flex; flex-direction: column; gap: 14px; animation: rise var(--dur-3) var(--ease) both; animation-delay: calc(var(--i) * 70ms + 260ms); }
 .td-card .card__head { margin-bottom: 0; }
 .td-head { align-items: center; gap: 12px; }
 .td-head__ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; flex-shrink: 0; color: var(--accent-text); background: var(--sun-soft); }
@@ -106,7 +106,8 @@
 .td-gold__now { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--text); box-shadow: 0 0 10px var(--text); }
 .td-gold__ticks { position: absolute; left: 6px; right: 6px; bottom: 2px; display: flex; justify-content: space-between; font: 500 9px/1 var(--font-mono); color: var(--text-3); mix-blend-mode: normal; pointer-events: none; }
 .td-gold__list { display: grid; gap: 4px; }
-.td-gold__row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; min-height: 44px; padding: 6px 12px; border-radius: var(--r-md); transition: background var(--dur-2); }
+.td-gold__row { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "time score" "meta meta"; align-items: center; gap: 2px 10px; padding: 8px 12px; border-radius: var(--r-md); transition: background var(--dur-2); }
+.td-gold__time { grid-area: time; } .td-gold__score { grid-area: score; } .td-gold__meta { grid-area: meta; display: flex; align-items: center; gap: 10px; }
 .td-gold__row.is-live { background: linear-gradient(90deg, var(--sun-soft), transparent); box-shadow: inset 3px 0 0 var(--sun); }
 .td-gold__row.is-past { opacity: .55; }
 .td-gold__time { font-weight: 600; }

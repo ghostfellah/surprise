@@ -318,9 +318,9 @@ export default {
           const live = isToday() && n >= g.startMs && n < g.endMs, past = isToday() && g.endMs <= n;
           return h('li', { class: `td-gold__row${live ? ' is-live' : ''}${past ? ' is-past' : ''}` },
             h('span', { class: 'td-gold__time num' }, `${fmtTime(g.startMs)}–${fmtTime(g.endMs)}`),
-            h('span', { class: 'td-gold__dur muted small' }, fmtDuration(round((g.endMs - g.startMs) / MIN))),
-            h('span', { class: 'td-gold__when' }, live ? h('span', { class: 'badge badge--sun' }, 'en cours') : past ? h('span', { class: 'faint tiny' }, 'passée') : isToday() ? h('span', { class: 'small t-sun' }, inLabel(g.startMs - n)) : null),
-            h('span', { class: 'td-gold__score num' }, round(g.mean)));
+            h('span', { class: 'td-gold__score num', 'aria-label': `alerte moyenne ${round(g.mean)}` }, round(g.mean)),
+            h('span', { class: 'td-gold__meta' }, h('span', { class: 'muted small' }, fmtDuration(round((g.endMs - g.startMs) / MIN))),
+              live ? h('span', { class: 'badge badge--sun' }, 'en cours') : past ? h('span', { class: 'faint tiny' }, 'passée') : isToday() ? h('span', { class: 'small t-sun' }, inLabel(g.startMs - n)) : null));
         })) : h('p', { class: 'muted small' }, 'Ton énergie reste assez plate : tu peux placer le travail exigeant à peu près n\'importe où sur les heures éveillées.'));
     }
 
