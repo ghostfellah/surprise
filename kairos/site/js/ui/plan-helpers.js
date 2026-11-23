@@ -526,6 +526,9 @@ export function keyMove(key, shift = false) {
   }
 }
 
+/** time.js abrège mal certains mois (« nove. ») : on corrige les textes venus du planificateur. */
+export const fixMonths = (t) => String(t || '').replace(/\bavri\./g, 'avr.').replace(/\bocto\./g, 'oct.').replace(/\bnove\./g, 'nov.').replace(/\bdéce\./g, 'déc.');
+
 /**
  * Verdict affichable d'un résultat de validateMove :
  * { tone: 'good'|'bad'|'same'|'refused', headline, detail }.
