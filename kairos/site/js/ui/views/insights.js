@@ -357,7 +357,7 @@ export default {
       replaceChildren(weekBox, head('calendar', 'La semaine en un coup d\'œil', null), seg,
         h('div', { class: 'bl-week__sum' }, h('b', { class: 'num' }, m.total(vals)), h('span', null, '7 derniers jours')), h('div', { class: 'chart bl-week__chart' }, cv));
       const target = ui.metric === 'sleep' ? I.sleep.needH : ui.metric === 'focus' ? I.rings.focus.target / 5 / 60 : undefined;
-      const c = barChart(cv, { values: vals, labels: I.week.map((d) => d.label), color: m.color, highlight: I.week.findIndex((d) => d.isToday), format: m.fmt, height: 200, target, targetLabel: ui.metric === 'sleep' ? 'besoin' : ui.metric === 'focus' ? 'objectif/jour' : undefined });
+      const c = barChart(cv, { values: vals, labels: I.week.map((d) => d.label), color: m.color, format: m.fmt, height: 200, target, targetLabel: ui.metric === 'sleep' ? 'besoin' : ui.metric === 'focus' ? 'objectif/jour' : undefined });
       kills.push(() => c.destroy());
     }
 
