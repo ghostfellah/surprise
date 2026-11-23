@@ -344,7 +344,7 @@ export default {
     }
 
     const METRICS = {
-      focus: { label: 'Focus', color: 'sun', unit: 'min', fmt: (v) => durLabel(v), pick: (d) => d.focusMin, total: (a) => durLabel(a.reduce((s, v) => s + v, 0)) },
+      focus: { label: 'Focus', color: 'sun', unit: 'h', fmt: (v) => fr1(v), pick: (d) => d.focusMin / 60, total: (a) => durLabel(a.reduce((s, v) => s + v, 0) * 60), note: 'Heures de concentration par jour' },
       sleep: { label: 'Sommeil', color: 'night', unit: 'h', fmt: (v) => fr1(v), pick: (d) => d.sleepH ?? 0, total: (a) => { const n = a.filter((v) => v > 0); return n.length ? `${fr1(n.reduce((s, v) => s + v, 0) / n.length)} h en moyenne` : '—'; } },
       caffeine: { label: 'Caféine', color: 'coral', unit: 'mg', fmt: (v) => String(Math.round(v)), pick: (d) => d.caffeineMg ?? 0, total: (a) => { const n = a.filter((v) => v > 0); return n.length ? `${Math.round(n.reduce((s, v) => s + v, 0) / n.length)} mg/jour en moyenne` : '—'; } },
       tasks: { label: 'Tâches', color: 'sun', unit: '', fmt: (v) => String(Math.round(v)), pick: (d) => d.tasksDone, total: (a) => { const t = a.reduce((s, v) => s + v, 0); return `${t} terminée${t > 1 ? 's' : ''}`; } },
@@ -356,7 +356,7 @@ export default {
       const seg = h('div', { class: 'seg bl-seg', role: 'group', 'aria-label': 'Choisir la mesure' }, Object.entries(METRICS).map(([k, v]) => h('button', { class: 'seg__btn', type: 'button', 'aria-pressed': String(ui.metric === k), onclick: () => { ui.metric = k; haptic(4); renderWeek(I); } }, v.label)));
       replaceChildren(weekBox, head('calendar', 'La semaine en un coup d\'œil', null), seg,
         h('div', { class: 'bl-week__sum' }, h('b', { class: 'num' }, m.total(vals)), h('span', null, '7 derniers jours')), h('div', { class: 'chart bl-week__chart' }, cv));
-      const target = ui.metric === 'sleep' ? I.sleep.needH : ui.metric === 'focus' ? Math.round(I.rings.focus.target / 5) : undefined;
+      const target = ui.metric === 'sleep' ? I.sleep.needH : ui.metric === 'focus' ? I.rings.focus.target / 5 / 60 : undefined;
       const c = barChart(cv, { values: vals, labels: I.week.map((d) => d.label), color: m.color, highlight: I.week.findIndex((d) => d.isToday), format: m.fmt, height: 200, target, targetLabel: ui.metric === 'sleep' ? 'besoin' : ui.metric === 'focus' ? 'objectif/jour' : undefined });
       kills.push(() => c.destroy());
     }

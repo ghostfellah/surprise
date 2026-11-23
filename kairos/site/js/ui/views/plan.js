@@ -769,11 +769,11 @@ export default {
           row('Priorité', P.PRIO_NAMES[task.priority] || '—')),
         b.locked ? h('div', { class: 'banner banner--warn' }, icon('lock', { size: 18 }), h('span', null, 'Verrouillé : le planificateur n\'y touchera pas. Déverrouille-le pour le laisser bouger.')) : null);
       const foot = [
-        h('button', { class: 'btn btn--ghost', type: 'button', onclick: () => { toggleLock(b); close(); } }, icon(b.locked ? 'unlock' : 'lock', { size: 18 }), b.locked ? 'Déverrouiller' : 'Verrouiller'),
-        h('button', { class: 'btn btn--ghost', type: 'button', onclick: () => { close(); ctx.openTaskEditor(task.id); } }, icon('edit', { size: 18 }), 'Modifier'),
+        h('button', { class: 'btn btn--ghost btn--sm', type: 'button', onclick: () => { toggleLock(b); close(); } }, icon(b.locked ? 'unlock' : 'lock', { size: 18 }), b.locked ? 'Déverrouiller' : 'Verrouiller'),
+        h('button', { class: 'btn btn--ghost btn--sm', type: 'button', onclick: () => { close(); ctx.openTaskEditor(task.id); } }, icon('edit', { size: 18 }), 'Modifier'),
         h('span', { class: 'spacer' }),
-        h('button', { class: 'btn btn--secondary', type: 'button', onclick: () => { close(); ctx.startFocus && ctx.startFocus({ taskId: task.id, minutes: Math.min(mins, 90) }); } }, icon('play', { size: 18 }), 'Focus'),
-        h('button', { class: 'btn btn--primary', type: 'button', onclick: () => { actions.completeTask(task.id, true); close(); toast('Bien joué ! Tâche terminée', { icon: 'check-circle', undoLabel: 'Annuler', onUndo: () => actions.completeTask(task.id, false) }); } }, icon('check', { size: 18 }), 'Fait'),
+        h('button', { class: 'btn btn--secondary btn--sm', type: 'button', onclick: () => { close(); ctx.startFocus && ctx.startFocus({ taskId: task.id, minutes: Math.min(mins, 90) }); } }, icon('play', { size: 18 }), 'Focus'),
+        h('button', { class: 'btn btn--primary btn--sm', type: 'button', onclick: () => { actions.completeTask(task.id, true); close(); toast('Bien joué ! Tâche terminée', { icon: 'check-circle', undoLabel: 'Annuler', onUndo: () => actions.completeTask(task.id, false) }); } }, icon('check', { size: 18 }), 'Fait'),
       ];
       modal = openModal({ title: 'Pourquoi ici ?', content, footer: foot, size: 'sm' });
     }
