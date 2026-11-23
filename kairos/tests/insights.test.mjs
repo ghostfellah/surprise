@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  computeInsights, insightCards, personalizeFromState, makeEvaluator, accuracyOf, weeklySummaryText, lastDays,
+  computeInsights, insightCards, personalizeFromState, makeEvaluator, accuracyOf, weeklySummaryText, lastDays, sleepHeatmap,
 } from '../site/js/core/insights.js';
 import { makeDemoState, DEMO_HIDDEN_SHIFT_MIN } from '../site/js/core/demo.js';
 import { normalizeProfilePatch } from '../site/js/store.js';
@@ -158,4 +158,16 @@ test('weeklySummaryText et lastDays', () => {
   const d = lastDays(NOW, 7);
   assert.equal(d.length, 7);
   assert.equal(d[6], startOfDay(NOW));
+});
+
+test('sleepHeatmap : 8 semaines × 7 jours, la plus récente en bas, futur vide', () => {
+  const g = sleepHeatmap(demo(), NOW, 8);
+  assert.equal(g.weeks.length, 8);
+  assert.ok(g.values.every((r) => r.length === 7));
+  assert.deepEqual(g.cols, ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim']);
+  assert.equal(g.weeks[7].startMs, startOfDay(NOW)); // le 23/11/2026 est un lundi
+  assert.equal(g.values[7][0] > 4, true); // lundi : nuit du réveil de ce matin
+  assert.ok(g.values[7].slice(1).every((v) => v === null), 'jours futurs vides');
+  assert.equal(g.values[0].every((v) => v === null), true, 'avant l\'historique : vide');
+  assert.ok(g.logged >= 27 && g.avgH > 6 && g.avgH < 8);
 });

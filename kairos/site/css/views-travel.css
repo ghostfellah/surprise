@@ -35,7 +35,7 @@
 @media (min-width: 980px) { .tv-stage { grid-template-columns: minmax(340px, 400px) minmax(0, 1fr); align-items: start; } }
 .tv-form { display: grid; gap: 18px; align-content: start; }
 .tv-route { display: grid; gap: 10px; position: relative; }
-.tv-swap { position: absolute; z-index: 2; right: 18px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: var(--glass-strong); border-color: var(--line-strong); box-shadow: var(--elev-1); transition: transform var(--dur-3) var(--ease-spring), box-shadow var(--dur-2); }
+.tv-swap { position: absolute; z-index: 2; right: 56px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: var(--glass-strong); border-color: var(--line-strong); box-shadow: var(--elev-1); transition: transform var(--dur-3) var(--ease-spring), box-shadow var(--dur-2); }
 .tv-swap svg { transform: rotate(90deg); transition: transform var(--dur-3) var(--ease-spring); }
 .tv-swap:hover svg { transform: rotate(270deg); }
 .tv-pick { position: relative; display: grid; gap: 2px; text-align: left; padding: 14px 18px 14px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--surface) 62%, transparent); border: 1px solid var(--line-strong); min-height: 92px; overflow: hidden; transition: transform var(--dur-1) var(--ease-spring), border-color var(--dur-2), box-shadow var(--dur-2), background var(--dur-2); }
@@ -157,9 +157,9 @@
 .tv-tips__list strong { font-weight: 600; }
 
 /* Actions */
-.tv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; position: sticky; bottom: calc(var(--bar-h) + var(--safe-b) + 18px); z-index: 5; padding: 10px; border-radius: var(--r-xl); background: var(--glass-strong); border: 1px solid var(--glass-edge); box-shadow: var(--elev-2); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
+.tv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; position: relative; z-index: 5; padding: 10px; border-radius: var(--r-xl); background: var(--glass-strong); border: 1px solid var(--glass-edge); box-shadow: var(--elev-2); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); }
 .tv-actions__hint { flex: 1 1 200px; padding: 0 6px; }
-@media (min-width: 761px) { .tv-actions { bottom: 18px; } }
+@media (min-width: 761px) { .tv-actions { position: sticky; bottom: 18px; } }
 @media (max-width: 520px) { .tv-actions .btn { flex: 1 1 100%; } .tv-actions__hint { display: none; } }
 
 /* ---------- Chronologie ---------- */
@@ -230,7 +230,7 @@
   .tv-day__card { padding: 14px; }
   .tv-day__head { flex-direction: column; gap: 6px; }
   .tv-day__res { text-align: left; }
-  .tv-swap { right: 14px; }
+  .tv-swap { right: 50px; }
   .tv-clock { padding: 8px 10px; gap: 8px; }
   .tv-clock__ic { width: 32px; height: 32px; }
 }

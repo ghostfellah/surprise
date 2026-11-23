@@ -252,7 +252,7 @@ function createGlobe(canvas) {
     const g = ctx2, th = st.theme, W = st.w, H = st.h;
     if (!W || !H) return;
     g.setTransform(st.dpr, 0, 0, st.dpr, 0, 0); g.clearRect(0, 0, W, H);
-    const cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 * 0.86 * st.zoom;
+    const cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 * 0.84 * st.zoom;
     const { ex, ey, ez } = basis();
     const sun = sunAt(st.tMs);
     const proj = (p) => [dot(p, ex), dot(p, ey), dot(p, ez)];
@@ -448,7 +448,7 @@ function createGlobe(canvas) {
   const down = (e) => { canvas.setPointerCapture(e.pointerId); st.drag = true; st.tgt = null; st.vLon = st.vLat = 0; last = { x: e.clientX, y: e.clientY, t: performance.now() }; kick(); };
   const move = (e) => {
     if (!st.drag || !last) return;
-    const R = Math.min(st.w, st.h) / 2 * 0.86 * st.zoom, dx = e.clientX - last.x, dy = e.clientY - last.y, now = performance.now(), dt = Math.max(8, now - last.t) / 1000;
+    const R = Math.min(st.w, st.h) / 2 * 0.84 * st.zoom, dx = e.clientX - last.x, dy = e.clientY - last.y, now = performance.now(), dt = Math.max(8, now - last.t) / 1000;
     const dLon = -dx / R / Math.max(0.35, Math.cos(st.lat0)) * 0.9, dLat = dy / R * 0.9;
     st.lon0 += dLon; st.lat0 = Math.max(-1.25, Math.min(1.25, st.lat0 + dLat));
     st.vLon = dLon / dt; st.vLat = dLat / dt; last = { x: e.clientX, y: e.clientY, t: now }; st.dirty = true; kick();
@@ -465,7 +465,7 @@ function createGlobe(canvas) {
       st.A = A ? { ...A, v: vec(A.lat, A.lon) } : null; st.B = B ? { ...B, v: vec(B.lat, B.lon) } : null;
       if (st.A && st.B) {
         const mid = unit(slerp(st.A.v, st.B.v, 0.5)), om = Math.acos(Math.max(-1, Math.min(1, dot(st.A.v, st.B.v))));
-        const tgt = { lat: Math.asin(Math.max(-1, Math.min(1, mid[2]))) * 0.85, lon: Math.atan2(mid[1], mid[0]), zoom: Math.max(1, Math.min(1.55, 1.7 - om * 0.55)) };
+        const tgt = { lat: Math.asin(Math.max(-1, Math.min(1, mid[2]))) * 0.85, lon: Math.atan2(mid[1], mid[0]), zoom: Math.max(1, Math.min(1.14, 1.3 - om * 0.3)) };
         if (om > 3.0) { tgt.lat = 0.45; tgt.lon = st.A.v[1] === 0 && st.A.v[0] === 0 ? 0 : Math.atan2(st.A.v[1], st.A.v[0]); }
         if (reduced) { st.lat0 = tgt.lat; st.lon0 = tgt.lon; st.zoom = tgt.zoom; } else st.tgt = tgt;
       }
@@ -766,9 +766,10 @@ export default {
     cleanups.push(() => revealIO && revealIO.disconnect());
     function observeReveal(container) { container.querySelectorAll('.tv-day').forEach((li) => { if (reduced || !revealIO) li.classList.add('is-in'); else revealIO.observe(li); }); }
 
-    // courbe du décalage résiduel (SVG)
+    // courbe du décalage résiduel (SVG) ; largeur lue dans la page pour garder un texte lisible
+    let chartW = 0;
     function residualChart(p) {
-      const days = p.days, W = 640, Ht = 230, L = 38, Rr = 18, T = 26, B = 40;
+      const days = p.days, W = chartW = Math.max(290, Math.min(760, Math.round(planHost.clientWidth >= 980 ? (planHost.clientWidth - 16) * 0.574 - 40 : planHost.clientWidth - 40))), Ht = 220, L = 34, Rr = 16, T = 26, B = 36;
       const pts = [{ label: 'Aujourd\'hui', v: p.phaseShiftH }];
       let bi = 0, di = 1;
       for (const d of days) {
@@ -776,6 +777,7 @@ export default {
         pts.push({ label: short, v: d.residualH, day: d });
       }
       const n = pts.length, max = Math.max(1, Math.ceil(Math.max(...pts.map((q) => q.v)) / 2) * 2);
+      const stepPx = (W - L - Rr) / Math.max(1, n - 1), skipX = Math.max(1, Math.ceil(34 / stepPx)), skipV = Math.max(1, Math.ceil(26 / stepPx));
       const x = (i) => L + (i / Math.max(1, n - 1)) * (W - L - Rr), y = (v) => T + (1 - v / max) * (Ht - T - B);
       const X = pts.map((_, i) => x(i)), Y = pts.map((q) => y(q.v));
       // spline monotone (Catmull-Rom simplifiée → cubic)
@@ -797,8 +799,8 @@ export default {
         svg('path', { class: 'tv-chart__line', d, pathLength: '1', stroke: `url(#${gid}-l)` }),
         ...pts.map((q, i) => svg('g', { class: 'tv-chart__pt', style: { '--d': `${380 + i * 70}ms` }, tabindex: '0', role: 'img', 'aria-label': `${q.label} : ${num1(q.v)} heure${q.v >= 2 ? 's' : ''} de décalage restant`, 'data-i': i },
           svg('circle', { class: 'tv-chart__halo', cx: X[i], cy: Y[i], r: 11 }), svg('circle', { class: 'tv-chart__dot', cx: X[i], cy: Y[i], r: 4.5 }),
-          svg('text', { class: 'tv-chart__val', x: X[i], y: Y[i] - 12, 'text-anchor': 'middle' }, num1(q.v)))),
-        ...pts.map((q, i) => svg('text', { class: 'tv-chart__x', x: X[i], y: Ht - 14, 'text-anchor': i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle' }, q.label)));
+          (i % skipV === 0 || i === n - 1) ? svg('text', { class: 'tv-chart__val', x: X[i], y: Y[i] - 12, 'text-anchor': 'middle' }, num1(q.v)) : null)),
+        ...pts.map((q, i) => (i % skipX === 0 || i === n - 1) && !(i === n - 1 && (n - 1) % skipX !== 0 && (n - 1 - ((n - 1) - ((n - 1) % skipX))) * stepPx < 30) ? svg('text', { class: 'tv-chart__x', x: X[i], y: Ht - 12, 'text-anchor': i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle' }, q.label) : null));
       const wrap = h('div', { class: 'tv-chart-wrap' }, svgEl);
       wrap.querySelectorAll('.tv-chart__pt').forEach((g) => {
         const i = +g.dataset.i, q = pts[i];
@@ -948,6 +950,9 @@ export default {
     setupScrub(true);
     profileKey = JSON.stringify([ctx.state.profile.usualWake, ctx.state.profile.usualBed, ctx.state.profile.sleepNeedH, ctx.state.profile.chronoShiftMin, ctx.state.profile.tz]);
 
+    let lastW = planHost.clientWidth;
+    const onResize = () => { const w = planHost.clientWidth; if (Math.abs(w - lastW) > 40 && S.plan) { lastW = w; renderPlan(); } };
+    window.addEventListener('resize', onResize); cleanups.push(() => window.removeEventListener('resize', onResize));
     const off = ctx.subscribe(() => {
       const pr = ctx.state.profile, key = JSON.stringify([pr.usualWake, pr.usualBed, pr.sleepNeedH, pr.chronoShiftMin, pr.tz]);
       if (key !== profileKey) { profileKey = key; compute(); }

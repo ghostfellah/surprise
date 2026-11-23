@@ -21,7 +21,7 @@
 //  - Outil de confort et d'organisation, pas un dispositif médical : aucun constat n'est formulé en termes de santé.
 // Module pur : ni DOM, ni stockage, ni horloge implicite (nowMs est toujours passé).
 import {
-  MIN, HOUR, DAY, startOfDay, addDays, minutesOfDay, toHHMM, dayKey, clamp, fmtDuration, JOURS_FR,
+  MIN, HOUR, DAY, startOfDay, addDays, minutesOfDay, toHHMM, dayKey, clamp, fmtDuration, JOURS_FR, MOIS_FR,
 } from './time.js';
 import { buildModel, valueAt } from './model.js';
 import { simulateProcessesRaw } from './chrono.js';
@@ -362,6 +362,38 @@ function caffeineCutoffFromHistory({ nights, caffeine, profile, lastMeanMin }) {
     if (meanResidual(c) <= CAFFEINE.bedThresholdMg) return Math.min(c, Math.floor((lastMeanMin - 30) / 15) * 15);
   }
   return 9 * 60;
+}
+
+/**
+ * Grille « sommeil par jour » pour la carte de chaleur : `weeks` lignes (la plus récente en bas) × 7 colonnes.
+ * Case = heures dormies la nuit qui se termine ce jour-là (nuits ≥ 3 h, hors siestes) ; null = pas de donnée / futur.
+ * @returns {{weeks:{startMs:number,label:string}[], cols:string[], values:(number|null)[][], logged:number, avgH:number|null}}
+ */
+export function sleepHeatmap(state, nowMs, weeks = 8, weekStart = 1) {
+  const today = startOfDay(nowMs);
+  const dow = (new Date(today).getDay() - weekStart + 7) % 7;
+  const lastStart = addDays(today, -dow);
+  const byDay = new Map();
+  for (const n of nightsOf((state.sleeps || []).filter((x) => x.wakeMs <= nowMs), state.profile)) {
+    byDay.set(dayKey(n.dayMs), (byDay.get(dayKey(n.dayMs)) || 0) + n.durH);
+  }
+  const rows = [];
+  const values = [];
+  const all = [];
+  for (let w = weeks - 1; w >= 0; w--) {
+    const start = addDays(lastStart, -7 * w);
+    rows.push({ startMs: start, label: `${new Date(start).getDate()} ${MOIS_FR[new Date(start).getMonth()].slice(0, 4)}${MOIS_FR[new Date(start).getMonth()].length > 4 ? '.' : ''}` });
+    const row = [];
+    for (let d = 0; d < 7; d++) {
+      const day = addDays(start, d);
+      const v = day > today ? null : byDay.has(dayKey(day)) ? Math.round(byDay.get(dayKey(day)) * 10) / 10 : null;
+      row.push(v);
+      if (v !== null) all.push(v);
+    }
+    values.push(row);
+  }
+  const cols = Array.from({ length: 7 }, (_, d) => JOURS_FR[(weekStart + d) % 7].slice(0, 3));
+  return { weeks: rows, cols, values, logged: all.length, avgH: round1(mean(all)) };
 }
 
 /** Moyenne de l'alerte du modèle sur [aMs, bMs] (échantillonnage à la grille du modèle). */
