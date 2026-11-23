@@ -56,7 +56,7 @@ function learnTile({ cls, title, kicker, fn, extra, text, lo = 0, hi = 1 }) {
 }
 
 function buildLearnPanel() {
-  const sleepBand = svg('rect', { x: 6 + (18 / 24) * 208, y: 6, width: (6 / 24) * 208 * 0 + 52, height: 68, rx: 4, fill: 'currentColor', opacity: '.1' });
+  const sleepBand = svg('rect', { x: 6 + (16 / 24) * 208, y: 6, width: (8 / 24) * 208, height: 68, rx: 4, fill: 'currentColor', opacity: '.1' });
   const thr = svg('line', { x1: 6, x2: 214, y1: 60, y2: 60, stroke: 'currentColor', 'stroke-dasharray': '3 4', opacity: '.45' });
   const gold = svg('rect', { x: 6 + (4 / 24) * 208, y: 6, width: 50, height: 68, rx: 6, fill: 'var(--sun)', opacity: '.14' });
   const legend = [

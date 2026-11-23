@@ -174,7 +174,7 @@
 .lab-learn[open] .lab-learn__chev { transform: rotate(180deg); }
 .lab-learn__sum:focus-visible { outline: 2px solid var(--focus); outline-offset: -3px; border-radius: var(--r-lg); }
 .lab-learn__body { display: grid; gap: 18px; padding: 4px 18px 22px; animation: rise var(--dur-3) var(--ease) both; }
-.lab-tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+.lab-tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 .lab-tile { margin: 0; display: grid; gap: 10px; padding: 14px; border-radius: var(--r-md); color: var(--sun); background: color-mix(in srgb, var(--surface) 55%, transparent); border: 1px solid var(--line); }
 .lab-tile--s { color: var(--night); } .lab-tile--c { color: var(--sun); } .lab-tile--caf { color: var(--caffeine); } .lab-tile--r { color: var(--sun-hot); }
 .lab-tile__svg { width: 100%; height: auto; overflow: visible; }
