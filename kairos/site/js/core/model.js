@@ -65,7 +65,7 @@ export function buildModel({
   const needH = sleepNeedH(profile);
   const sleepDebtH = debtAsOf(sim.episodes, nowMs, needH).debtH;
   const mainEps = sim.episodes.filter((e) => !e.nap && (e.endMs - e.startMs) / HOUR >= MAIN_SLEEP_MIN_H);
-  const nextMain = mainEps.find((e) => e.endMs > nowMs) || null;
+  const nextMain = mainEps.find((e) => e.startMs > nowMs) || null; // prochain coucher (une nuit déjà commencée ne compte pas)
   const nextBedMs = nextMain ? nextMain.startMs : null;
   const caffeineAtBedMg = nextBedMs === null ? 0 : caffeineAt(logs.filter((l) => l.tMs < nextBedMs), profile, nextBedMs);
   const cutoffMs = nextBedMs === null ? null : caffeineCutoff({ logs, profile, bedMs: nextBedMs });
