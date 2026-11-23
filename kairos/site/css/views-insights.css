@@ -61,8 +61,9 @@
 
 /* ---------- Ton modèle ---------- */
 .bl-model__status { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.bl-model { container-type: inline-size; container-name: blm; }
 .bl-model__grid { display: grid; gap: 18px; }
-@media (min-width: 720px) { .bl-model__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+@container blm (min-width: 640px) { .bl-model__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
 .bl-model__left { display: grid; gap: 8px; min-width: 0; }
 .bl-model__right { display: grid; gap: 16px; min-width: 0; align-content: start; }
 .bl-cmp { width: max-content; justify-self: center; }
@@ -76,7 +77,7 @@
 .bl-act { display: grid; gap: 12px; justify-items: start; }
 .bl-act__text { font-size: var(--t-sm); color: var(--text-2); text-wrap: pretty; }
 .bl-need { display: grid; gap: 10px; width: 100%; }
-.bl-cta { width: 100%; position: relative; overflow: hidden; }
+.bl-cta { width: 100%; position: relative; overflow: hidden; white-space: normal; text-align: center; line-height: 1.2; padding-block: 10px; }
 .bl-cta:not([disabled])::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .45) 50%, transparent 70%); transform: translateX(-120%); animation: bl-sheen 3.6s ease-in-out 1.2s infinite; }
 @keyframes bl-sheen { 60%, 100% { transform: translateX(120%); } }
 

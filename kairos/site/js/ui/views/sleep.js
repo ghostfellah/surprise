@@ -186,7 +186,7 @@ export default {
     const journalBox = h('section', { class: 'card sl-journal', style: { '--o': 9 } });
     colL.append(logBox, debtBox, pressBox, heatBox);
     colR.append(napBox, regBox, chronoBox, journalBox);
-    heroBox.style.setProperty('--o', 1);
+    heroBox.style.setProperty('--o', 0);
     page.append(heroBox, colL, colR);
     setTimeout(() => page.classList.remove('sl--enter'), 1800);
 

@@ -11,7 +11,7 @@
 @media (min-width: 1000px) {
   .sl { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); align-items: start; }
   .sl-hero { grid-column: 1 / -1; }
-  .sl-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .sl-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; order: 1; }
 }
 /* entrée en cascade, une seule fois */
 .sl--enter .card, .sl--enter .sl-hero { animation: sl-rise .8s var(--ease) both; animation-delay: calc(var(--o, 0) * 70ms); }
@@ -72,6 +72,7 @@
 .sl-hero__steps b { color: var(--ink); font-family: var(--font-mono); font-weight: 600; }
 @media (max-width: 520px) { .sl-hero__moon { transform-origin: top right; scale: .72; right: -2px; top: 0; } .sl-hero__eyebrow { max-width: 18ch; } }
 @media (min-width: 760px) {
+  .sl-hero__eyebrow { max-width: none; }
   .sl-hero { padding: 32px 36px 40px; min-height: 440px; }
   .sl-hero__moon { right: 52px; top: 26px; }
   .sl-hero__moon .sl-moon { width: 200px; height: 200px; }
