@@ -197,8 +197,8 @@ export function haloGradient(samples, range) {
   const stops = samples.map((s) => {
     const pos = ((s.min - range.startMin) / span) * 100;
     let col;
-    if (s.v >= 55) col = `color-mix(in srgb, var(--sun) ${Math.round(((s.v - 55) / 45) * 46 + 2)}%, transparent)`;
-    else col = `color-mix(in srgb, var(--dip) ${Math.round(((55 - s.v) / 55) * 30 + 2)}%, transparent)`;
+    if (s.v >= 55) col = `color-mix(in srgb, var(--sun) ${Math.round(((s.v - 55) / 45) * 24 + 1)}%, transparent)`;
+    else col = `color-mix(in srgb, var(--dip) ${Math.round(((55 - s.v) / 55) * 22 + 1)}%, transparent)`;
     return `${col} ${pos.toFixed(1)}%`;
   });
   return `linear-gradient(180deg, ${stops.join(', ')})`;
@@ -302,8 +302,8 @@ export function dayLoad(blocks, tasks, dayMs, events = []) {
   return { byLoad, total, events: ev };
 }
 
-/** Minutes de travail profond (charge ≥ 4) placées dans des pics (alerte moyenne ≥ seuil). */
-export function deepInPeaks({ blocks, tasks, curve, peakThreshold = 70, deepLoad = 4 }) {
+/** Minutes de travail profond (charge ≥ 4) placées dans une zone de forte alerte (moyenne ≥ 62 : « bonne forme » ou mieux). */
+export function deepInPeaks({ blocks, tasks, curve, peakThreshold = 62, deepLoad = 4 }) {
   const byId = new Map(tasks.map((t) => [t.id, t]));
   let deepMin = 0, peakMin = 0;
   for (const b of blocks) {

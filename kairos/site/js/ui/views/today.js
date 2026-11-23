@@ -198,7 +198,7 @@ export default {
       hero.dataset.tone = tone.tone;
       heroEyebrow.replaceChildren(h('span', { class: 'dot dot--sun dot--pulse' }), today ? `Maintenant · ${fmtTime(n)}` : `${dayOffset > 0 ? 'Demain' : 'Ce jour-là'} · pic prévu ${fmtTime(m.stats.peak.ms)}`);
       heroTitle.textContent = today ? tone.title : (dayOffset > 0 ? 'Ce qui t\'attend' : 'Ce que le modèle prévoyait');
-      const col = tone.tone === 'night' || tone.tone === 'dawn' && false ? 'night' : tone.tone === 'coral' ? 'coral' : tone.tone === 'dip' ? 'night' : 'sun';
+      const col = tone.tone === 'night' || tone.tone === 'dip' ? 'night' : tone.tone === 'coral' ? 'coral' : 'sun';
       const rv = clamp(Math.round(value), 0, 100);
       if (!ring) ring = ringGauge(ringCanvas, { value: rv, max: 100, label: today ? 'énergie' : 'pic prévu', color: col, breathe: true });
       else ring.update({ value: rv, label: today ? 'énergie' : 'pic prévu', color: col });

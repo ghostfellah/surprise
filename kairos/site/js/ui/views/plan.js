@@ -375,7 +375,7 @@ export default {
     const board = h('section', { class: 'card pl-board', 'aria-label': 'Planning' });
     const gradDefs = svg('svg', { width: 0, height: 0, 'aria-hidden': 'true', style: 'position:absolute' },
       svg('defs', null, svg('linearGradient', { id: 'pl-energy-fill', gradientUnits: 'userSpaceOnUse', x1: 0, y1: 0, x2: 100, y2: 0 },
-        svg('stop', { offset: 0, style: 'stop-color:var(--sun);stop-opacity:.62' }), svg('stop', { offset: 1, style: 'stop-color:var(--sun);stop-opacity:0' }))));
+        svg('stop', { offset: 0, style: 'stop-color:var(--sun);stop-opacity:.36' }), svg('stop', { offset: 1, style: 'stop-color:var(--sun);stop-opacity:0' }))));
     let grid = null;
 
     const go = (delta, dir) => { const n = P.clampSel(S.sel + delta); if (n === S.sel) return; S.sel = n; S.slide = dir || (delta > 0 ? 'next' : 'prev'); S.sigs.board = null; renderAll(); };
@@ -470,7 +470,7 @@ export default {
         h('span', { class: 'pl-blk__title' }, done ? icon('check', { size: 12, stroke: 2.6 }) : null, title, part && part.parts > 1 ? h('em', { class: 'pl-blk__part num' }, ` ${part.part}/${part.parts}`) : null),
         size !== 'xs' ? h('span', { class: 'pl-blk__time num' }, `${fmtTime(b.startMs)}–${fmtTime(b.endMs)}`, size === 'md' ? ` · ${fmtDuration(mins)}` : '') : null,
         size === 'md' && m.alert >= 78 ? h('span', { class: 'pl-blk__peak' }, icon('bolt', { size: 11 }), 'pic') : null),
-      size !== 'xs' ? h('span', { class: `pl-blk__fit pl-tone-${m.tone} num`, title: `Adéquation ${m.score} %` }, String(m.score)) : null,
+      size === 'md' ? h('span', { class: `pl-blk__fit pl-tone-${m.tone} num`, title: `Adéquation ${m.score} %` }, String(m.score)) : null,
       h('button', { class: 'pl-blk__lock', type: 'button', tabindex: -1, 'aria-label': b.locked ? 'Déverrouiller ce bloc' : 'Verrouiller ce bloc', 'aria-pressed': String(!!b.locked), onclick: (e) => { e.stopPropagation(); toggleLock(b); } }, icon(b.locked ? 'lock' : 'unlock', { size: 13, stroke: 2 })));
       if (isNew) el.style.animationDelay = `${Math.round(idx * step)}ms`;
       return el;
