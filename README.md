@@ -1,7 +1,8 @@
 # Surprise
 
-Cinq applications statiques, sans dépendance ni clé d'API.
+Six applications, sans dépendance ni clé d'API.
 
+- **Kairos** (`kairos/`) : l'emploi du temps de ton cerveau. Prédit ton énergie (rythme circadien, sommeil, caféine) et place tes tâches là où tu es le meilleur, hors-ligne et sans compte. Voir `kairos/README.md`.
 - **Carry Radar** (racine du dépôt) : arbitrage de funding sur Hyperliquid.
 - **Sonar** (dossier `vigie/`, ancien nom Vigie) : radar de signaux précoces et atelier de rédaction. Voir `vigie/README.md`.
 - **Sat Radar** (`btc/`) : creux et sommets locaux du bitcoin, avec backtest honnête et journal de sats. Voir `btc/README.md`.
@@ -40,7 +41,7 @@ Aucune dépendance, aucune clé d'API. Node 20 ou plus.
 1. Fusionner la branche dans `main`.
 2. Dans Settings → Pages, choisir « GitHub Actions » comme source.
 
-Le workflow `.github/workflows/pages.yml` publie alors Carry Radar à la racine Beau Fixe sous `/beau-fixe/`, Paré sous `/pare/`, Sonar sous `/vigie/` et Sat Radar sous `/btc/`, et rafraîchit l'instantané toutes les heures.
+Le workflow `.github/workflows/pages.yml` publie alors Carry Radar à la racine Beau Fixe sous `/beau-fixe/`, Paré sous `/pare/`, Sonar sous `/vigie/`, Sat Radar sous `/btc/` et Kairos sous `/kairos/`, et rafraîchit l'instantané toutes les heures.
 
 ## Structure
 
@@ -50,3 +51,4 @@ Le workflow `.github/workflows/pages.yml` publie alors Carry Radar à la racine 
 | `site/data.json` | Dernier instantané |
 | `scripts/snapshot.mjs` | Collecte des données Hyperliquid |
 | `scripts/build.mjs` | Assemble la version autonome dans `dist/` |
+| `kairos/` | Kairos : moteur, planificateur, interface et tests (`npm test`) |

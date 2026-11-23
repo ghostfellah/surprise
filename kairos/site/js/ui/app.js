@@ -582,6 +582,7 @@ async function main() {
   // ---------------------------------------------------------------------
   // Onboarding
   // ---------------------------------------------------------------------
+  window.kairos = ctx; // exposé tôt : débogage et tests de bout en bout (avant même l'onboarding)
   if (!(ctx.state.prefs && ctx.state.prefs.onboarded)) { hideSplash(); appRoot.hidden = true; await runOnboarding(); appRoot.hidden = false; appRoot.animate && !reduce() && appRoot.animate([{ opacity: 0, transform: 'scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }); }
 
   function runOnboarding() {
@@ -638,6 +639,7 @@ async function main() {
   window.addEventListener('hashchange', route);
   if (!location.hash || !parseHash().valid) history.replaceState(null, '', '#/today');
   updateEyebrow(); updateAtmosphere(); armReminder();
+  import('./views/settings.js').then((m) => m.applyHapticsPref && m.applyHapticsPref()).catch(() => {}); // préférence « retour haptique » dès le lancement
   await route();
   window.kairos = ctx; // utile pour le débogage et les tests de bout en bout
 }

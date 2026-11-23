@@ -892,7 +892,7 @@ export default {
       const refresh = () => {
         const ev = eventsFor(p, kinds), dup = new Set(ctx.state.events.map((e) => `${e.title}|${e.startMs}|${e.endMs}`));
         const fresh = ev.filter((e) => !dup.has(`${e.title}|${e.startMs}|${e.endMs}`));
-        countEl.textContent = fresh.length ? `${fresh.length} événement${fresh.length > 1 ? 's' : ''} sera${fresh.length > 1 ? 'ont' : ''} ajouté${fresh.length > 1 ? 's' : ''} à ton agenda.` : 'Rien de nouveau à ajouter (les fenêtres futures sont déjà dans ton agenda, ou aucune n\'est à venir).';
+        countEl.textContent = fresh.length ? `${fresh.length} événement${fresh.length > 1 ? 's' : ''} ${fresh.length > 1 ? 'seront' : 'sera'} ajouté${fresh.length > 1 ? 's' : ''} à ton agenda.` : 'Rien de nouveau à ajouter (les fenêtres futures sont déjà dans ton agenda, ou aucune n\'est à venir).';
         replaceChildren(prev, ...fresh.slice(0, 6).map((e) => h('li', null, h('span', { class: `tv-dot tv-dot--${e.kind}` }), h('span', null, e.title.split(' · ')[0]), h('span', { class: 'num faint' }, `${dayFmt(profileTz(), e.startMs)} ${fmtTimeTz(profileTz(), e.startMs)}`))), fresh.length > 6 ? h('li', { class: 'faint' }, `… et ${fresh.length - 6} autre${fresh.length - 6 > 1 ? 's' : ''}`) : null);
         return fresh;
       };

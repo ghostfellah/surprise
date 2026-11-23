@@ -135,8 +135,8 @@
 @keyframes sc-wave { to { transform: translateX(-36px); } }
 .sc-cup__steam path { stroke: var(--caffeine); opacity: calc(var(--steam, 0) * .75); animation: sc-steam 3s var(--ease-inout) infinite; }
 @keyframes sc-steam { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-.sc-cupwrap__t { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; display: flex; justify-content: center; align-items: baseline; gap: 4px; pointer-events: none; }
-.sc-cupwrap__v { font: 500 1.35rem/1 var(--font-mono); color: var(--text); text-shadow: 0 1px 6px var(--bg); }
+.sc-cupwrap__t { margin-top: 2px; text-align: center; display: flex; justify-content: center; align-items: baseline; gap: 4px; pointer-events: none; }
+.sc-cupwrap__v { font: 500 1.35rem/1 var(--font-mono); color: var(--text); }
 .sc-cupwrap__t small { color: var(--text-3); font: 500 .7rem var(--font-mono); }
 .sc-cafread { display: grid; gap: 4px; min-width: 0; }
 .sc-cafread__t { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }

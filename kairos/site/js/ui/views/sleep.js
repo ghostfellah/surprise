@@ -480,10 +480,11 @@ export default {
             ? 'Note quelques nuits pour que Kairos calcule ta dette : au moins 4 sur les 28 derniers jours.'
             : d < 1 ? `Tu dors en moyenne ${durLabel(Math.round((s.avgH28 ?? need) * 60))} pour un besoin de ${durLabel(need * 60)} : ton énergie est prévisible.`
               : `En moyenne ${durLabel(Math.round((s.avgH28 ?? need) * 60))} par nuit pour un besoin de ${durLabel(need * 60)}. Avec +30 min par nuit, compte ≈ ${Math.ceil((d * 60) / 30)} nuits pour la résorber — le sommeil ne se stocke pas vraiment, il se rattrape par petites touches.`)),
-        box,
-        h('div', { class: 'chart__legend' }, h('span', { class: 'legend-item legend-item--block', style: { '--c': 'var(--night)' } }, 'Besoin couvert'), h('span', { class: 'legend-item legend-item--block', style: { '--c': 'var(--sun)' } }, 'Un peu court'),
+        s.nights28 < 4 ? null : box,
+        s.nights28 < 4 ? null : h('div', { class: 'chart__legend' }, h('span', { class: 'legend-item legend-item--block', style: { '--c': 'var(--night)' } }, 'Besoin couvert'), h('span', { class: 'legend-item legend-item--block', style: { '--c': 'var(--sun)' } }, 'Un peu court'),
           h('span', { class: 'legend-item legend-item--block', style: { '--c': 'var(--coral)' } }, 'Nuit courte'), h('span', { class: 'legend-item legend-item--dash', style: { '--c': 'var(--coral)' } }, `Besoin ${fr1(need)} h`)));
       animateNumber(num, d, { duration: 1200, format: (v) => durLabel(v * 60) });
+      if (s.nights28 < 4) return;
       const c = barChart(cv, { values: vals, labels, colors, target: need, targetLabel: `${fr1(need)} h`, format: (v) => fr1(v), height: 190, max: Math.max(10, Math.ceil(Math.max(...vals, need) + 0.5)) });
       chartKill.push(() => c.destroy());
     }

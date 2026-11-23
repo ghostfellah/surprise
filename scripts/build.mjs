@@ -51,4 +51,7 @@ copyFileSync(resolve(root, 'btc/site/btc.json'), resolve(root, 'dist/btc/btc.jso
 rmSync(resolve(root, 'dist/kairos'), { recursive: true, force: true });
 cpSync(resolve(root, 'kairos/site'), resolve(root, 'dist/kairos'), { recursive: true, filter: (src) => !src.includes('/kairos/site/dev') });
 
+// Liste de pré-cache et version du service worker, calculées sur la copie publiée (le dépôt reste propre)
+execFileSync(process.execPath, [resolve(root, 'kairos/scripts/precache.mjs'), resolve(root, 'dist/kairos')], { stdio: 'inherit' });
+
 console.log('dist/ prêt');

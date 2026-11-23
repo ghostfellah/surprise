@@ -264,7 +264,7 @@
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; background: var(--bg); }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; background: var(--bg); overflow-x: clip; /* jamais de défilement horizontal de la page */ }
 body {
   margin: 0; min-height: 100dvh;
   font: 400 var(--t-base)/1.5 var(--font-sans);

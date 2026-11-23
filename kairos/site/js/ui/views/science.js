@@ -400,7 +400,7 @@ export default {
     // =======================================================================================
     // § 02 — Caféine
     // =======================================================================================
-    const Cf = { doseMg: 120, drinkH: 9, halfLifeH: Number(profile().caffeineHalfLifeH) || 5, sensitivity: Number(profile().caffeineSensitivity) || 1, cursor: 9 };
+    const Cf = { doseMg: 120, drinkH: 9, halfLifeH: Number(profile().caffeineHalfLifeH) || 5, sensitivity: Number(profile().caffeineSensitivity) || 1, cursor: 10.5 };
     const bedH = hhmmToH(profile().usualBed, 23);
     const cafPlot = h('div', { class: 'sc-plot sc-plot--caf', tabindex: '0', role: 'group', 'aria-label': 'Courbe de la caféine dans le sang' });
     const cup = buildCup();
@@ -409,7 +409,7 @@ export default {
     const playBtn = h('button', { class: 'btn btn--secondary', type: 'button', onclick: () => togglePlay() }, icon('play', { size: 18 }), 'Voir la décroissance');
     const cafSliders = [
       sliderRow({ label: 'Dose', min: 20, max: 300, step: 10, value: Cf.doseMg, fmtv: (v) => `${v} mg`, note: (v) => (v <= 50 ? 'Un thé' : v <= 100 ? 'Un café filtre (≈ 80–100 mg)' : v <= 160 ? 'Un grand café' : 'Beaucoup : le repère officiel est 400 mg par jour'), onInput: (v) => { Cf.doseMg = v; recomputeCaf(); } }),
-      sliderRow({ label: 'Heure de la prise', min: 6, max: 20, step: 0.25, value: Cf.drinkH, fmtv: (v) => clock(v), note: (v) => (v < 9 ? 'Au réveil' : v < 13 ? 'En matinée' : v < 16 ? 'L\'après-midi' : 'Tard : attention au coucher'), onInput: (v) => { Cf.drinkH = v; Cf.cursor = Math.max(Cf.cursor, v); recomputeCaf(); }, color: 'night' }),
+      sliderRow({ label: 'Heure de la prise', min: 6, max: 20, step: 0.25, value: Cf.drinkH, fmtv: (v) => clock(v), note: (v) => (v < 9 ? 'Au réveil' : v < 13 ? 'En matinée' : v < 16 ? 'L\'après-midi' : 'Tard : attention au coucher'), onInput: (v) => { Cf.drinkH = v; Cf.cursor = v + 1.5; recomputeCaf(); }, color: 'night' }),
       sliderRow({ label: 'Demi-vie', min: 3, max: 9, step: 0.25, value: Cf.halfLifeH, fmtv: (v) => `${f2(v)} h`, note: (v) => (v < 4 ? 'Élimination rapide' : v < 6 ? 'Valeur courante' : 'Élimination lente'), onInput: (v) => { Cf.halfLifeH = v; recomputeCaf(); } }),
     ];
     function recomputeCaf() { cs = caffeineSim({ ...Cf, bedH }); drawCaf(); }
@@ -465,7 +465,7 @@ export default {
         h('div', { class: 'sc-cafread__v' }, h('b', { class: 'num' }, String(Math.round(m))), h('small', null, ' mg dans ton sang')),
         h('p', { class: 'small muted' }, Cf.cursor < Cf.drinkH ? 'Rien encore.' : `${pct} % du pic : l'organisme élimine la caféine en continu (ordre 1), la moitié toutes les ${f1(Cf.halfLifeH)} h.`));
       cafSummary.replaceChildren(
-        h('div', { class: `sc-chip-big ${late ? 'sc-chip-big--warn' : 'sc-chip-big--ok'}` }, icon(late ? 'alert' : 'check-circle', { size: 20 }), h('div', null, h('b', null, `${Math.round(cs.atBed)} mg au coucher (${clock(cs.bedH)})`), h('small', null, late ? `Au-dessus du seuil de ${CAFFEINE.bedThresholdMg} mg : ça peut raccourcir ou fragmenter ton sommeil.` : `Sous le seuil de ${CAFFEINE.bedThresholdMg} mg : tu devrais pouvoir t'endormir sans gêne.`))),
+        h('div', { class: `sc-chip-big ${late ? 'sc-chip-big--warn' : 'sc-chip-big--ok'}` }, icon(late ? 'alert' : 'check-circle', { size: 20 }), h('div', null, h('b', null, `${Math.round(cs.atBed)} mg au coucher (${clock(cs.bedH)})`), h('small', null, late ? `Au-dessus du seuil de ${CAFFEINE.bedThresholdMg} mg : ça peut raccourcir ou fragmenter ton sommeil.` : `Sous le seuil de ${CAFFEINE.bedThresholdMg} mg : cette caféine devrait peu gêner ton endormissement.`))),
         h('div', { class: 'sc-chip-big' }, icon('clock', { size: 20 }), h('div', null, h('b', null, `Dernière prise de ${Cf.doseMg} mg avant ${clock(cs.cutoffH)}`), h('small', null, 'Pour rester sous le seuil au coucher (choix prudent de Kairos).'))),
         h('div', { class: 'sc-chip-big' }, icon('bolt', { size: 20 }), h('div', null, h('b', null, `Jusqu'à +${Math.round(cs.peakBoost)} points d'alerte`), h('small', null, 'Si tu es déjà un peu fatigué·e ; l\'effet est plus net quand la pression de sommeil est haute.'))));
       cafPlot.setAttribute('aria-label', `À ${clock(Cf.cursor)}, ${Math.round(m)} mg de caféine dans le sang. Pic ${Math.round(cs.peak)} mg vers ${clock(cs.peakH)}. ${Math.round(cs.atBed)} mg au coucher.`);

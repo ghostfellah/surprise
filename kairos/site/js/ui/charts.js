@@ -577,7 +577,7 @@ export function alertnessChart(canvas, options = {}) {
         g.save(); clipPlot(); g.strokeStyle = rgba(th.caffeine, 1); g.lineWidth = 1.7; g.setLineDash([6, 4]); g.lineCap = 'butt'; g.beginPath(); traceMonotone(g, C.xs, C.ys); g.stroke(); g.setLineDash([]); g.restore();
         g.font = `500 9.5px ${th.fontMono}`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = rgba(th.caffeine, .9);
         const tk = cafTicks.ticks.filter((v) => v <= cafTicks.max); const every = tk.length > 4 ? 2 : 1;
-        tk.forEach((v, i) => { if (i % every === 0 || i === tk.length - 1) g.fillText(String(v), x1 + 6, cs(v)); });
+        tk.forEach((v, i) => { if ((i % every === 0 || i === tk.length - 1) && cs(v) - y0 > 13) g.fillText(String(v), x1 + 6, cs(v)); }); // la graduation du haut céderait la place au libellé « mg »
         g.textBaseline = 'alphabetic'; g.fillText('mg', x1 + 6, y0 - 6);
       }
     }

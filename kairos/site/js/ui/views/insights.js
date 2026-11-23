@@ -163,7 +163,7 @@ export default {
             leg('tasks', 'Tâches', nT, R.tasks.total ? ` / ${R.tasks.total}` : '', R.tasks.total ? 'terminées · à finir cette semaine' : 'terminées cette semaine', null),
             leg('sleep', 'Sommeil', nS, '', `besoin ${durLabel(I.sleep.needH * 60)} par nuit`, delta(sleepDelta, ' h')))),
         h('div', { class: 'bl-rings' }, triRings(I),
-          h('div', { class: 'bl-rings__center' }, icon('flame', { size: 26, class: 'bl-flame' }), nStreak, h('span', { class: 'bl-rings__lbl' }, I.streak.days > 1 ? 'jours d\'affilée' : 'jour d\'affilée'))));
+          h('div', { class: 'bl-rings__center' }, icon('flame', { size: 26, class: 'bl-flame' }), nStreak, h('span', { class: 'bl-rings__lbl' }, I.streak.days > 1 ? 'jours de suite' : 'jour'))));
       animateNumber(nF, I.focus.min7, { duration: 1300, format: (v) => durLabel(v) });
       animateNumber(nT, R.tasks.value, { duration: 1100 });
       animateNumber(nS, I.sleep.avgH7 ?? 0, { duration: 1300, format: (v) => (I.sleep.avgH7 === null ? '—' : durLabel(v * 60)) });

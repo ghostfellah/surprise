@@ -123,7 +123,9 @@
 .tv-kpi:nth-child(2) .tv-kpi__v { background: linear-gradient(180deg, var(--sun-hot), var(--sun)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .tv-kpi--faint .tv-kpi__v { color: var(--text-3); text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, var(--text-3) 60%, transparent); }
 .tv-plan__grid { display: grid; gap: 16px; }
-@media (min-width: 980px) { .tv-plan__grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: start; } }
+.tv-chart-card { display: flex; flex-direction: column; }
+.tv-chart-card .tv-chart-wrap { margin-top: auto; margin-bottom: auto; }
+@media (min-width: 980px) { .tv-plan__grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: stretch; } }
 .tv-alt { display: flex; gap: 8px; align-items: flex-start; }
 .tv-alt svg { flex-shrink: 0; margin-top: 2px; }
 
