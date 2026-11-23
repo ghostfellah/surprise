@@ -1,0 +1,20 @@
+{
+  "schema": "kairos.proposal/1",
+  "id": "tsk_7b1d44e0",
+  "source": {
+    "agent": "veille-mails"
+  },
+  "kind": "task",
+  "payload": {
+    "title": "Répondre au devis du comptable",
+    "durMin": 20,
+    "load": 2,
+    "priority": 2,
+    "deadlineMs": 1795795200000,
+    "tags": [
+      "admin"
+    ]
+  },
+  "rationale": "Échéance trouvée dans un mail du 22 novembre.",
+  "dedupeKey": "devis-comptable"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "kairos.proposal/1",
+  "id": "evt_sans_droit1",
+  "source": {
+    "agent": "agent-curieux"
+  },
+  "kind": "event",
+  "payload": {
+    "title": "Réunion",
+    "startMs": 1795600800000,
+    "endMs": 1795604400000
+  }
+}

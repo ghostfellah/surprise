@@ -1,0 +1,18 @@
+{
+  "schema": "kairos.proposal/1",
+  "id": "evt_9f3a2c1b",
+  "source": {
+    "agent": "assistant-reunions",
+    "run": "run-2026-11-23-1"
+  },
+  "kind": "event",
+  "payload": {
+    "title": "Point produit avec Camille",
+    "startMs": 1795618800000,
+    "endMs": 1795621500000,
+    "location": "Visio"
+  },
+  "rationale": "Créneau commun avec Camille ; ton énergie est basse à ce moment-là, donc idéal pour une réunion.",
+  "dedupeKey": "point-produit-s48",
+  "confidence": 0.8
+}
