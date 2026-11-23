@@ -3,7 +3,7 @@
 // prochain bloc, fenêtres d'or, caféine, check-in, sommeil, sieste, tâches. Tout est dérivé de ctx.model() :
 // la vue ne calcule aucune physiologie, elle la raconte. Elle se rafraîchit à chaque changement d'état et à
 // chaque minute (ctx.subscribe) sans reconstruire le graphique ni rejouer les animations d'entrée.
-import { h, svg, icon, animateNumber, confetti, haptic, prefersReducedMotion, uniqueId } from '../dom.js';
+import { h, svg, icon, replaceChildren, animateNumber, confetti, haptic, prefersReducedMotion, uniqueId } from '../dom.js';
 import { alertnessChart, ringGauge } from '../charts.js';
 import { MIN, HOUR, DAY, startOfDay, addDays, fmtTime, fmtDuration, fmtDateFR, clamp } from '../../core/time.js';
 import { valueAt } from '../../core/model.js';
@@ -196,7 +196,7 @@ export default {
       const tone = today ? moodAt(m, n) : { title: 'Journée à venir', tone: 'sun', v: m.stats.peak.value };
       const value = today ? tone.v : m.stats.peak.value;
       hero.dataset.tone = tone.tone;
-      heroEyebrow.replaceChildren(h('span', { class: 'dot dot--sun dot--pulse' }), today ? `Maintenant · ${fmtTime(n)}` : `${dayOffset > 0 ? 'Demain' : 'Ce jour-là'} · pic prévu ${fmtTime(m.stats.peak.ms)}`);
+      replaceChildren(heroEyebrow, h('span', { class: 'dot dot--sun dot--pulse' }), today ? `Maintenant · ${fmtTime(n)}` : `${dayOffset > 0 ? 'Demain' : 'Ce jour-là'} · pic prévu ${fmtTime(m.stats.peak.ms)}`);
       heroTitle.textContent = today ? tone.title : (dayOffset > 0 ? 'Ce qui t\'attend' : 'Ce que le modèle prévoyait');
       const col = tone.tone === 'night' || tone.tone === 'dip' ? 'night' : tone.tone === 'coral' ? 'coral' : 'sun';
       const rv = clamp(Math.round(value), 0, 100);
@@ -206,16 +206,16 @@ export default {
       if (today) {
         const tr = trendAt(m, n), up = tr.dir === 'up', down = tr.dir === 'down';
         heroTrend.className = `td-trend td-trend--${tr.dir}`;
-        heroTrend.replaceChildren(icon(up ? 'arrow-up' : down ? 'arrow-down' : 'arrow-right', { size: 16, stroke: 2.2 }),
+        replaceChildren(heroTrend, icon(up ? 'arrow-up' : down ? 'arrow-down' : 'arrow-right', { size: 16, stroke: 2.2 }),
           h('span', null, up ? 'Ça monte' : down ? 'Ça descend' : 'Stable'), h('span', { class: 'td-trend__d num' }, `${tr.delta30 >= 0 ? '+' : '−'}${Math.abs(round(tr.delta30))} dans 30 min`));
         heroTrend.hidden = false;
       } else heroTrend.hidden = true;
-      heroPhrase.replaceChildren(...phrase(m));
+      replaceChildren(heroPhrase, ...phrase(m));
 
       // stats
       const st = m.stats, mk = (label, big, sub, cls) => h('div', { class: `stat td-stat ${cls || ''}` }, h('span', { class: 'stat__label' }, label), h('span', { class: 'stat__value num' }, big), h('span', { class: 'td-stat__sub num' }, sub));
       const gw = st.goldenWindows.filter((g) => g.endMs > n && g.startMs < dayStart() + DAY)[0];
-      heroStats.replaceChildren(
+      replaceChildren(heroStats, 
         mk('Pic', String(round(st.peak.value)), fmtTime(st.peak.ms), 'td-stat--sun'),
         mk('Creux', String(round(st.trough.value)), fmtTime(st.trough.ms), 'td-stat--dip'),
         mk('Prime time', gw ? fmtTime(gw.startMs) : '—', gw ? (gw.startMs <= n && isToday() ? 'en cours' : isToday() ? inLabel(gw.startMs - n) : `${round(gw.mean)}/100`) : 'rien à venir', 'td-stat--gold'));
@@ -227,7 +227,7 @@ export default {
         stops.push(m.asleep[i] ? `color-mix(in srgb, var(--night) 46%, transparent) ${p.toFixed(1)}%` : `color-mix(in oklab, var(--sun-hot) ${clamp(round(v * 1.05 - 8), 0, 100)}%, var(--dip)) ${p.toFixed(1)}%`);
       }
       ribbon.style.setProperty('--bar', `linear-gradient(90deg, ${stops.join(', ')})`);
-      ribbon.replaceChildren(h('span', { class: 'td-ribbon__bar' }),
+      replaceChildren(ribbon, h('span', { class: 'td-ribbon__bar' }),
         ...(today ? [h('span', { class: 'td-ribbon__now', style: { left: `${clamp(((n - d0) / DAY) * 100, 0, 100)}%` } })] : []),
         h('span', { class: 'td-ribbon__ticks', 'aria-hidden': 'true' }, ...['00', '06', '12', '18', '24'].map((x) => h('span', null, x))));
       ribbon.setAttribute('aria-label', `Ruban d'énergie de la journée : pic ${round(st.peak.value)} à ${fmtTime(st.peak.ms)}, creux ${round(st.trough.value)} à ${fmtTime(st.trough.ms)}`);
@@ -283,7 +283,7 @@ export default {
       cNext.classList.toggle('card--sun', !!bl);
       if (bl && task) {
         const mins = round((bl.endMs - bl.startMs) / MIN), left = cur ? round((bl.endMs - n) / MIN) : null;
-        cNext.replaceChildren(
+        replaceChildren(cNext, 
           head('target', cur ? 'En ce moment' : 'Prochain bloc', cur ? `Encore ${fmtDuration(left)}` : isToday() ? inLabel(bl.startMs - n) : fmtDateFR(bl.startMs, { short: true }), cur ? h('span', { class: 'badge badge--sun' }, h('span', { class: 'dot dot--pulse', style: { background: 'var(--sun-ink)' } }), 'en cours') : null),
           h('h4', { class: 'td-next__title' }, task.title),
           h('div', { class: 'td-next__meta' }, chipTime(`${fmtTime(bl.startMs)}–${fmtTime(bl.endMs)}`), h('span', { class: 'muted small' }, fmtDuration(mins)), loadDots(task.load), h('span', { class: 'small muted' }, LOAD_NAMES[task.load])),
@@ -294,7 +294,7 @@ export default {
         return;
       }
       const open = st.tasks.filter((t) => !t.done);
-      cNext.replaceChildren(head('target', 'Prochain bloc', 'Rien de planifié pour le moment'),
+      replaceChildren(cNext, head('target', 'Prochain bloc', 'Rien de planifié pour le moment'),
         h('div', { class: 'td-softempty' },
           h('p', { class: 'muted' }, open.length ? `Tu as ${open.length} ${plural(open.length, 'tâche')} à caser. Je les range là où ton cerveau est le meilleur.` : 'Dis-moi ce que tu as à faire : je trouverai pour chaque tâche l\'heure où tu seras le plus affûté·e.'),
           h('div', { class: 'row row--wrap' }, open.length
@@ -311,7 +311,7 @@ export default {
         ...list.map((g) => h('span', { class: `td-gold__seg${isToday() && n >= g.startMs && n < g.endMs ? ' is-live' : ''}`, style: { left: `${((g.startMs - d0) / DAY) * 100}%`, width: `${((g.endMs - g.startMs) / DAY) * 100}%` } })),
         isToday() ? h('span', { class: 'td-gold__now', style: { left: `${clamp(((n - d0) / DAY) * 100, 0, 100)}%` } }) : null,
         h('span', { class: 'td-gold__ticks' }, ...['0', '6', '12', '18', '24'].map((x) => h('span', null, x))));
-      cGold.replaceChildren(head('sparkle', 'Fenêtres d\'or', list.length ? 'Tes meilleures heures pour le travail exigeant' : 'Pas de pic net aujourd\'hui'), strip,
+      replaceChildren(cGold, head('sparkle', 'Fenêtres d\'or', list.length ? 'Tes meilleures heures pour le travail exigeant' : 'Pas de pic net aujourd\'hui'), strip,
         list.length ? h('ul', { class: 'td-gold__list' }, ...list.map((g) => {
           const live = isToday() && n >= g.startMs && n < g.endMs, past = isToday() && g.endMs <= n;
           return h('li', { class: `td-gold__row${live ? ' is-live' : ''}${past ? ' is-past' : ''}` },
@@ -331,7 +331,7 @@ export default {
       const past = cutoff != null && today && n > cutoff;
       const projected = today && bed ? m.stats.caffeineAtBedMg + caffeineAmount(80, (bed - n) / HOUR, rates()) : null;
       const quick = (d) => h('button', { class: 'chip td-drink', type: 'button', disabled: !today, onclick: () => addDrink(d) }, icon(d.kind === 'thé' ? 'leaf' : 'coffee', { size: 16 }), h('span', null, d.label), h('small', { class: 'num' }, `${d.mg} mg`));
-      cCaf.replaceChildren(
+      replaceChildren(cCaf, 
         head('coffee', 'Caféine', today ? 'Active dans ton sang maintenant' : 'Disponible pour aujourd\'hui'),
         h('div', { class: 'td-caf__top' }, cupSvg(clamp(active / 160, 0, 1)), h('div', { class: 'td-caf__big' }, cafNum, h('span', { class: 'td-caf__unit' }, 'mg')),
           h('div', { class: 'td-caf__cut' }, h('span', { class: 'eyebrow' }, 'Dernier café conseillé'), h('b', { class: `num ${past ? 't-coral' : 't-ok'}` }, cutoff != null ? `avant ${fmtTime(cutoff)}` : '—'))),
@@ -354,7 +354,7 @@ export default {
         const mm = ctx.model({ fromMs: d0 }), predicted = round(valueAt(mm.alert, mm, recent.tMs)), felt = round(checkinToAlert(recent.alertness)), diff = felt - predicted;
         res = { predicted, felt, diff, at: recent.tMs };
       }
-      cFeel.replaceChildren(
+      replaceChildren(cFeel, 
         head('heart', 'Comment te sens-tu ?', recent ? `Noté à ${fmtTime(recent.tMs)} · merci !` : 'Un tap : le modèle apprend de toi'),
         h('div', { class: 'td-feels', role: 'group', 'aria-label': 'Ton niveau d\'énergie ressenti, de 1 à 5' },
           ...FEELS.map((f) => h('button', { class: `td-feel${recent && recent.alertness === f.v ? ' is-on' : ''}${freshFeel === f.v ? ' is-fresh' : ''}`, type: 'button', 'aria-pressed': String(!!recent && recent.alertness === f.v), 'aria-label': `${f.v} sur 5 : ${f.l}`, disabled: !isToday(), onclick: () => logFeel(f.v) },
@@ -378,10 +378,10 @@ export default {
       const mains = m.episodes.filter((e) => !e.nap && (e.endMs - e.startMs) >= 3 * HOUR);
       const ep = mains.filter((e) => e.endMs > d0 && e.endMs <= (isToday() ? Math.max(n, d0 + 1) : d0 + DAY)).pop() || mains.filter((e) => e.endMs <= d0 + DAY).pop();
       const debt = m.stats.sleepDebtH;
-      if (!ep) { cSleep.replaceChildren(head('moon', 'Sommeil de cette nuit', 'Pas encore de nuit enregistrée'), h('p', { class: 'muted small' }, 'Saisis ta nuit pour que Kairos calcule ta dette et affine ta courbe.'), h('button', { class: 'btn btn--secondary', type: 'button', onclick: () => ctx.navigate('#/sleep') }, 'Saisir ma nuit', icon('arrow-right', { size: 16 }))); return; }
+      if (!ep) { replaceChildren(cSleep, head('moon', 'Sommeil de cette nuit', 'Pas encore de nuit enregistrée'), h('p', { class: 'muted small' }, 'Saisis ta nuit pour que Kairos calcule ta dette et affine ta courbe.'), h('button', { class: 'btn btn--secondary', type: 'button', onclick: () => ctx.navigate('#/sleep') }, 'Saisir ma nuit', icon('arrow-right', { size: 16 }))); return; }
       const dur = (ep.endMs - ep.startMs) / HOUR, frac = dur / needH, real = ep.src !== 'assumed';
       const log = st.sleeps.find((s) => !s.nap && s.wakeMs > ep.startMs && s.bedMs < ep.endMs), q = log && log.quality;
-      cSleep.replaceChildren(
+      replaceChildren(cSleep, 
         head('moon', 'Sommeil de cette nuit', real ? 'Saisi par toi' : 'Estimé d\'après tes horaires habituels'),
         h('div', { class: 'td-sleep' }, h('div', { class: 'td-sleep__ring' }, moonRing(frac, `${fmtDuration(round(dur * 60))} dormis pour un besoin de ${needH} heures`), h('div', { class: 'td-sleep__dur' }, h('b', { class: 'num' }, fmtDuration(round(dur * 60))), h('span', { class: 'tiny faint' }, `sur ${needH} h`))),
           h('div', { class: 'td-sleep__info stack stack--sm' },
@@ -395,11 +395,11 @@ export default {
       let nap = null;
       if (dayOffset >= 0) { try { nap = planNap({ model: m, nowMs: isToday() ? now() : dayStart() + 7 * HOUR }); } catch { nap = null; } }
       if (!nap) {
-        cNap.replaceChildren(head('zap', 'Sieste conseillée', dayOffset < 0 ? 'Jour passé' : 'Pas besoin pour l\'instant'),
+        replaceChildren(cNap, head('zap', 'Sieste conseillée', dayOffset < 0 ? 'Jour passé' : 'Pas besoin pour l\'instant'),
           h('p', { class: 'muted small' }, dayOffset < 0 ? 'On ne planifie pas de sieste dans le passé.' : 'Ton énergie tient bien et ta nuit approche : une sieste ne ferait que décaler ton coucher.'));
         return;
       }
-      cNap.replaceChildren(head('zap', 'Sieste conseillée', `${nap.durMin} min · ${isToday() ? inLabel(nap.startMs - now()) : fmtDateFR(nap.startMs, { short: true })}`),
+      replaceChildren(cNap, head('zap', 'Sieste conseillée', `${nap.durMin} min · ${isToday() ? inLabel(nap.startMs - now()) : fmtDateFR(nap.startMs, { short: true })}`),
         h('div', { class: 'td-nap__big' }, h('b', { class: 'num' }, fmtTime(nap.startMs)), h('span', { class: 'td-nap__dur' }, `→ ${fmtTime(nap.endMs)}`)),
         h('p', { class: 'td-nap__why small muted' }, nap.why),
         h('button', { class: 'btn btn--secondary btn--sm', type: 'button', onclick: () => addNap(nap) }, icon('calendar-check', { size: 16 }), 'Ajouter à l\'agenda'));
@@ -418,7 +418,7 @@ export default {
       const list = [...todayOpen.sort((a, b) => ((firstBlock.get(a.id) || { startMs: Infinity }).startMs - (firstBlock.get(b.id) || { startMs: Infinity }).startMs) || a.priority - b.priority), ...filler];
       const done = st.tasks.filter((t) => t.done && t.doneMs && t.doneMs >= d0 && t.doneMs < d1);
       const shown = list.slice(0, 7);
-      cTasks.replaceChildren(
+      replaceChildren(cTasks, 
         head('list', 'Tâches du jour', list.length ? `${list.length} à faire${done.length ? ` · ${done.length} déjà faite${done.length > 1 ? 's' : ''}` : ''}` : done.length ? 'Tout est fait, bravo' : 'Rien d\'urgent'),
         h('button', { class: 'td-addbar', type: 'button', onclick: () => ctx.openQuickAdd() }, icon('plus', { size: 18, stroke: 2.2 }), h('span', { class: 'grow td-addbar__txt' }, 'Ajouter une tâche… « Rapport 2h demain »'), h('span', { class: 'kbd hide-sm' }, 'N')),
         shown.length || done.length ? h('ul', { class: 'td-tasks' },
@@ -446,7 +446,7 @@ export default {
     function renderWelcome() {
       const st = ctx.state, empty = !st.sleeps.length && !st.checkins.length && !st.tasks.length && !st.caffeine.length;
       welcome.hidden = !empty; if (!empty) return;
-      welcome.replaceChildren(
+      replaceChildren(welcome, 
         h('div', { class: 'td-welcome__grid' }, welcomeArt(),
           h('div', { class: 'stack' },
             h('span', { class: 'eyebrow eyebrow--sun' }, 'Bienvenue'),

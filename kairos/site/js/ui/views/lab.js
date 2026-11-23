@@ -2,7 +2,7 @@
 // On manipule un scénario (nuit, caféine, sieste) ; le modèle est recalculé en direct avec buildModel({whatIf})
 // et dessiné par-dessus la référence (courbe fantôme). L'optimiseur pur de core/lab.js propose le meilleur plan.
 // Rien n'est enregistré tant que l'utilisateur n'appuie pas sur « Ajouter à mon agenda ».
-import { h, svg, icon, animateNumber, confetti, haptic, prefersReducedMotion, uniqueId, syncRange } from '../dom.js';
+import { h, svg, icon, replaceChildren, animateNumber, confetti, haptic, prefersReducedMotion, uniqueId, syncRange } from '../dom.js';
 import { alertnessChart, chartLayout } from '../charts.js';
 import { MIN, HOUR, startOfDay, addDays, fmtTime, fmtDuration, fmtDateFR, clamp, uid } from '../../core/time.js';
 import {
@@ -260,7 +260,7 @@ export default {
     let napBar = null;
 
     function renderRail() {
-      railTrack.replaceChildren(); pins.clear();
+      replaceChildren(railTrack); pins.clear();
       const d = dayMs(), [r0, r1] = rangeOf(d);
       const bar = (a, b, cls, label) => { const x0 = clamp(pct(a), 0, 100), x1 = clamp(pct(b), 0, 100); if (x1 - x0 < 0.3) return; railTrack.appendChild(h('span', { class: `lab-sleepbar ${cls}`, style: { left: `${x0}%`, width: `${x1 - x0}%` }, 'aria-hidden': 'true' }, label)); };
       if (sc.lastNight) bar(sc.lastNight.bedMs, sc.lastNight.wakeMs, '', 'Nuit');
@@ -313,7 +313,7 @@ export default {
 
     // -------------------------------------------------------------- liste des cafés
     function renderCafes() {
-      cafeList.replaceChildren();
+      replaceChildren(cafeList);
       if (!sc.caffeine.length) cafeList.appendChild(h('li', { class: 'lab-cafes__empty' }, h('span', { 'aria-hidden': 'true' }, '🫗'), 'Aucune caféine dans ce scénario. Ajoutes-en une, ou regarde ce que ça change sans.'));
       sc.caffeine.forEach((c, i) => {
         const d = dayMs();
@@ -433,7 +433,7 @@ export default {
     }
 
     function renderOpt() {
-      optHost.replaceChildren();
+      replaceChildren(optHost);
       if (!opt) return;
       const planned = sc.caffeine.filter((c) => c.planned);
       const items = [

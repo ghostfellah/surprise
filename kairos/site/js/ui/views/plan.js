@@ -468,7 +468,7 @@ export default {
       h('span', { class: 'pl-blk__grip', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'), h('i'), h('i'), h('i')),
       h('div', { class: 'pl-blk__main' },
         h('span', { class: 'pl-blk__title' }, done ? icon('check', { size: 12, stroke: 2.6 }) : null, title, part && part.parts > 1 ? h('em', { class: 'pl-blk__part num' }, ` ${part.part}/${part.parts}`) : null),
-        size !== 'xs' ? h('span', { class: 'pl-blk__time num' }, `${fmtTime(b.startMs)}–${fmtTime(b.endMs)}`, size === 'md' ? ` · ${fmtDuration(mins)}` : '') : null,
+        size !== 'xs' ? h('span', { class: 'pl-blk__time num' }, S.mode === 'week' ? (size === 'md' ? `${fmtTime(b.startMs)} · ${fmtDuration(mins)}` : fmtTime(b.startMs)) : `${fmtTime(b.startMs)}–${fmtTime(b.endMs)}${size === 'md' ? ` · ${fmtDuration(mins)}` : ''}`) : null,
         size === 'md' && m.alert >= 78 ? h('span', { class: 'pl-blk__peak' }, icon('bolt', { size: 11 }), 'pic') : null),
       size === 'md' ? h('span', { class: `pl-blk__fit pl-tone-${m.tone} num`, title: `Adéquation ${m.score} %` }, String(m.score)) : null,
       h('button', { class: 'pl-blk__lock', type: 'button', tabindex: -1, 'aria-label': b.locked ? 'Déverrouiller ce bloc' : 'Verrouiller ce bloc', 'aria-pressed': String(!!b.locked), onclick: (e) => { e.stopPropagation(); toggleLock(b); } }, icon(b.locked ? 'lock' : 'unlock', { size: 13, stroke: 2 })));
