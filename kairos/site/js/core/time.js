@@ -63,6 +63,8 @@ export function fmtDuration(minutes) {
 
 const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+// Abréviations usuelles (« janv. », « févr. », « sept. »…) : un simple slice(0, 4) donnerait « nove. ».
+const MOIS_COURTS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 export const JOURS_FR = JOURS;
 export const MOIS_FR = MOIS;
 
@@ -70,7 +72,7 @@ export const MOIS_FR = MOIS;
 export function fmtDateFR(ms, { year = false, short = false } = {}) {
   const d = new Date(ms);
   const j = short ? JOURS[d.getDay()].slice(0, 3) + '.' : JOURS[d.getDay()];
-  const mo = short ? MOIS[d.getMonth()].slice(0, 4) + (MOIS[d.getMonth()].length > 4 ? '.' : '') : MOIS[d.getMonth()];
+  const mo = short ? MOIS_COURTS[d.getMonth()] : MOIS[d.getMonth()];
   return `${j} ${d.getDate()} ${mo}${year ? ' ' + d.getFullYear() : ''}`;
 }
 
