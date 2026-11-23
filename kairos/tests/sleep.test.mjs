@@ -10,16 +10,6 @@ import { HOUR, DAY, MIN } from '../site/js/core/time.js';
 const profile = { usualWake: '07:00', usualBed: '23:00', sleepNeedH: 8, workDays: [1, 2, 3, 4, 5] };
 const at = (d, h, m = 0) => new Date(2026, 10, d, h, m).getTime();
 
-function nights(from, to, bedH, wakeH, { bedNext = false } = {}) {
-  const out = [];
-  for (let d = from; d <= to; d++) {
-    const bed = bedNext ? at(d + 1, bedH) : at(d, bedH);
-    out.push({ id: `n${d}`, bedMs: bedH >= 12 ? at(d - 1, bedH) : at(d, bedH), wakeMs: at(d, wakeH) });
-    void bed;
-  }
-  return out;
-}
-
 test('épisodes : nuits supposées conformes au profil, triées, sans chevauchement', () => {
   const eps = buildEpisodes({ sleeps: [], profile, fromMs: at(24, 0), toMs: at(27, 0) });
   assert.ok(eps.length >= 3);
