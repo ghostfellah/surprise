@@ -310,7 +310,7 @@ export default {
       kids.push(svg('path', { class: 'sc-fill', d: `${path(X, SY)}L${X[X.length - 1]} ${rS.y1}L${X[0]} ${rS.y1}Z`, fill: `url(#${ids}-s)` }));
       kids.push(svg('path', { class: 'sc-line sc-line--s', d: path(X, SY) }));
       // CBTmin repères
-      for (let t = Math.ceil(toy.t0 / 24 - 1) * 24 + (toy.cbt - wakeH); t <= toy.t1; t += 24) if (t >= toy.t0) { kids.push(svg('line', { class: 'sc-plot__cbt', x1: x(t), x2: x(t), y1: rc.y0, y2: rc.y1 })); kids.push(svg('text', { class: 'sc-plot__cbt-l', x: x(t) + 4, y: rc.y0 + 12 }, 'minimum de température')); }
+      for (let t = Math.ceil(toy.t0 / 24 - 1) * 24 + (toy.cbt - wakeH); t <= toy.t1; t += 24) if (t >= toy.t0) { kids.push(svg('line', { class: 'sc-plot__cbt', x1: x(t), x2: x(t), y1: rc.y0, y2: rc.y1 })); kids.push(svg('text', { class: 'sc-plot__cbt-l', x: x(t) + 4, y: rc.y1 - 5 }, w > 420 ? 'minimum de température' : 'CBTmin')); }
       // Alerte : segments éveillés
       let seg = []; const segs = [];
       toy.A.forEach((v, i) => { if (v === null) { if (seg.length) segs.push(seg); seg = []; } else seg.push(i); }); if (seg.length) segs.push(seg);
