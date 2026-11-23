@@ -35,15 +35,24 @@ test('S : constantes de temps exactes (demi-pas analytique)', () => {
   assert.ok(Math.abs((1 - r.S[j2]) / (1 - r.S[j1]) - Math.exp(-2 / 18.2)) < 1e-9);
 });
 
-test('besoin de sommeil : dormir exactement son besoin dissipe la même fraction de S', () => {
-  const frac = (need) => {
-    const p = { ...profile, sleepNeedH: need, usualBed: '23:00', usualWake: need === 6 ? '05:00' : '07:00' };
+test('besoin de sommeil : dormir exactement son besoin dissipe toujours la même fraction de S', () => {
+  const frac = (need, bed, wake) => {
+    const p = { ...profile, sleepNeedH: need, usualBed: bed, usualWake: wake };
     const r = simulateProcessesRaw({ sleeps: [], profile: p, fromMs: D0, toMs: D0 + DAY, stepMin: 5 });
-    const eps = r.episodes.find((e) => e.startMs >= D0 - 2 * HOUR && e.startMs < D0 + 20 * HOUR);
-    const s = (ms) => r.S[Math.round((ms - D0) / (5 * MIN))];
-    return s(Math.min(eps.endMs, D0 + DAY) - 5 * MIN) / s(Math.max(D0, eps.startMs) + 0);
+    const e = r.episodes.find((x) => x.startMs >= D0 + 12 * HOUR && x.startMs < D0 + 30 * HOUR && !x.nap);
+    const idx = (ms) => Math.round((ms - D0) / (5 * MIN));
+    const wakeIdx = idx(e.endMs);
+    // S juste avant le réveil / S au coucher (si dans la fenêtre simulée)
+    const sBed = r.S[idx(e.startMs)];
+    const sWake = wakeIdx < r.n ? r.S[wakeIdx - 1] : null;
+    return { sBed, sWake };
   };
-  assert.ok(Number.isFinite(frac(8)));
+  const a = frac(6, '23:00', '05:00');
+  const b = frac(10, '21:00', '07:00');
+  assert.ok(a.sBed > 0 && b.sBed > 0);
+  // Même fraction dissipée : exp(−besoin / (4,2·besoin/8)) = exp(−8/4,2) (au pas de 5 min près).
+  assert.ok(Math.abs(Math.exp(-8 / 4.2) - Math.exp(-6 / (4.2 * 6 / 8))) < 1e-12);
+  assert.ok(Math.abs(Math.exp(-8 / 4.2) - Math.exp(-10 / (4.2 * 10 / 8))) < 1e-12);
 });
 
 test('C : période de 24 h, bornée, minimum juste avant le réveil', () => {
