@@ -130,7 +130,7 @@ function scoreRing({ value, label, color = 'var(--night)', size = 132 }) {
   const num = h('b', { class: 'sl-ring__num' }, '0');
   const el = h('div', { class: 'sl-ring', style: { width: `${size}px`, height: `${size}px`, '--rc': color } },
     svg('svg', { viewBox: '0 0 140 140', 'aria-hidden': 'true' },
-      svg('defs', null, svg('linearGradient', { id, x1: '0', y1: '0', x2: '1', y2: '1' }, svg('stop', { offset: '0', 'stop-color': 'var(--night-deep)' }), svg('stop', { offset: '1', 'stop-color': color }))),
+      svg('defs', null, svg('linearGradient', { id, x1: '0', y1: '0', x2: '1', y2: '1' }, svg('stop', { offset: '0', style: 'stop-color: var(--night-deep)' }), svg('stop', { offset: '1', style: `stop-color: ${color}` }))),
       svg('circle', { cx: 70, cy: 70, r, fill: 'none', 'stroke-width': 11, class: 'sl-ring__track' }), arc),
     h('div', { class: 'sl-ring__center' }, num, label ? h('span', { class: 'sl-ring__label' }, label) : null));
   const set = (v) => {
@@ -279,7 +279,7 @@ export default {
       const glyph = (name) => { const g = svg('g', { class: 'sl-handle__glyph', transform: 'translate(-8 -8) scale(.667)', stroke: 'currentColor', fill: 'none', 'stroke-width': 2.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }); g.innerHTML = ICONS[name]; return g; };
       bed.appendChild(glyph('moon')); sun.appendChild(glyph('sun'));
       const dial = svg('svg', { class: 'sl-dial__svg', viewBox: '0 0 240 240', role: 'group', 'aria-label': 'Cadran de 24 heures : glisse la lune pour le coucher et le soleil pour le réveil' },
-        svg('defs', null, svg('linearGradient', { id: gid, x1: '0', y1: '0', x2: '1', y2: '1' }, svg('stop', { offset: '0', 'stop-color': 'var(--night-deep)' }), svg('stop', { offset: '1', 'stop-color': 'var(--night)' }))),
+        svg('defs', null, svg('linearGradient', { id: gid, x1: '0', y1: '0', x2: '1', y2: '1' }, svg('stop', { offset: '0', style: 'stop-color: var(--night-deep)' }), svg('stop', { offset: '1', style: 'stop-color: var(--night)' }))),
         svg('circle', { cx: C0, cy: C0, r: 100, class: 'sl-dial__disc' }), ...ticks, ...labels, track, sleepArc, cyc, bed, sun);
 
       const durNum = h('b', { class: 'sl-dial__dur' }, '0 h');
@@ -564,7 +564,7 @@ export default {
           svg('rect', { class: 'sl-press__nap', x: x(napPlan.startMs), width: Math.max(4, x(napPlan.endMs) - x(napPlan.startMs)), y: T, height: H - B - T, rx: 4 }),
           svg('text', { class: 'sl-axis sl-axis--nap', x: x(napPlan.startMs) + 2, y: T + 10 }, 'sieste')) : null;
         const el = svg('svg', { class: 'sl-press__svg', viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'img', 'aria-label': `Pression de sommeil sur 24 heures : ${Math.round(nowS * 100)} % maintenant, ${slope >= 0 ? 'en hausse' : 'en baisse'}.` },
-          svg('defs', null, svg('linearGradient', { id: idG, x1: '0', y1: '0', x2: '0', y2: '1' }, svg('stop', { offset: '0', 'stop-color': 'var(--night)', 'stop-opacity': '.42' }), svg('stop', { offset: '1', 'stop-color': 'var(--night)', 'stop-opacity': '0' }))),
+          svg('defs', null, svg('linearGradient', { id: idG, x1: '0', y1: '0', x2: '0', y2: '1' }, svg('stop', { offset: '0', style: 'stop-color: var(--night); stop-opacity: .42' }), svg('stop', { offset: '1', style: 'stop-color: var(--night); stop-opacity: 0' }))),
           ...gridLines,
           ...sleepBands.map(([a, b]) => svg('rect', { class: 'sl-press__sleep', x: x(t0 + a * model.stepMin * MIN), width: Math.max(1, x(t0 + (b + 1) * model.stepMin * MIN) - x(t0 + a * model.stepMin * MIN)), y: T, height: H - B - T })),
           svg('path', { d: area, fill: `url(#${idG})`, class: 'sl-press__area' }),
