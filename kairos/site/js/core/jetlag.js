@@ -26,7 +26,8 @@ export const JET = Object.freeze({
   preGainFactor: 0.75,  // part du rythme normal atteinte à la maison
   doneThresholdH: 0.5,  // en dessous : « calé »
   maxDays: 14,
-  maxSleepOffsetH: 2.5, // écart maximal du créneau de sommeil conseillé par rapport à l'habitude
+  sleepOffsetBounds: { avance: [-1, 1.5], retard: [-1, 2.5] }, // écart borné du créneau de sommeil conseillé vs habitude (h)
+  naturalFloor: 0.25,   // part du rythme atteinte même sans fenêtre de lumière idéale (jour/nuit locaux, repas, horaires)
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -227,8 +228,10 @@ export function planJetlag({ originTz, destTz, departMs, arriveMs, profile = {} 
     const cbt = zonedTime(originTz, ...ymd(originTz, dayMs), phiBefore);
     const w = lightWindows(best.dir, cbt);
     const dayEnd = dayMs + 26 * HOUR;
-    const seek = overlapRange(w.seek, dayMs, dayEnd);
-    const avoid = overlapRange(w.avoid, dayMs, dayEnd);
+    // La lumière ne se cherche qu'éveillé : on découpe les fenêtres dans la journée éveillée.
+    const awakeLo = wake - DAY;
+    const seek = [-1, 0, 1].map((n) => overlapRange({ start: w.seek.start + n * DAY, end: w.seek.end + n * DAY }, Math.max(dayMs, awakeLo), Math.min(dayEnd - 2 * HOUR, bed))).find(Boolean) || null;
+    const avoid = [-1, 0, 1].map((n) => overlapRange({ start: w.avoid.start + n * DAY, end: w.avoid.end + n * DAY }, Math.max(dayMs, awakeLo), Math.min(dayEnd - 2 * HOUR, bed))).find(Boolean) || null;
     const tipLight = best.dir === 'avance'
       ? 'Sors à la lumière naturelle dans la demi-heure qui suit ton réveil et baisse les lumières le soir.'
       : 'Profite de la lumière en fin d\'après-midi et en début de soirée ; évite de te lever trop tôt.';
@@ -275,7 +278,8 @@ export function planJetlag({ originTz, destTz, departMs, arriveMs, profile = {} 
     // Position du CBTmin du corps (heure murale de destination) : cible + R (avance restante) ou − R (retard restant).
     const phiH = wrap24(cbtH + (best.dir === 'avance' ? R : -R));
     const cbt = zonedTime(destTz, p.y, p.mo, p.d, phiH);
-    const off = clamp(wrap12(phiH - cbtH), -JET.maxSleepOffsetH, JET.maxSleepOffsetH);
+    const [offLo, offHi] = JET.sleepOffsetBounds[best.dir];
+    const off = clamp(wrap12(phiH - cbtH), offLo, offHi);
     const { bed, wake } = sleepFor(destTz, dayMs, off);
     const awakeFrom = wake - DAY; // réveil du matin de ce jour (même créneau que la nuit conseillée)
     const awakeTo = bed;
@@ -288,7 +292,7 @@ export function planJetlag({ originTz, destTz, departMs, arriveMs, profile = {} 
     let eff = 0;
     for (const s of seek) eff += prcIntegral(sign, cbt, s.start, s.end); // la PRC est périodique (24 h)
     eff = clamp(eff / REF[sign], 0, 1);
-    const gain = Math.min(R, rate * eff);
+    const gain = Math.min(R, rate * Math.max(eff, JET.naturalFloor));
     const Rnext = Math.max(0, R - gain);
     adapted = Rnext <= JET.doneThresholdH;
 
