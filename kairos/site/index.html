@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kairos — l'emploi du temps de ton cerveau</title>
+  <meta name="description" content="Kairos prédit ton énergie (rythme circadien, pression de sommeil, caféine) et place chaque tâche là où ton cerveau est le meilleur. 100 % local, hors-ligne, sans compte.">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#060910" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f7f1e5" media="(prefers-color-scheme: light)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Kairos">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="modulepreload" href="js/ui/app.js">
+  <script>
+    // Applique le thème choisi avant le premier rendu (évite le flash clair/sombre).
+    try { var t = localStorage.getItem('kairos.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="app" class="app"></div>
+  <div class="splash" id="splash" aria-hidden="true">
+    <svg class="splash__mark" viewBox="0 0 64 64" fill="none" style="color:var(--text)">
+      <defs><linearGradient id="sp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe190"/><stop offset=".55" stop-color="#f7b93e"/><stop offset="1" stop-color="#e9822a"/></linearGradient></defs>
+      <circle cx="32" cy="32" r="29.5" stroke="url(#sp)" stroke-width="1.6" stroke-dasharray=".8 3.6" stroke-linecap="round" opacity=".7"/>
+      <path d="M23 17v30M24 35l13-14M29 33l12 14" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="42.5" cy="16.5" r="5.4" fill="url(#sp)"/>
+    </svg>
+  </div>
+  <noscript>
+    <div style="position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px;background:#060910;color:#f0ebdd;font:16px/1.6 system-ui,sans-serif;text-align:center">
+      <p style="max-width:34ch">Kairos a besoin de JavaScript pour calculer ton rythme d'énergie. Active-le dans ton navigateur et recharge la page : tout reste sur ton appareil, rien n'est envoyé.</p>
+    </div>
+  </noscript>
+  <script type="module" src="js/ui/app.js"></script>
+</body>
+</html>

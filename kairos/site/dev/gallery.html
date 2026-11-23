@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kairos — galerie de développement</title>
+  <link rel="stylesheet" href="../css/app.css">
+  <style>
+    body { background: #000; }
+    .scope { position: relative; padding: 20px 16px 48px; background: radial-gradient(900px 500px at 10% -5%, var(--atmo-1), transparent 60%), radial-gradient(800px 600px at 100% 100%, var(--atmo-2), transparent 60%), var(--bg); color: var(--text); overflow: hidden; }
+    .scope__aurora { position: absolute; inset: 0; pointer-events: none; }
+    .scope__aurora i { position: absolute; width: 70%; aspect-ratio: 1; border-radius: 50%; opacity: calc(var(--aurora-k) * .8); }
+    .scope__aurora i:nth-child(1) { left: -20%; top: -30%; background: radial-gradient(closest-side, var(--ga), transparent 72%); }
+    .scope__aurora i:nth-child(2) { right: -25%; top: 10%; background: radial-gradient(closest-side, var(--gb), transparent 72%); }
+    .scope__aurora i:nth-child(3) { left: 10%; bottom: -40%; background: radial-gradient(closest-side, var(--gc), transparent 72%); }
+    .scope > .inner { position: relative; max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
+    .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+    .icons div { display: grid; justify-items: center; gap: 6px; padding: 10px 4px; border-radius: 12px; background: var(--surface-hi); font: 500 10px var(--font-mono); color: var(--text-3); }
+    .icons svg { color: var(--text); }
+    .demo-nav { position: static !important; width: 100%; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+import { h, icon, iconNames, syncRange, fmt } from '../js/ui/dom.js';
+import * as C from '../js/ui/charts.js';
+import { MIN, HOUR, DAY, startOfDay } from '../js/core/time.js';
+
+// ---------- Données synthétiques (courbe circadienne fabriquée à la main) ----------
+const gauss = (x, m, s) => Math.exp(-0.5 * ((x - m) / s) ** 2);
+const sig = (x) => 1 / (1 + Math.exp(-x));
+function makeModel({ coffees = [[8.25, 80], [13.67, 80]], shift = 0, wake = 7, bed = 23 } = {}) {
+  const t0 = startOfDay(Date.now()), step = 5, n = 289, alert = [], base = [], caf = [], asleep = [];
+  for (let i = 0; i < n; i++) {
+    const hr = (i * step) / 60, sl = hr < wake || hr >= bed;
+    let b = 52 + 24 * gauss(hr, 10.4, 1.9) + 19 * gauss(hr, 18.3, 2.2) - 24 * gauss(hr, 14.6, 1.3) - 28 * gauss(hr, wake + .4, .8) - 34 * sig((hr - 21.8) / 1.1) + shift * gauss(hr, 15, 3);
+    if (sl) b = 7 + 3 * Math.sin(hr * 1.3);
+    let mg = 0; for (const [td, d] of coffees) if (hr >= td) mg += d * Math.pow(.5, (hr - td) / 5);
+    const boost = sl ? 0 : Math.min(14, mg * .1);
+    base.push(Math.max(0, Math.min(100, b))); alert.push(Math.max(0, Math.min(100, b + boost))); caf.push(mg); asleep.push(sl);
+  }
+  const at = (hh) => t0 + hh * HOUR;
+  return { t0, stepMin: step, n, alert, alertBase: base, caffeineMg: caf, asleep, S: [], C: [],
+    zones: [
+      { kind: 'sleep', startMs: t0, endMs: at(wake), label: 'Sommeil' }, { kind: 'sleep', startMs: at(bed), endMs: t0 + DAY, label: 'Sommeil' },
+      { kind: 'golden', startMs: at(9.6), endMs: at(11.9), label: 'Fenêtre d\'or' }, { kind: 'golden', startMs: at(17.3), endMs: at(19.2), label: 'Fenêtre d\'or' },
+      { kind: 'dip', startMs: at(13.8), endMs: at(15.4), label: 'Creux' }, { kind: 'caffeine-cutoff', startMs: at(15.2), endMs: at(15.2), label: 'Dernière caféine' },
+      { kind: 'winddown', startMs: at(21.4), endMs: at(23), label: 'Décompression' }],
+    stats: {} };
+}
+const model = makeModel(), ghost = makeModel({ coffees: [[8.25, 80]], shift: -9 });
+const t0 = model.t0, at = (hh) => t0 + hh * HOUR;
+const tasks = [{ id: 'a', title: 'Rédiger la note de synthèse', load: 5 }, { id: 'b', title: 'Relire le contrat', load: 4 }, { id: 'c', title: 'Mails & admin', load: 1 }, { id: 'd', title: 'Concevoir l\'architecture', load: 4 }, { id: 'e', title: 'Appels', load: 2 }];
+const blocks = [{ taskId: 'a', startMs: at(9.6), endMs: at(11.3), score: 90, reason: 'Pic d\'alerte (84/100), idéal pour du travail profond' }, { taskId: 'b', startMs: at(11.4), endMs: at(12.2), score: 70, reason: 'Fin de matinée, encore performant' }, { taskId: 'c', startMs: at(14), endMs: at(14.9), score: 80, reason: 'Creux post-prandial : tâche légère' }, { taskId: 'e', startMs: at(15.5), endMs: at(16), score: 60, reason: 'Retour progressif' }, { taskId: 'd', startMs: at(17.4), endMs: at(18.9), score: 88, reason: 'Second pic de la journée' }];
+const events = [{ id: 'e1', title: 'Point d\'équipe', startMs: at(9), endMs: at(9.5), source: 'manual' }, { id: 'e2', title: 'Déjeuner avec Paul', startMs: at(12.5), endMs: at(13.6), source: 'manual' }, { id: 'e3', title: 'RDV', startMs: at(16.1), endMs: at(17), source: 'manual' }];
+const nowMs = at(14.33);
+
+const blocksW = ['Aperçu'];
+
+// ---------- Construction d'une portée (thème) ----------
+function scope(theme, label) {
+  const root = h('section', { class: 'scope', 'data-theme': theme, style: { '--ga': theme === 'dark' ? '#ffc65c' : '#ffd9a0', '--gb': theme === 'dark' ? '#35c6bd' : '#b6ece6', '--gc': theme === 'dark' ? '#6a3fba' : '#ffc0a0' } });
+  const inner = h('div', { class: 'inner' });
+  root.append(h('div', { class: 'scope__aurora', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), inner);
+  const charts = [];
+  const cv = (cls) => h('canvas', { class: cls || '' });
+  const chart = (c) => h('div', { class: 'chart' }, c);
+
+  // — Héros : jauge + courbe
+  const hero = cv(); const ring = cv(); const spark = cv();
+  const heroCard = h('div', { class: 'card card--hero stack' },
+    h('div', { class: 'row row--between row--top' }, h('div', null, h('div', { class: 'hero__eyebrow' }, `Maintenant · ${label}`), h('h2', { class: 'hero__title' }, 'Tu es au ', h('em', { style: { color: 'var(--accent-text)' } }, 'meilleur'), ' de ta journée')), h('div', { class: 'chip chip--sun chip--glow' }, h('span', { class: 'dot dot--sun dot--pulse' }), 'Fenêtre d\'or dans 2 h 40')),
+    chart(hero),
+    h('div', { class: 'chart__legend' }, h('span', { class: 'legend-item' }, 'Alerte prédite'), h('span', { class: 'legend-item legend-item--dash', style: { '--c': 'var(--caffeine)' } }, 'Caféine (mg)'), h('span', { class: 'legend-item legend-item--dash', style: { '--c': 'var(--text-2)' } }, 'Sans 2e café'), ...[1, 2, 3, 4, 5].map((l) => h('span', { class: 'legend-item legend-item--block', style: { '--c': `var(--load-${l})` } }, `charge ${l}`))),
+    h('div', { class: 'row row--wrap' }, h('button', { class: 'btn btn--primary' }, icon('coffee'), 'Café maintenant'), h('button', { class: 'btn' }, icon('sparkle'), 'Planifier'), h('button', { class: 'btn btn--ghost', onclick: () => { toggled = !toggled; heroChart.update({ model: toggled ? makeModel({ coffees: [[8.25, 80], [13.67, 80], [16.5, 120]] }) : model }); } }, icon('refresh'), 'Tester le morphing')));
+  inner.append(heroCard);
+  let toggled = false;
+  const heroChart = C.alertnessChart(hero, { model, compareModel: ghost, nowMs, blocks, events, tasks, showCaffeine: true, showSleep: true, showZones: true }); charts.push(heroChart);
+
+  // — Stats + jauge
+  const ringCard = h('div', { class: 'card card--night' }, h('div', { class: 'card__head' }, h('h3', { class: 'card__title' }, 'Énergie')), h('div', { style: { maxWidth: '260px', margin: '0 auto' } }, h('div', { class: 'chart' }, ring)));
+  charts.push(C.ringGauge(ring, { value: 78, label: 'Alerte', sub: 'pic dans 2 h', unit: '/100' }));
+  const sparkCard = h('div', { class: 'card stack' }, h('div', { class: 'stat' }, h('span', { class: 'stat__label' }, 'Dette de sommeil'), h('span', { class: 'stat__value' }, '2,4', h('span', { class: 'stat__unit' }, 'h'))), h('span', { class: 'stat__delta stat__delta--down' }, '▲ +0,6 h vs hier'), h('div', { class: 'chart' }, spark));
+  charts.push(C.sparkline(spark, { values: [1.1, 1.4, 1.2, 1.9, 2.3, 1.8, 2.4, 2.1, 2.9, 2.4], color: 'night' }));
+  const big = h('div', { class: 'card card--sun' }, h('div', { class: 'stat stat--xl' }, h('span', { class: 'stat__label' }, 'Prochain pic'), h('span', { class: 'hero-number' }, '10', h('span', { class: 'hero-number__unit' }, 'h20'))), h('p', { class: 'muted small' }, 'Réserve-le au travail profond.'));
+  inner.append(h('div', { class: 'grid' }, ringCard, big, sparkCard));
+
+  // — Heatmap, barres, calibration
+  const hm = cv(), bar = cv(), cal = cv();
+  const days = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'], hrs = Array.from({ length: 24 }, (_, i) => (i % 3 === 0 ? String(i).padStart(2, '0') : ''));
+  const vals = days.map((_, d) => Array.from({ length: 24 }, (_, hr) => { const v = 50 + 24 * gauss(hr, 10.4 + d * .15, 1.9) + 19 * gauss(hr, 18.3, 2.2) - 24 * gauss(hr, 14.6, 1.3) - 40 * (hr < 7 || hr >= 23 ? 1 : 0) + (d > 4 ? 6 : 0); return Math.max(5, Math.min(100, v)); }));
+  inner.append(h('div', { class: 'grid grid--2' },
+    h('div', { class: 'card' }, h('div', { class: 'card__head' }, h('h3', { class: 'card__title' }, 'Rythme de la semaine'), h('span', { class: 'badge badge--night' }, 'moyenne')), h('div', { class: 'chart' }, hm)),
+    h('div', { class: 'card' }, h('div', { class: 'card__head' }, h('h3', { class: 'card__title' }, 'Sommeil · 14 nuits'), h('span', { class: 'badge badge--ok' }, '7 h 12')), h('div', { class: 'chart' }, bar))));
+  charts.push(C.heatmap(hm, { rows: days, cols: hrs, values: vals, ramp: 'sun', legend: true, tip: (r, c) => `${days[r]} ${String(c).padStart(2, '0')}h` }));
+  charts.push(C.barChart(bar, { values: [7.2, 6.4, 8.1, 7.7, 5.9, 6.8, 8.4, 7.1, 6.6, 7.9, 8.0, 5.5, 7.3, 7.6], labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'], color: 'night', target: 8, targetLabel: 'besoin 8 h', highlight: 13, format: (v) => `${String(v).replace('.', ',')} h`, height: 210 }));
+  const pts = Array.from({ length: 30 }, (_, i) => { const p = 20 + (i * 2.7) % 75; return { predicted: p, felt: Math.max(0, Math.min(100, p + 6 + Math.sin(i * 2.1) * 16)), tMs: at(8 + (i % 12)) }; });
+  inner.append(h('div', { class: 'grid grid--2' },
+    h('div', { class: 'card' }, h('div', { class: 'card__head' }, h('h3', { class: 'card__title' }, 'Prédit vs ressenti')), h('div', { class: 'chart' }, cal)),
+    h('div', { class: 'card stack' }, h('h3', { class: 'card__title' }, 'Composants'),
+      h('div', { class: 'row row--wrap' }, h('button', { class: 'btn btn--primary' }, icon('plus'), 'Primaire'), h('button', { class: 'btn' }, 'Secondaire'), h('button', { class: 'btn btn--ghost' }, 'Fantôme'), h('button', { class: 'btn btn--danger' }, icon('trash', { size: 18 }), 'Supprimer')),
+      h('div', { class: 'row row--wrap' }, h('span', { class: 'chip' }, 'Neutre'), h('span', { class: 'chip chip--sun chip--glow' }, 'Or'), h('span', { class: 'chip chip--night' }, 'Nuit'), h('span', { class: 'chip chip--coral' }, 'Alerte'), h('button', { class: 'chip', 'aria-pressed': 'true' }, 'Actif'), h('span', { class: 'badge badge--sun' }, '3'), h('span', { class: 'kbd' }, '⌘'), h('span', { class: 'kbd' }, 'K')),
+      h('div', { class: 'field' }, h('span', { class: 'label' }, 'Titre'), h('input', { class: 'input', value: 'Rédiger le rapport' })),
+      h('div', { class: 'field' }, h('span', { class: 'label' }, 'Charge cognitive'), h('input', { class: 'range', type: 'range', min: 1, max: 5, value: 4 })),
+      h('label', { class: 'switch' }, h('input', { type: 'checkbox', checked: true }), h('span', { class: 'switch__ui' }), 'Découpable'),
+      h('div', { class: 'seg' }, h('button', { class: 'seg__btn', 'aria-pressed': 'true' }, 'Jour'), h('button', { class: 'seg__btn' }, 'Semaine'), h('button', { class: 'seg__btn' }, 'Mois')),
+      h('div', { class: 'progress', style: { '--pct': 64 } }, h('div', { class: 'progress__bar' })),
+      h('div', { class: 'skeleton skeleton--line' }), h('div', { class: 'banner banner--warn' }, icon('alert', { size: 18 }), 'Dette de sommeil élevée : prévois une sieste de 20 min.'))));
+  charts.push(C.calibrationChart(cal, { points: pts }));
+
+  // — Liste + tableau + état vide
+  inner.append(h('div', { class: 'grid grid--2' },
+    h('div', { class: 'card' }, h('div', { class: 'card__head' }, h('h3', { class: 'card__title' }, 'Prochains blocs')), h('div', { class: 'list list--divided' }, ...blocks.slice(0, 4).map((b) => { const t = tasks.find((x) => x.id === b.taskId); return h('a', { class: 'list__item', href: '#' }, h('span', { class: 'list__lead', style: { color: `var(--load-${t.load})`, background: `color-mix(in srgb, var(--load-${t.load}) 16%, transparent)` } }, icon('bolt', { size: 18 })), h('span', { class: 'list__main' }, h('span', { class: 'list__title' }, t.title), h('span', { class: 'list__meta' }, b.reason)), h('span', { class: 'list__trail num' }, fmt.fmtTime(b.startMs))); }))),
+    h('div', { class: 'card empty' }, h('div', { class: 'empty__art' }), h('h3', { class: 'empty__title' }, 'Rien de prévu'), h('p', { class: 'empty__text' }, 'Ajoute une tâche : Kairos la place au meilleur moment.'), h('button', { class: 'btn btn--primary' }, icon('plus'), 'Ajouter une tâche'))));
+  inner.append(h('div', { class: 'card' }, h('div', { class: 'card__head' }, h('h3', { class: 'card__title' }, `Icônes (${iconNames.length})`)), h('div', { class: 'icons' }, ...iconNames.map((n) => h('div', null, icon(n, { size: 24 }), n)))));
+  document.querySelectorAll('input.range').forEach(syncRange);
+  return { root, charts };
+}
+
+const root = document.getElementById('root');
+const a = scope('dark', 'sombre'), b = scope('light', 'clair');
+const params = new URLSearchParams(location.search), only = params.get('theme');
+if (only !== 'light') root.append(a.root);
+if (only !== 'dark') root.append(b.root);
+window.__charts = [...a.charts, ...b.charts];
+</script>
+</body>
+</html>

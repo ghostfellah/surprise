@@ -1,6 +1,6 @@
 // Assemble les versions autonomes (hébergement statique) dans dist/
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync, rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -46,5 +46,12 @@ execFileSync(process.execPath, [resolve(root, 'btc/scripts/assemble.mjs')], { st
 mkdirSync(resolve(root, 'dist/btc'), { recursive: true });
 writeFileSync(resolve(root, 'dist/btc/index.html'), page('btc/site/app.html', 'Détection des creux et des sommets locaux du bitcoin, avec backtest honnête et journal de sats.', '<script>window.BTC_LIVE = true;</script>\n'));
 copyFileSync(resolve(root, 'btc/site/btc.json'), resolve(root, 'dist/btc/btc.json'));
+
+// Kairos, dans /kairos/ (PWA multi-fichiers : on copie le dossier tel quel, sans la page de développement)
+rmSync(resolve(root, 'dist/kairos'), { recursive: true, force: true });
+cpSync(resolve(root, 'kairos/site'), resolve(root, 'dist/kairos'), { recursive: true, filter: (src) => !src.includes('/kairos/site/dev') });
+
+// Liste de pré-cache et version du service worker, calculées sur la copie publiée (le dépôt reste propre)
+execFileSync(process.execPath, [resolve(root, 'kairos/scripts/precache.mjs'), resolve(root, 'dist/kairos')], { stdio: 'inherit' });
 
 console.log('dist/ prêt');
