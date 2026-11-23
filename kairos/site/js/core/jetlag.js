@@ -272,8 +272,6 @@ export function planJetlag({ originTz, destTz, departMs, arriveMs, profile = {} 
   for (let k = 0; k < JET.maxDays && !adapted; k++) {
     const dayMs = addZonedDays(destTz, arrMid, k);
     const p = zonedParts(destTz, dayMs + 12 * HOUR);
-    const phi = wrap24(cbtH - shiftSign * -R * 1); // placeholder remplacé juste en dessous
-    void phi;
     // Position du CBTmin du corps (heure murale de destination) : cible + R (avance restante) ou − R (retard restant).
     const phiH = wrap24(cbtH + (best.dir === 'avance' ? R : -R));
     const cbt = zonedTime(destTz, p.y, p.mo, p.d, phiH);
