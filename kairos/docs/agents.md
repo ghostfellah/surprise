@@ -5,6 +5,35 @@
 > (`/kairos/agents.html`). Ce qui n'existe **pas encore** : le serveur MCP, la boîte de réception dans l'interface,
 > l'authentification par jetons et le relais chiffré. Chaque section dit de quel côté elle se situe.
 
+## Aperçu : à quoi ça ressemble
+
+> Les captures ci-dessous montrent l'application réelle avec les **données de démonstration** (fictives), mardi 24 novembre, 10 h 20.
+> La seule image qui ne vient pas de l'application est la **maquette** de la boîte de réception, étiquetée comme telle : cette interface n'est pas construite.
+
+### Là où atterrit ce que tu acceptes (application réelle)
+
+Une proposition acceptée devient une tâche ou un événement ordinaire. Le planificateur la place ensuite là où ton énergie est la meilleure ; `Aujourd'hui` te dit quel pic viser.
+
+![Planning de la semaine : blocs de tâches colorés par charge, courbe d'énergie en fond, +18 % d'alignement](img/planning.webp)
+
+![Aujourd'hui : énergie 65, prochain pic à 12:30, conseillé pour la refonte du module de facturation](img/aujourdhui-plan.webp)
+
+### La démonstration en ligne des outils (application réelle)
+
+La page `/kairos/agents.html` appelle les vrais outils dans ton navigateur. Ici : un agent de réunions demande des créneaux, puis on valide une proposition piégée.
+
+![Page de démonstration : titre « Les agents proposent. Toi, tu disposes. » et les quatre temps du principe](img/agents-accueil.webp)
+
+![Appel de l'outil kairos_find_slots avec les droits read:busy et read:energy, et la réponse JSON](img/agents-outil.webp)
+
+![Validation d'une proposition hostile : acceptée, mais texte nettoyé et aucune consigne exécutée](img/agents-validation.webp)
+
+### La boîte de réception (maquette, pas encore construite)
+
+Voilà comment les propositions s'afficheraient : qui propose, pourquoi, l'énergie à ce créneau, accepter ou refuser, et à droite les droits de chaque agent avec un bouton pour les révoquer. La source est dans `maquettes/boite-de-reception.html`.
+
+![Maquette de la boîte de réception : trois propositions d'agents et le panneau des droits](img/maquette-boite-de-reception.webp)
+
 ## 1. L'idée
 
 Des agents planifient déjà des vies : ils calent des réunions, trient des mails, lisent une montre. Ils ignorent tous la
@@ -181,3 +210,21 @@ Aucune adoption n'est garantie. Ce qui rend un outil facile à adopter pour des 
 catalogue MCP propre, une documentation courte avec des exemples copiables, une démonstration en ligne qui marche sans
 compte, et un cas d'usage net (« les agents de planification n'ont pas de contexte biologique »). Tout cela est déjà
 prêt côté contenu ; il reste à écrire le serveur.
+
+## 14. Notes pour plus tard : hébergement sur ton VPS
+
+*À noter : tu disposes d'un VPS qui pourrait héberger Kairos. Rien n'est fait pour l'instant. Voici ce qu'il permettrait, du plus simple au plus engageant, et ce qu'il faudra trancher.*
+
+| Usage | Ce que ça demande | Effort |
+| --- | --- | --- |
+| **1. Héberger l'application** | Copier le contenu de `dist/kairos/` derrière un serveur web, avec HTTPS et un nom de domaine. Le service worker et l'installation en application exigent HTTPS (hors `localhost`). Mêmes fichiers qu'aujourd'hui, aucun code à écrire, et on ne dépend plus de GitHub Pages. | Faible |
+| **2. Serveur MCP accessible depuis le cloud** | Le serveur MCP de la v2 exposé en HTTP, derrière TLS et des jetons à capacité (§4). Limite : l'état vit dans ton navigateur, donc sans relais ce serveur ne voit rien. | Moyen |
+| **3. Relais chiffré (v3)** | Un petit service qui ne stocke que du chiffré (§9) et fait le pont entre l'application et les agents du cloud. C'est le seul usage qui débloque vraiment les agents distants. | Élevé |
+
+À décider avant l'usage 3 :
+- **Ce que le serveur voit.** Même chiffré, il voit des métadonnées (adresses IP, tailles, horaires) : ce sont des données personnelles, donc à mentionner et à limiter. Aucune donnée en clair, journaux minimaux, durée de conservation courte.
+- **Exploitation.** Sauvegardes, mises à jour de sécurité, limites de débit, surveillance, et qui est responsable en cas d'incident.
+- **Secrets.** Jamais de jeton ni de clé dans le dépôt ; ils vivent sur le serveur.
+- **Périmètre.** Ouvert à toi seul, ou à d'autres personnes ? Cela change la responsabilité et les obligations légales.
+
+Informations utiles à réunir le moment venu : le système et les ressources du VPS, si un domaine et HTTPS sont déjà disponibles, ce qui y tourne déjà, et qui y a accès.

@@ -6,6 +6,28 @@ Kairos prédit ton énergie heure par heure (rythme circadien, pression de somme
 
 Tout se passe sur ton appareil : pas de compte, pas de serveur, pas de dépendance, pas de clé d'API. L'application fonctionne hors-ligne une fois chargée et s'installe comme une application (PWA).
 
+## Aperçu
+
+Captures de l'application réelle avec les données de démonstration (fictives), mardi 24 novembre, 10 h 20. Elles se régénèrent avec `scripts/captures-docs.cjs`.
+
+![Aujourd'hui : énergie en direct, prochain pic et courbe de la journée](docs/img/aujourdhui.webp)
+
+![Planning de la semaine : blocs placés selon l'énergie prédite, +18 % d'alignement](docs/img/planning.webp)
+
+| Labo | Sommeil |
+| --- | --- |
+| ![Labo : simulateur « et si ? » avec optimiseur](docs/img/labo.webp) | ![Sommeil : dette, coucher idéal, régularité](docs/img/sommeil.webp) |
+| **Voyage** | **Bilan** |
+| ![Voyage : globe jour/nuit et plan anti-décalage horaire](docs/img/voyage.webp) | ![Bilan : constats chiffrés et calibration du modèle](docs/img/bilan.webp) |
+
+Sur mobile, et en thème clair :
+
+| Aujourd'hui | Planning | Labo | Thème clair |
+| --- | --- | --- | --- |
+| ![](docs/img/mobile-aujourdhui.webp) | ![](docs/img/mobile-planning.webp) | ![](docs/img/mobile-labo.webp) | ![](docs/img/aujourdhui-clair.webp) |
+
+Les captures des écrans Réglages et La science sont dans `docs/img/`. Celles des agents sont dans `docs/agents.md`.
+
 ## Ce que fait l'application
 
 | Écran | Rôle |
@@ -54,6 +76,8 @@ Pour développer sans build : `cd kairos/site && python3 -m http.server 8000`, p
 | --- | --- |
 | `ARCHITECTURE.md` | Contrat entre les modules : modèle de données, signatures, conventions |
 | `docs/science.md` | Le modèle, ses paramètres, ses sources, ses limites |
+| `docs/img/` | Captures d'écran de la documentation (WebP) |
+| `docs/maquettes/` | Maquette de la boîte de réception des agents (non construite) |
 | `docs/etude.md` | Étude de positionnement et paysage concurrentiel |
 | `docs/agents.md`, `docs/agents/` | Protocole pour les agents : schémas JSON, catalogue MCP, exemples |
 | `scripts/agent-schema.mjs` | Régénère les schémas des agents depuis le code (un test vérifie qu'ils sont à jour) |
@@ -64,6 +88,11 @@ Pour développer sans build : `cd kairos/site && python3 -m http.server 8000`, p
 | `site/css/` | Système de design et styles de chaque vue |
 | `site/sw.js`, `site/precache.json` | Service worker et liste de fichiers pré-cachés |
 | `tests/` | Tests unitaires |
+
+## Pistes
+
+- **Hébergement sur un VPS** (noté pour plus tard) : application statique, serveur MCP ou relais chiffré. Voir `docs/agents.md`, section 14.
+- **Import Apple Santé** (export XML) et **connexion à l'agenda** : envisagés, pas encore construits.
 
 ## Données et vie privée
 
