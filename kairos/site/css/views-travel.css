@@ -199,7 +199,7 @@
 .tv-cbt { position: absolute; top: 0; bottom: 0; width: 0; z-index: 3; border-left: 1.5px dashed color-mix(in srgb, var(--text) 70%, transparent); }
 .tv-cbt i { position: absolute; top: -1px; left: -5px; width: 9px; height: 9px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 2px var(--bg); }
 .tv-axis { position: relative; height: 14px; }
-.tv-axis__t { position: absolute; top: 0; transform: translateX(-50%); font: 500 10px/1 var(--font-mono); color: var(--text-3); }
+.tv-axis__t { white-space: nowrap; position: absolute; top: 0; transform: translateX(-50%); font: 500 10px/1 var(--font-mono); color: var(--text-3); }
 .tv-axis__t:first-child { transform: none; } .tv-axis__t:last-child { transform: translateX(-100%); }
 .tv-chips { display: flex; flex-wrap: wrap; gap: 6px 8px; }
 .tv-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 11px; border-radius: var(--r-pill); font: 500 var(--t-xs)/1 var(--font-mono); letter-spacing: -.01em; border: 1px solid transparent; }

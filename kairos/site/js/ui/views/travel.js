@@ -770,10 +770,10 @@ export default {
     let chartW = 0;
     function residualChart(p) {
       const days = p.days, W = chartW = Math.max(290, Math.min(760, Math.round(planHost.clientWidth >= 980 ? (planHost.clientWidth - 16) * 0.574 - 40 : planHost.clientWidth - 40))), Ht = 220, L = 34, Rr = 16, T = 26, B = 36;
-      const pts = [{ label: 'Aujourd\'hui', v: p.phaseShiftH }];
+      const pts = [{ label: 'Auj.', v: p.phaseShiftH }];
       let bi = 0, di = 1;
       for (const d of days) {
-        const short = d.phase === 'avant' ? `J−${p.preDays - bi++}` : d.phase === 'vol' ? 'Vol' : d.phase === 'arrivée' ? 'Arrivée' : `J${++di}`;
+        const short = d.phase === 'avant' ? `J−${p.preDays - bi++}` : d.phase === 'vol' ? 'Vol' : d.phase === 'arrivée' ? 'Arr.' : `J${++di}`;
         pts.push({ label: short, v: d.residualH, day: d });
       }
       const n = pts.length, max = Math.max(1, Math.ceil(Math.max(...pts.map((q) => q.v)) / 2) * 2);
@@ -793,7 +793,7 @@ export default {
           svg('linearGradient', { id: `${gid}-l`, x1: '0', y1: '0', x2: '1', y2: '0' }, svg('stop', { offset: '0', 'stop-color': 'var(--sun-hot)' }), svg('stop', { offset: '.55', 'stop-color': 'var(--sun)' }), svg('stop', { offset: '1', 'stop-color': 'var(--night)' }))),
         ...ticks.map((v) => svg('g', { class: 'tv-chart__grid' }, svg('line', { x1: L, x2: W - Rr, y1: y(v), y2: y(v) }), svg('text', { x: L - 8, y: y(v) + 4, 'text-anchor': 'end' }, `${v} h`))),
         svg('line', { class: 'tv-chart__done', x1: L, x2: W - Rr, y1: doneY, y2: doneY }),
-        svg('text', { class: 'tv-chart__done-l', x: W - Rr - 2, y: doneY - 6, 'text-anchor': 'end' }, 'calé'),
+        svg('text', { class: 'tv-chart__done-l', x: L + 6, y: doneY - 6, 'text-anchor': 'start' }, 'calé'),
         svg('path', { class: 'tv-chart__area', d: area, fill: `url(#${gid}-a)` }),
         svg('path', { class: 'tv-chart__glow', d, pathLength: '1', stroke: `url(#${gid}-l)` }),
         svg('path', { class: 'tv-chart__line', d, pathLength: '1', stroke: `url(#${gid}-l)` }),
